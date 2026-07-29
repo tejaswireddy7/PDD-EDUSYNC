@@ -9,7 +9,7 @@ import {
   ScrollView,
   Pressable,
 } from "react-native";
-import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useDashboardStore, SurveyAnswers } from "../../lib/store";
 
@@ -18,35 +18,129 @@ interface SurveyModalProps {
   isResurvey?: boolean;
 }
 
+const CONNECTING_QUESTIONS = {
+  Frontend: {
+    knowledgeOptions: [
+      { id: "html_css", label: "HTML5/CSS3 Layouts (Flexbox, Grid)" },
+      { id: "js_basics", label: "JavaScript fundamentals & ES6" },
+      { id: "react_basics", label: "React basics (components, state, props)" }
+    ],
+    masterOptions: [
+      { id: "state_management", label: "State Management (Redux/Zustand)" },
+      { id: "ssr_nextjs", label: "Next.js & Server Components" },
+      { id: "tailwind_styling", label: "Tailwind CSS & Styling systems" },
+      { id: "performance", label: "Performance & Core Web Vitals" }
+    ]
+  },
+  Backend: {
+    knowledgeOptions: [
+      { id: "node_basics", label: "Node.js runtime & npm package basics" },
+      { id: "express_apis", label: "REST APIs & Express routing" },
+      { id: "basic_sql", label: "Relational databases & SQL queries" }
+    ],
+    masterOptions: [
+      { id: "db_prisma", label: "Database relations & Prisma ORM" },
+      { id: "docker", label: "Docker containerization & Kubernetes" },
+      { id: "microservices", label: "Java Spring Boot Microservices" },
+      { id: "caching", label: "Redis Caching & Queue servers" }
+    ]
+  },
+  Mobile: {
+    knowledgeOptions: [
+      { id: "react_native_basics", label: "React Native UI Components" },
+      { id: "expo_basics", label: "Expo framework CLI & SDKs" },
+      { id: "mobile_flexbox", label: "Flexbox layout scaling rules" }
+    ],
+    masterOptions: [
+      { id: "navigation", label: "Advanced React Navigation (Stacks, Tabs)" },
+      { id: "hardware_apis", label: "Hardware APIs (GPS, Camera, Sensors)" },
+      { id: "native_bridges", label: "Kotlin & Swift Native Bridges" },
+      { id: "deployment", label: "App Store & Play Store deployment" }
+    ]
+  },
+  AI: {
+    knowledgeOptions: [
+      { id: "python_basics", label: "Python language structure & modules" },
+      { id: "pandas_numpy", label: "Pandas & Numpy data preprocessing" },
+      { id: "basic_stats", label: "Probability & basic statistics math" }
+    ],
+    masterOptions: [
+      { id: "pytorch", label: "Deep Learning (Neural Networks, PyTorch)" },
+      { id: "transformers_nlp", label: "Natural Language Processing & LLMs" },
+      { id: "mlops", label: "MLOps pipelines & AI model deployment" },
+      { id: "llm_finetuning", label: "Fine-tuning & Retrieval (RAG)" }
+    ]
+  }
+};
+
 export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
   const store = useDashboardStore();
   
+  // Multi-step state
+  const [step, setStep] = useState<number>(1);
+
   // Selection states
   const [domain, setDomain] = useState<"Frontend" | "Backend" | "Mobile" | "AI">("Mobile");
   const [level, setLevel] = useState<"Beginner" | "Intermediate" | "Advanced">("Beginner");
   const [hours, setHours] = useState<number>(5);
+  const [existingKnowledge, setExistingKnowledge] = useState<string[]>([]);
+  const [targetGoal, setTargetGoal] = useState<string>("");
+
+  const handleDomainChange = (selectedDomain: "Frontend" | "Backend" | "Mobile" | "AI") => {
+    setDomain(selectedDomain);
+    setExistingKnowledge([]);
+    setTargetGoal("");
+  };
+
+  const handleToggleKnowledge = (id: string) => {
+    setExistingKnowledge((prev) => 
+      prev.includes(id) ? prev.filter((k) => k !== id) : [...prev, id]
+    );
+  };
 
   const handleSubmit = () => {
     const answers: SurveyAnswers = {
       focusDomain: domain,
       proficiency: level,
-      learningHours: hours
+      learningHours: hours,
+      existingKnowledge,
+      targetLearningGoal: targetGoal || undefined
     };
     store.submitSurvey(answers);
+    setStep(1);
   };
 
   const handleDismiss = () => {
     if (isResurvey) {
       store.skipResurvey();
     } else {
-      // Submit with current default selections so dashboard loads immediately
+      // Submit with current selections
       store.submitSurvey({
         focusDomain: domain,
         proficiency: level,
         learningHours: hours,
+        existingKnowledge,
+        targetLearningGoal: targetGoal || undefined
       });
     }
+    setStep(1);
   };
+
+  const handleNext = () => {
+    if (step < 3) {
+      setStep(step + 1);
+    } else {
+      handleSubmit();
+    }
+  };
+
+  const handleBack = () => {
+    if (step > 1) {
+      setStep(step - 1);
+    }
+  };
+
+  const currentQuestions = CONNECTING_QUESTIONS[domain];
 
   return (
     <Modal
@@ -67,126 +161,201 @@ export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
             <View style={styles.sparkleRow}>
               <Feather name="star" size={20} color="#ffffff" />
               <Text style={styles.headerSubtitle}>
-                {isResurvey ? "Weekly Check-In" : "Personalize Your Path"}
+                {isResurvey ? "Weekly Check-In" : `Step ${step} of 3`}
               </Text>
             </View>
             <Text style={styles.headerTitle}>
-              {isResurvey ? "Re-evaluate Your Learning Goals" : "Welcome to EduSync!"}
+              {isResurvey ? "Re-evaluate Your Learning Goals" : step === 1 ? "Customize Your Pathway" : step === 2 ? "Your Knowledge & Target" : "Configure Time Commitment"}
             </Text>
             <Text style={styles.headerDesc}>
               {isResurvey 
                 ? "Let's update your focus to optimize your daily AI recommendation feeds."
-                : "Answer 3 quick questions to build your personalized AI learning pipeline."}
+                : step === 1 ? "Tell us your primary engineering domain and coding experience level."
+                : step === 2 ? `Help us personalize suggestions based on your existing ${domain} skills.`
+                : "Decide how much time you'd like to devote to these lessons."}
             </Text>
           </LinearGradient>
 
           <ScrollView style={styles.scrollBody} showsVerticalScrollIndicator={false}>
-            {/* Question 1: Domain Focus */}
-            <View style={styles.questionSection}>
-              <Text style={styles.questionTitle}>1. What is your primary learning focus?</Text>
-              <View style={styles.optionsGrid}>
-                {[
-                  { id: "Frontend", label: "Frontend Dev", icon: "monitor" },
-                  { id: "Backend", label: "Backend Systems", icon: "database" },
-                  { id: "Mobile", label: "Mobile Apps", icon: "smartphone" },
-                  { id: "AI", label: "AI & Data Science", icon: "cpu" }
-                ].map((item) => {
-                  const isSelected = domain === item.id;
-                  return (
-                    <TouchableOpacity
-                      key={item.id}
-                      activeOpacity={0.8}
-                      onPress={() => setDomain(item.id as any)}
-                      style={[styles.optionCard, isSelected && styles.optionCardSelected]}
-                    >
-                      <Feather 
-                        name={item.icon as any} 
-                        size={20} 
-                        color={isSelected ? "#6366f1" : "#64748b"} 
-                        style={styles.optionIcon} 
-                      />
-                      <Text style={[styles.optionLabel, isSelected && styles.optionLabelSelected]}>
-                        {item.label}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
+            {step === 1 && (
+              <>
+                {/* Question 1: Domain Focus */}
+                <View style={styles.questionSection}>
+                  <Text style={styles.questionTitle}>1. What is your primary learning focus?</Text>
+                  <View style={styles.optionsGrid}>
+                    {[
+                      { id: "Frontend", label: "Frontend Dev", icon: "monitor" },
+                      { id: "Backend", label: "Backend Systems", icon: "database" },
+                      { id: "Mobile", label: "Mobile Apps", icon: "smartphone" },
+                      { id: "AI", label: "AI & Data Science", icon: "cpu" }
+                    ].map((item) => {
+                      const isSelected = domain === item.id;
+                      return (
+                        <TouchableOpacity
+                          key={item.id}
+                          activeOpacity={0.8}
+                          onPress={() => handleDomainChange(item.id as any)}
+                          style={[styles.optionCard, isSelected && styles.optionCardSelected]}
+                        >
+                          <Feather 
+                            name={item.icon as any} 
+                            size={18} 
+                            color={isSelected ? "#6366f1" : "#64748b"} 
+                            style={styles.optionIcon} 
+                          />
+                          <Text style={[styles.optionLabel, isSelected && styles.optionLabelSelected]}>
+                            {item.label}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
 
-            {/* Question 2: Proficiency */}
-            <View style={styles.questionSection}>
-              <Text style={styles.questionTitle}>2. What is your current technical proficiency?</Text>
-              <View style={styles.tierContainer}>
-                {[
-                  { id: "Beginner", label: "Beginner", desc: "No coding experience" },
-                  { id: "Intermediate", label: "Intermediate", desc: "Know coding basics" },
-                  { id: "Advanced", label: "Advanced", desc: "Building architectures" }
-                ].map((item) => {
-                  const isSelected = level === item.id;
-                  return (
-                    <TouchableOpacity
-                      key={item.id}
-                      activeOpacity={0.8}
-                      onPress={() => setLevel(item.id as any)}
-                      style={[styles.tierCard, isSelected && styles.tierCardSelected]}
-                    >
-                      <View style={[styles.radioDot, isSelected && styles.radioDotSelected]} />
-                      <View style={styles.tierTextColumn}>
-                        <Text style={[styles.tierLabel, isSelected && styles.tierLabelSelected]}>
-                          {item.label}
-                        </Text>
-                        <Text style={styles.tierDesc}>{item.desc}</Text>
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
+                {/* Question 2: Proficiency */}
+                <View style={styles.questionSection}>
+                  <Text style={styles.questionTitle}>2. What is your current technical level?</Text>
+                  <View style={styles.tierContainer}>
+                    {[
+                      { id: "Beginner", label: "Beginner", desc: "Starting out, no experience" },
+                      { id: "Intermediate", label: "Intermediate", desc: "Worked on projects, know core syntax" },
+                      { id: "Advanced", label: "Advanced", desc: "Senior developer building architectures" }
+                    ].map((item) => {
+                      const isSelected = level === item.id;
+                      return (
+                        <TouchableOpacity
+                          key={item.id}
+                          activeOpacity={0.8}
+                          onPress={() => setLevel(item.id as any)}
+                          style={[styles.tierCard, isSelected && styles.tierCardSelected]}
+                        >
+                          <View style={[styles.radioDot, isSelected && styles.radioDotSelected]} />
+                          <View style={styles.tierTextColumn}>
+                            <Text style={[styles.tierLabel, isSelected && styles.tierLabelSelected]}>
+                              {item.label}
+                            </Text>
+                            <Text style={styles.tierDesc}>{item.desc}</Text>
+                          </View>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+              </>
+            )}
 
-            {/* Question 3: Time Commitment */}
-            <View style={styles.questionSection}>
-              <Text style={styles.questionTitle}>3. How many hours can you dedicate weekly?</Text>
-              <View style={styles.hoursRow}>
-                {[
-                  { val: 2, label: "2 Hrs / wk" },
-                  { val: 5, label: "5 Hrs / wk" },
-                  { val: 10, label: "10+ Hrs / wk" }
-                ].map((item) => {
-                  const isSelected = hours === item.val;
-                  return (
-                    <TouchableOpacity
-                      key={item.val}
-                      activeOpacity={0.8}
-                      onPress={() => setHours(item.val)}
-                      style={[styles.hourPill, isSelected && styles.hourPillSelected]}
-                    >
-                      <Text style={[styles.hourText, isSelected && styles.hourTextSelected]}>
-                        {item.label}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
+            {step === 2 && (
+              <>
+                {/* Dynamic Question: Existing Knowledge (Checkboxes) */}
+                <View style={styles.questionSection}>
+                  <Text style={styles.questionTitle}>What do you already know in {domain}?</Text>
+                  <View style={styles.tierContainer}>
+                    {currentQuestions.knowledgeOptions.map((item) => {
+                      const isChecked = existingKnowledge.includes(item.id);
+                      return (
+                        <TouchableOpacity
+                          key={item.id}
+                          activeOpacity={0.8}
+                          onPress={() => handleToggleKnowledge(item.id)}
+                          style={[styles.tierCard, isChecked && styles.tierCardSelected]}
+                        >
+                          <View style={[styles.checkbox, isChecked && styles.checkboxSelected]}>
+                            {isChecked && <Feather name="check" size={10} color="#ffffff" />}
+                          </View>
+                          <View style={styles.tierTextColumn}>
+                            <Text style={[styles.tierLabel, isChecked && styles.tierLabelSelected]}>
+                              {item.label}
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+
+                {/* Dynamic Question: Goal Topic to master (Radio choices) */}
+                <View style={styles.questionSection}>
+                  <Text style={styles.questionTitle}>What specific topic do you want to learn next?</Text>
+                  <View style={styles.tierContainer}>
+                    {currentQuestions.masterOptions.map((item) => {
+                      const isSelected = targetGoal === item.id;
+                      return (
+                        <TouchableOpacity
+                          key={item.id}
+                          activeOpacity={0.8}
+                          onPress={() => setTargetGoal(item.id)}
+                          style={[styles.tierCard, isSelected && styles.tierCardSelected]}
+                        >
+                          <View style={[styles.radioDot, isSelected && styles.radioDotSelected]} />
+                          <View style={styles.tierTextColumn}>
+                            <Text style={[styles.tierLabel, isSelected && styles.tierLabelSelected]}>
+                              {item.label}
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+              </>
+            )}
+
+            {step === 3 && (
+              <>
+                {/* Question 3: Time Commitment */}
+                <View style={styles.questionSection}>
+                  <Text style={styles.questionTitle}>How many hours can you dedicate weekly?</Text>
+                  <View style={styles.hoursRow}>
+                    {[
+                      { val: 2, label: "2 Hrs / wk" },
+                      { val: 5, label: "5 Hrs / wk" },
+                      { val: 10, label: "10+ Hrs / wk" }
+                    ].map((item) => {
+                      const isSelected = hours === item.val;
+                      return (
+                        <TouchableOpacity
+                          key={item.val}
+                          activeOpacity={0.8}
+                          onPress={() => setHours(item.val)}
+                          style={[styles.hourPill, isSelected && styles.hourPillSelected]}
+                        >
+                          <Text style={[styles.hourText, isSelected && styles.hourTextSelected]}>
+                            {item.label}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+              </>
+            )}
           </ScrollView>
 
           {/* Action Row */}
           <View style={styles.footerRow}>
-            {isResurvey && (
+            {step > 1 ? (
+              <TouchableOpacity 
+                activeOpacity={0.8} 
+                onPress={handleBack} 
+                style={styles.backButton}
+              >
+                <Feather name="arrow-left" size={14} color="#64748b" style={{ marginRight: 4 }} />
+                <Text style={styles.backText}>Back</Text>
+              </TouchableOpacity>
+            ) : isResurvey ? (
               <TouchableOpacity 
                 activeOpacity={0.8} 
                 onPress={store.skipResurvey} 
                 style={styles.skipButton}
               >
-                <Text style={styles.skipText}>Skip for now</Text>
+                <Text style={styles.skipText}>Skip</Text>
               </TouchableOpacity>
-            )}
+            ) : null}
             
             <TouchableOpacity 
               activeOpacity={0.85} 
-              onPress={handleSubmit} 
-              style={[styles.submitButton, !isResurvey && { width: "100%" }]}
+              onPress={handleNext} 
+              style={[styles.submitButton, (step === 1 && !isResurvey) && { width: "100%", flex: 1 }]}
             >
               <LinearGradient
                 colors={["#8b5cf6", "#6366f1"]}
@@ -195,9 +364,9 @@ export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
                 style={styles.gradientSubmit}
               >
                 <Text style={styles.submitText}>
-                  {isResurvey ? "Apply Settings" : "Start Learning"}
+                  {step === 3 ? (isResurvey ? "Apply Settings" : "Start Learning") : "Continue"}
                 </Text>
-                <Feather name="arrow-right" size={16} color="#ffffff" />
+                <Feather name={step === 3 ? "check" : "arrow-right"} size={16} color="#ffffff" />
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -210,7 +379,7 @@ export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(15, 23, 42, 0.6)", // Slate-900 back-tint
+    backgroundColor: "rgba(15, 23, 42, 0.6)",
     justifyContent: "center",
     alignItems: "center",
     padding: 16,
@@ -252,15 +421,15 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     color: "#ffffff",
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: "800",
     marginBottom: 8,
-    lineHeight: 28,
+    lineHeight: 26,
   },
   headerDesc: {
     color: "rgba(255, 255, 255, 0.85)",
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 12,
+    lineHeight: 17,
   },
   scrollBody: {
     padding: 24,
@@ -269,7 +438,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   questionTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "700",
     color: "#0f172a",
     marginBottom: 12,
@@ -281,7 +450,7 @@ const styles = StyleSheet.create({
   },
   optionCard: {
     flex: 1,
-    minWidth: 100,
+    minWidth: 120,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#f8fafc",
@@ -299,7 +468,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   optionLabel: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "600",
     color: "#475569",
   },
@@ -334,9 +503,25 @@ const styles = StyleSheet.create({
     borderColor: "#6366f1",
     backgroundColor: "#6366f1",
   },
-  tierTextColumn: {},
+  checkbox: {
+    width: 14,
+    height: 14,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: "#94a3b8",
+    marginRight: 12,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  checkboxSelected: {
+    borderColor: "#6366f1",
+    backgroundColor: "#6366f1",
+  },
+  tierTextColumn: {
+    flex: 1,
+  },
   tierLabel: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: "700",
     color: "#1e293b",
   },
@@ -344,7 +529,7 @@ const styles = StyleSheet.create({
     color: "#4f46e5",
   },
   tierDesc: {
-    fontSize: 11,
+    fontSize: 10,
     color: "#64748b",
     marginTop: 2,
   },
@@ -366,7 +551,7 @@ const styles = StyleSheet.create({
     borderColor: "#6366f1",
   },
   hourText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: "600",
     color: "#475569",
   },
@@ -392,11 +577,25 @@ const styles = StyleSheet.create({
   },
   skipText: {
     color: "#475569",
-    fontSize: 14,
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  backButton: {
+    flex: 1,
+    height: 52,
+    borderRadius: 16,
+    backgroundColor: "#f1f5f9",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  backText: {
+    color: "#475569",
+    fontSize: 13,
     fontWeight: "600",
   },
   submitButton: {
-    flex: 1.8,
+    flex: 2,
     borderRadius: 16,
     overflow: "hidden",
   },
@@ -409,7 +608,7 @@ const styles = StyleSheet.create({
   },
   submitText: {
     color: "#ffffff",
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "700",
   },
 });

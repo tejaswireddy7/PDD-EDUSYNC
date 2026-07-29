@@ -384,18 +384,33 @@ export async function fetchDBContacts(focusDomain: string): Promise<DBContact[]>
       .eq("focus_domain", focusDomain);
 
     if (error) throw error;
-    if (data && data.length > 0) return data as DBContact[];
+    if (data && data.length > 0) {
+      return data.map((c: any) => {
+        let anonName = c.name;
+        let anonInitials = c.initials;
+        if (c.role.toLowerCase().includes("peer") || c.role.toLowerCase().includes("expert") || c.role.toLowerCase().includes("intern") || c.role.toLowerCase().includes("enthusiast")) {
+          const numId = c.id.replace(/[^0-9]/g, "") || "48";
+          anonName = `Anonymous ${c.role.includes("Expert") ? "Expert" : "Peer"} #${numId}`;
+          anonInitials = c.role.includes("Expert") ? "AE" : "AP";
+        }
+        return {
+          ...c,
+          name: anonName,
+          initials: anonInitials
+        };
+      }) as DBContact[];
+    }
   } catch (e) {
     logError("fetchDBContacts", e);
   }
 
   // Fallback
   return [
-    { id: "c1", name: "Priya M.", role: `Mentor · ${focusDomain} Expert`, initials: "PM", online: true, last: `Welcome to the ${focusDomain} track! 👋`, unread: 1, colors: ["#6366f1", "#818cf8"] },
-    { id: "c2", name: "Rohit K.", role: `Peer · ${focusDomain} Dev`, initials: "RK", online: true, last: `Let's study ${focusDomain} together! 📚`, unread: 0, colors: ["#0ea5e9", "#38bdf8"] },
-    { id: "c3", name: "Anjali S.", role: `Peer · ${focusDomain} Intern`, initials: "AS", online: false, last: "Hey! Ready to learn?", unread: 0, colors: ["#0d9488", "#2dd4bf"] },
-    { id: "c4", name: "Karan T.", role: "Career Coach", initials: "KT", online: true, last: "Happy to guide your career path!", unread: 0, colors: ["#f59e0b", "#fbbf24"] },
-    { id: "c5", name: "Devika R.", role: `Peer · ${focusDomain} Enthusiast`, initials: "DR", online: false, last: "Glad to connect!", unread: 0, colors: ["#a855f7", "#c084fc"] },
+    { id: "c1", name: `Anonymous Expert #1`, role: `Mentor · ${focusDomain} Expert`, initials: "AE", online: true, last: `Welcome to the ${focusDomain} track! 👋`, unread: 1, colors: ["#6366f1", "#818cf8"] },
+    { id: "c2", name: `Anonymous Peer #28`, role: `Peer · ${focusDomain} Dev`, initials: "AP", online: true, last: `Let's study ${focusDomain} together! 📚`, unread: 0, colors: ["#0ea5e9", "#38bdf8"] },
+    { id: "c3", name: `Anonymous Peer #52`, role: `Peer · ${focusDomain} Intern`, initials: "AP", online: false, last: "Hey! Ready to learn?", unread: 0, colors: ["#0d9488", "#2dd4bf"] },
+    { id: "c4", name: `Anonymous Career Coach`, role: "Career Coach", initials: "AC", online: true, last: "Happy to guide your career path!", unread: 0, colors: ["#f59e0b", "#fbbf24"] },
+    { id: "c5", name: `Anonymous Peer #89`, role: `Peer · ${focusDomain} Enthusiast`, initials: "AP", online: false, last: "Glad to connect!", unread: 0, colors: ["#a855f7", "#c084fc"] },
   ];
 }
 

@@ -1,9 +1,10 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Dimensions, ActivityIndicator, Linking } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Dimensions, ActivityIndicator, Linking, Platform, Modal, Pressable } from "react-native";
 import { Feather, FontAwesome } from "@expo/vector-icons";
 import { Header } from "../components/skillora/Header";
 import { useDashboardStore } from "../lib/store";
 import { fetchDBResources } from "../lib/supabase-db";
+import { supabase } from "../lib/supabase";
 
 type Resource = {
   id: string;
@@ -22,6 +23,51 @@ const LEVELS = ["All levels", "Beginner", "Intermediate", "Advanced"];
 const TYPES = ["All types", "Notes", "PDF", "Slides", "Project"] as const;
 const SORTS = ["Trending", "Top rated", "Most downloaded"] as const;
 
+const RESOURCE_VIDEOS: Record<string, string> = {
+  "HTML5, CSS3, & Modern Grid": "https://www.youtube.com/embed/Dp3c7G1Qhgo",
+  "JavaScript Fundamentals & DOM": "https://www.youtube.com/embed/hdI2bqOjy3c",
+  "Intro to React & Component States": "https://www.youtube.com/embed/Ke90Tje7VS0",
+  "Intro to Node.js & REST API": "https://www.youtube.com/embed/Oe421EPjeBE",
+  "SQL Fundamentals & Relational DBs": "https://www.youtube.com/embed/HXTt1AjbTtc",
+  "React Native & Expo Ecosystem": "https://www.youtube.com/embed/gvkqT_qiVxM",
+  "Python Fundamentals & Packages": "https://www.youtube.com/embed/_uQrJ0TkZlc",
+  "Neural Networks with PyTorch": "https://www.youtube.com/embed/V_xro1bcAuA",
+  "React Router & Global Context": "https://www.youtube.com/embed/59IXY5IDYbA",
+  "Tailwind CSS & Responsive Layouts": "https://www.youtube.com/embed/m7OWXtbiXX8",
+  "TypeScript Essentials for Web": "https://www.youtube.com/embed/zQnOB4tV3MC",
+  "Java Spring Boot Microservices": "https://www.youtube.com/embed/35EQXmHKZYs",
+  "PostgreSQL Queries & Optimization": "https://www.youtube.com/embed/7VfZYMXZmeI",
+  "SwiftUI Mastery for iOS Platforms": "https://www.youtube.com/embed/F2CznepmCg4",
+  "Kotlin & Android Jetpack UI": "https://www.youtube.com/embed/Ch5QqJmOzCQ",
+  "Pandas & Numpy Data Wrangling": "https://www.youtube.com/embed/F6kmIpWWEdU",
+  "Basics of Routing & HTTP Methods": "https://www.youtube.com/embed/yQleTeoUskc",
+  "Interactive CSS Flexbox Playground": "https://www.youtube.com/embed/Dp3c7G1Qhgo",
+  "Next.js Core Web Vitals Optimization Guides": "https://www.youtube.com/embed/59IXY5IDYbA",
+  "Tailwind UI Layout Best Practices": "https://www.youtube.com/embed/m7OWXtbiXX8",
+  "System Design Interview Cheat Sheet": "https://www.youtube.com/embed/gvkqT_qiVxM",
+  "PostgreSQL Window Functions Explained": "https://www.youtube.com/embed/7VfZYMXZmeI",
+  "Docker Containerization Fundamentals": "https://www.youtube.com/embed/Oe421EPjeBE",
+  "React Native Performance Debugging Tools": "https://www.youtube.com/embed/gvkqT_qiVxM",
+  "Expo Router Dynamic Linking Manual": "https://www.youtube.com/embed/Ke90Tje7VS0",
+  "iOS Native UI Optimization Principles": "https://www.youtube.com/embed/F2CznepmCg4",
+  "Python OOP and Memory Structures": "https://www.youtube.com/embed/_uQrJ0TkZlc",
+  "Calculus behind SGD Backpropagation": "https://www.youtube.com/embed/V_xro1bcAuA",
+  "Hugging Face LLM Pipeline Integration Guides": "https://www.youtube.com/embed/_uQrJ0TkZlc",
+};
+
+const getResourceVideo = (title: string): string => {
+  const matched = RESOURCE_VIDEOS[title];
+  if (matched) return matched;
+  const lower = title.toLowerCase();
+  if (lower.includes("next.js") || lower.includes("nextjs") || lower.includes("ssr")) return "https://www.youtube.com/embed/Dp3c7G1Qhgo";
+  if (lower.includes("react native") || lower.includes("expo") || lower.includes("mobile")) return "https://www.youtube.com/embed/gvkqT_qiVxM";
+  if (lower.includes("react") || lower.includes("frontend") || lower.includes("html") || lower.includes("css")) return "https://www.youtube.com/embed/Ke90Tje7VS0";
+  if (lower.includes("docker") || lower.includes("kubernetes") || lower.includes("devops")) return "https://www.youtube.com/embed/Oe421EPjeBE";
+  if (lower.includes("pandas") || lower.includes("numpy") || lower.includes("pytorch") || lower.includes("ai") || lower.includes("python")) return "https://www.youtube.com/embed/V_xro1bcAuA";
+  if (lower.includes("sql") || lower.includes("database") || lower.includes("postgresql")) return "https://www.youtube.com/embed/HXTt1AjbTtc";
+  return "https://www.youtube.com/embed/zjsYHGK6a4Q";
+};
+
 export default function ResourcesScreen() {
   const store = useDashboardStore();
   const focusDomain = store.surveyAnswers?.focusDomain || "Mobile";
@@ -30,30 +76,22 @@ export default function ResourcesScreen() {
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Video Player States
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [videoTitle, setVideoTitle] = useState<string>("");
+
+  // Upload States
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newSubject, setNewSubject] = useState("Frontend");
+  const [newLevel, setNewLevel] = useState("Beginner");
+  const [newType, setNewType] = useState<"Notes" | "PDF" | "Slides" | "Project">("Notes");
+  const [newFileName, setNewFileName] = useState("");
+
   const openResourceUrl = (title: string) => {
-    const query = encodeURIComponent(title);
-    let url = `https://www.google.com/search?q=${query}`;
-    
-    const lower = title.toLowerCase();
-    if (lower.includes("next.js") || lower.includes("nextjs")) {
-      url = "https://nextjs.org/docs";
-    } else if (lower.includes("react native") || lower.includes("expo")) {
-      url = "https://reactnative.dev/docs/getting-started";
-    } else if (lower.includes("docker")) {
-      url = "https://docs.docker.com/get-started/";
-    } else if (lower.includes("pandas") || lower.includes("numpy")) {
-      url = "https://pandas.pydata.org/docs/user_guide/index.html";
-    } else if (lower.includes("postgresql") || lower.includes("sql")) {
-      url = "https://www.postgresql.org/docs/";
-    } else if (lower.includes("pytorch")) {
-      url = "https://pytorch.org/docs/stable/index.html";
-    } else if (lower.includes("spring boot")) {
-      url = "https://spring.io/projects/spring-boot";
-    } else if (lower.includes("node.js") || lower.includes("express")) {
-      url = "https://nodejs.org/en/docs/";
-    }
-    
-    Linking.openURL(url).catch((err) => console.warn("Failed to open URL:", err));
+    const embedUrl = getResourceVideo(title);
+    setVideoTitle(title);
+    setVideoUrl(embedUrl);
   };
 
   useEffect(() => {
@@ -103,6 +141,50 @@ export default function ResourcesScreen() {
     });
   };
 
+  const handleUploadSubmit = async () => {
+    if (!newTitle.trim()) {
+      alert("Please enter a resource title");
+      return;
+    }
+    const uploadedResource: Resource = {
+      id: `uploaded_${Date.now()}`,
+      title: newTitle,
+      subject: newSubject,
+      level: newLevel,
+      type: newType,
+      rating: 5.0,
+      downloads: 1,
+      trending: true,
+      author: store.user?.name || "Anonymous Learner"
+    };
+
+    setResources((prev) => [uploadedResource, ...prev]);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from("resources").insert({
+          id: uploadedResource.id,
+          title: uploadedResource.title,
+          subject: uploadedResource.subject,
+          level: uploadedResource.level,
+          type: uploadedResource.type,
+          rating: uploadedResource.rating,
+          downloads: uploadedResource.downloads,
+          trending: uploadedResource.trending,
+          author: uploadedResource.author,
+          focus_domain: uploadedResource.subject
+        });
+      }
+    } catch (e) {
+      console.warn("Failed to upload resource to Supabase:", e);
+    }
+
+    setNewTitle("");
+    setNewFileName("");
+    setShowUploadModal(false);
+  };
+
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#f8fafc" }}>
@@ -117,8 +199,20 @@ export default function ResourcesScreen() {
 
       {/* Main Intro */}
       <View style={styles.introBox}>
-        <Text style={styles.introTitle}>Collaborative Resource Hub</Text>
-        <Text style={styles.introSub}>Notes, PDFs and mini-projects shared by peers and mentors.</Text>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+          <View style={{ flex: 1, paddingRight: 12 }}>
+            <Text style={styles.introTitle}>Collaborative Resource Hub</Text>
+            <Text style={styles.introSub}>Notes, PDFs and mini-projects shared by peers and mentors.</Text>
+          </View>
+          <TouchableOpacity 
+            activeOpacity={0.85}
+            onPress={() => setShowUploadModal(true)}
+            style={styles.uploadBtn}
+          >
+            <Feather name="plus" size={14} color="#ffffff" style={{ marginRight: 4 }} />
+            <Text style={styles.uploadBtnText}>Upload</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Search and Filters Toggle Card */}
@@ -212,7 +306,9 @@ export default function ResourcesScreen() {
                 )}
               </View>
 
-              <Text style={styles.resourceTitle} numberOfLines={2}>{r.title}</Text>
+              <Text style={styles.resourceTitle} numberOfLines={2}>
+                {r.title}
+              </Text>
 
               <View style={styles.resourceFooter}>
                 <Text style={styles.author} numberOfLines={1}>by {r.author}</Text>
@@ -223,9 +319,7 @@ export default function ResourcesScreen() {
                   </View>
                   <View style={styles.statItem}>
                     <Feather name="download" size={10} color="#64748b" />
-                    <Text style={styles.statText}>
-                      {r.downloads >= 1000 ? `${(r.downloads / 1000).toFixed(1)}k` : r.downloads}
-                    </Text>
+                    <Text style={styles.statText}>{r.downloads}</Text>
                   </View>
                 </View>
               </View>
@@ -235,36 +329,158 @@ export default function ResourcesScreen() {
 
         {results.length === 0 && (
           <View style={styles.emptyCard}>
-            <Feather name="info" size={24} color="#94a3b8" style={styles.emptyIcon} />
-            <Text style={styles.emptyText}>
-              No resources match your filters. Try clearing them.
-            </Text>
+            <Feather name="file" size={24} color="#94a3b8" style={styles.emptyIcon} />
+            <Text style={styles.emptyText}>No matching study resources found for your filter criteria.</Text>
           </View>
         )}
       </View>
+
+      {/* Resource Upload Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={showUploadModal}
+        onRequestClose={() => setShowUploadModal(false)}
+      >
+        <Pressable style={styles.overlay} onPress={() => setShowUploadModal(false)}>
+          <Pressable style={styles.modalCard} onPress={(e: any) => e.stopPropagation()}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Upload Study Resource</Text>
+              <TouchableOpacity onPress={() => setShowUploadModal(false)}>
+                <Feather name="x" size={18} color="#64748b" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+              <Text style={styles.inputLabel}>Title</Text>
+              <TextInput
+                value={newTitle}
+                onChangeText={setNewTitle}
+                placeholder="e.g. Next.js Routing Cheatsheet"
+                placeholderTextColor="#94a3b8"
+                style={styles.textInput}
+              />
+
+              <Text style={styles.inputLabel}>Subject Focus</Text>
+              <View style={styles.pickerRow}>
+                {["Frontend", "Backend", "Mobile", "AI", "General"].map((sub) => {
+                  const active = newSubject === sub;
+                  return (
+                    <TouchableOpacity
+                      key={sub}
+                      onPress={() => setNewSubject(sub)}
+                      style={[styles.pickerChip, active && styles.pickerChipActive]}
+                    >
+                      <Text style={[styles.pickerText, active && styles.pickerTextActive]}>{sub}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              <Text style={styles.inputLabel}>Proficiency Level</Text>
+              <View style={styles.pickerRow}>
+                {["Beginner", "Intermediate", "Advanced"].map((lv) => {
+                  const active = newLevel === lv;
+                  return (
+                    <TouchableOpacity
+                      key={lv}
+                      onPress={() => setNewLevel(lv)}
+                      style={[styles.pickerChip, active && styles.pickerChipActive]}
+                    >
+                      <Text style={[styles.pickerText, active && styles.pickerTextActive]}>{lv}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              <Text style={styles.inputLabel}>Resource Type</Text>
+              <View style={styles.pickerRow}>
+                {["Notes", "PDF", "Slides", "Project"].map((tp) => {
+                  const active = newType === tp;
+                  return (
+                    <TouchableOpacity
+                      key={tp}
+                      onPress={() => setNewType(tp as any)}
+                      style={[styles.pickerChip, active && styles.pickerChipActive]}
+                    >
+                      <Text style={[styles.pickerText, active && styles.pickerTextActive]}>{tp}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              <Text style={styles.inputLabel}>Attach Document (Simulated)</Text>
+              <TouchableOpacity style={styles.attachBox} onPress={() => setNewFileName("cheatsheet_v1.pdf")}>
+                <Feather name="paperclip" size={16} color="#64748b" style={{ marginRight: 6 }} />
+                <Text style={{ fontSize: 12, color: "#475569" }}>
+                  {newFileName || "Choose document/zip file..."}
+                </Text>
+              </TouchableOpacity>
+            </ScrollView>
+
+            <View style={styles.modalFooter}>
+              <TouchableOpacity style={styles.cancelBtn} onPress={() => setShowUploadModal(false)}>
+                <Text style={styles.cancelBtnText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.publishBtn} onPress={handleUploadSubmit}>
+                <Text style={styles.publishBtnText}>Publish</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* Video Overlay Player Modal */}
+      {videoUrl && (
+        <View style={styles.videoOverlay}>
+          <View style={styles.videoModal}>
+            <View style={styles.videoHeader}>
+              <Text style={styles.videoTitle} numberOfLines={1}>{videoTitle}</Text>
+              <TouchableOpacity onPress={() => setVideoUrl(null)} style={styles.closeBtn}>
+                <Feather name="x" size={18} color="#ffffff" />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.videoPlayerContainer}>
+              {Platform.OS === "web" ? (
+                <iframe
+                  width="100%"
+                  height="100%"
+                  src={`${videoUrl}?autoplay=1`}
+                  title={videoTitle}
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  style={{ borderRadius: 16, border: "none" }}
+                />
+              ) : (
+                <View style={{ flex: 1, backgroundColor: "#000", justifyContent: "center", alignItems: "center" }}>
+                  <Text style={{ color: "#fff" }}>Playback only supported on Web version.</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        </View>
+      )}
 
       <View style={styles.spacer} />
     </ScrollView>
   );
 }
 
-// Subcomponent for filter tags group
-function FilterGroup({ label, options, value, onChange }: { label: string; options: readonly string[]; value: string; onChange: (v: string) => void }) {
+function FilterGroup({ label, options, value, onChange }: { label: string; options: readonly string[]; value: string; onChange: (x: any) => void }) {
   return (
-    <View style={styles.filterGroup}>
-      <Text style={styles.filterGroupLabel}>{label}</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterGroupChips}>
-        {options.map((o) => {
-          const isActive = value === o;
+    <View style={styles.group}>
+      <Text style={styles.groupLabel}>{label}:</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.groupScroll}>
+        {options.map((opt) => {
+          const active = value === opt;
           return (
-            <TouchableOpacity
-              key={o}
-              onPress={() => onChange(o)}
-              style={[styles.chipButton, isActive ? styles.chipButtonActive : styles.chipButtonInactive]}
+            <TouchableOpacity 
+              key={opt} 
+              onPress={() => onChange(opt)}
+              style={[styles.chip, active ? styles.chipActive : styles.chipInactive]}
             >
-              <Text style={[styles.chipText, isActive ? styles.chipTextActive : styles.chipTextInactive]}>
-                {o}
-              </Text>
+              <Text style={[styles.chipText, active ? styles.chipTextActive : styles.chipTextInactive]}>{opt}</Text>
             </TouchableOpacity>
           );
         })}
@@ -273,7 +489,7 @@ function FilterGroup({ label, options, value, onChange }: { label: string; optio
   );
 }
 
-const styles: any = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f8fafc",
@@ -284,29 +500,39 @@ const styles: any = StyleSheet.create({
   },
   introBox: {
     marginBottom: 16,
+    paddingHorizontal: 4,
   },
   introTitle: {
     fontSize: 18,
     fontWeight: "800",
     color: "#0f172a",
+    marginBottom: 4,
   },
   introSub: {
     fontSize: 12,
     color: "#64748b",
-    marginTop: 2,
+    lineHeight: 16,
+  },
+  uploadBtn: {
+    backgroundColor: "#6366f1",
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  uploadBtnText: {
+    color: "#ffffff",
+    fontSize: 12,
+    fontWeight: "700",
   },
   filterCard: {
     backgroundColor: "#ffffff",
     borderRadius: 24,
     borderWidth: 1,
     borderColor: "#e2e8f0",
-    padding: 14,
+    padding: 12,
     marginBottom: 14,
-    shadowColor: "#0f172a",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
-    elevation: 2,
   },
   searchRow: {
     flexDirection: "row",
@@ -316,87 +542,79 @@ const styles: any = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f8fafc",
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
+    backgroundColor: "#f1f5f9",
     borderRadius: 16,
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    gap: 8,
+    height: 40,
   },
   searchInput: {
+    flex: 1,
+    marginLeft: 6,
     fontSize: 12,
     color: "#0f172a",
-    flex: 1,
-    padding: 0,
   },
   filterToggle: {
-    height: 38,
-    width: 38,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    backgroundColor: "#ffffff",
+    width: 40,
+    height: 40,
+    borderRadius: 16,
+    backgroundColor: "#f1f5f9",
     justifyContent: "center",
     alignItems: "center",
     position: "relative",
   },
   filterToggleActive: {
-    borderColor: "#6366f1",
-    backgroundColor: "rgba(99, 102, 241, 0.03)",
+    backgroundColor: "#e0e7ff",
   },
   badgeCount: {
     position: "absolute",
     top: -4,
     right: -4,
-    height: 16,
-    width: 16,
-    borderRadius: 8,
     backgroundColor: "#6366f1",
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
     justifyContent: "center",
     alignItems: "center",
+    paddingHorizontal: 4,
   },
   badgeCountText: {
     color: "#ffffff",
-    fontSize: 8,
-    fontWeight: "800",
-  },
-  drawer: {
-    marginTop: 14,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: "#e2e8f0",
-    gap: 12,
-  },
-  filterGroup: {
-    gap: 6,
-  },
-  filterGroupLabel: {
     fontSize: 9,
     fontWeight: "700",
-    color: "#64748b",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
   },
-  filterGroupChips: {
+  drawer: {
+    marginTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#f1f5f9",
+    paddingTop: 12,
+    gap: 12,
+  },
+  group: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  groupLabel: {
+    width: 60,
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#475569",
+  },
+  groupScroll: {
     gap: 6,
   },
-  chipButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    borderWidth: 1,
+  chip: {
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 10,
   },
-  chipButtonActive: {
+  chipActive: {
     backgroundColor: "#6366f1",
-    borderColor: "#6366f1",
   },
-  chipButtonInactive: {
+  chipInactive: {
     backgroundColor: "#f1f5f9",
-    borderColor: "#e2e8f0",
   },
   chipText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: "600",
   },
   chipTextActive: {
@@ -454,7 +672,7 @@ const styles: any = StyleSheet.create({
     alignItems: "center",
   },
   fillIcon: {
-    // React Native styles SVG check
+    color: "#6366f1",
   },
   resourceBadges: {
     flexDirection: "row",
@@ -477,7 +695,7 @@ const styles: any = StyleSheet.create({
     backgroundColor: "#f1f5f9",
   },
   bgAccent: {
-    backgroundColor: "#fef3c7", // Beige/Amber type
+    backgroundColor: "#fef3c7",
   },
   bgMint: {
     backgroundColor: "rgba(13, 148, 136, 0.1)",
@@ -503,8 +721,7 @@ const styles: any = StyleSheet.create({
     fontWeight: "700",
     color: "#0f172a",
     lineHeight: 18,
-    height: 36,
-    marginBottom: 14,
+    marginBottom: 10,
   },
   resourceFooter: {
     flexDirection: "row",
@@ -552,5 +769,177 @@ const styles: any = StyleSheet.create({
   },
   spacer: {
     height: 40,
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 16,
+    ...Platform.select({
+      web: {
+        backdropFilter: "blur(8px)",
+      }
+    })
+  },
+  modalCard: {
+    width: "95%",
+    maxWidth: 500,
+    backgroundColor: "#ffffff",
+    borderRadius: 24,
+    padding: 20,
+    shadowColor: "#0f172a",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 8,
+    maxHeight: "90%",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#0f172a",
+  },
+  modalBody: {
+    marginBottom: 16,
+  },
+  inputLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#475569",
+    marginBottom: 6,
+    marginTop: 12,
+  },
+  textInput: {
+    backgroundColor: "#f8fafc",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 12,
+    color: "#0f172a",
+  },
+  pickerRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+  },
+  pickerChip: {
+    backgroundColor: "#f1f5f9",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: 8,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+  },
+  pickerChipActive: {
+    backgroundColor: "#e0e7ff",
+    borderColor: "#6366f1",
+  },
+  pickerText: {
+    fontSize: 10,
+    color: "#475569",
+    fontWeight: "600",
+  },
+  pickerTextActive: {
+    color: "#4f46e5",
+    fontWeight: "700",
+  },
+  attachBox: {
+    borderWidth: 1,
+    borderStyle: "dashed",
+    borderColor: "#cbd5e1",
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f8fafc",
+  },
+  modalFooter: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 8,
+    borderTopWidth: 1,
+    borderTopColor: "#f1f5f9",
+    paddingTop: 12,
+  },
+  cancelBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    backgroundColor: "#f1f5f9",
+  },
+  cancelBtnText: {
+    fontSize: 12,
+    color: "#475569",
+    fontWeight: "600",
+  },
+  publishBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    backgroundColor: "#6366f1",
+  },
+  publishBtnText: {
+    fontSize: 12,
+    color: "#ffffff",
+    fontWeight: "700",
+  },
+  videoOverlay: {
+    position: (Platform.OS === "web" ? "fixed" : "absolute") as any,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(15, 23, 42, 0.75)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 9999,
+  },
+  videoModal: {
+    width: "95%",
+    maxWidth: 680,
+    backgroundColor: "#1e293b",
+    borderRadius: 24,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+  },
+  videoHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  videoTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#ffffff",
+    flex: 1,
+    paddingRight: 12,
+  },
+  closeBtn: {
+    height: 32,
+    width: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  videoPlayerContainer: {
+    width: "100%",
+    aspectRatio: 16 / 9,
+    borderRadius: 16,
+    overflow: "hidden",
+    backgroundColor: "#000000",
   },
 });

@@ -146,7 +146,9 @@ export function useDashboardStore() {
         const localRecs = getRecommendations(
           state.surveyAnswers.focusDomain,
           state.surveyAnswers.proficiency,
-          state.surveyAnswers.learningHours
+          state.surveyAnswers.learningHours,
+          [],
+          state.surveyAnswers.targetLearningGoal
         );
         updateState({ recommendations: localRecs, isLoadingRecommendations: false });
       } else {

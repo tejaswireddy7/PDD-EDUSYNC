@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Dimensions, Alert, ActivityIndicator } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Header } from "../components/skillora/Header";
@@ -47,6 +47,7 @@ export default function AssessmentsScreen() {
   const [items, setItems] = useState<Assessment[]>([]);
   const [active, setActive] = useState<Assessment | null>(null);
   const [loading, setLoading] = useState(true);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -68,6 +69,12 @@ export default function AssessmentsScreen() {
     }
     loadData();
   }, [focusDomain, userProficiency]);
+
+  useEffect(() => {
+    if (active) {
+      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+    }
+  }, [active]);
 
   const current = items.find((i) => i.id === active?.id) ?? items[0] ?? null;
 
@@ -96,7 +103,7 @@ export default function AssessmentsScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
+    <ScrollView ref={scrollViewRef} style={styles.container} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
       <Header />
       
       {/* 1. Upcoming Horizontal Strip */}

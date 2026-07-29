@@ -234,12 +234,32 @@ function getDifficultyMultiplier(
   return 0.1; // Remote level
 }
 
+const GOAL_COURSE_MAPPING: Record<string, string> = {
+  state_management: "React Router & Global Context",
+  ssr_nextjs: "Next.js 14 App Router Mastery",
+  tailwind_styling: "Tailwind CSS & Responsive Layouts",
+  performance: "Web Performance & Core Web Vitals",
+  db_prisma: "PostgreSQL Queries & Optimization",
+  docker: "Docker & Kubernetes Orchestration",
+  microservices: "Java Spring Boot Microservices",
+  caching: "Redis Caching & Task Queues",
+  navigation: "Advanced React Navigation v6",
+  hardware_apis: "Native Features: Camera, GPS & Audio",
+  native_bridges: "Native Bridges & Performance Tuning",
+  deployment: "SwiftUI Mastery for iOS Platforms",
+  pytorch: "Neural Networks with PyTorch",
+  transformers_nlp: "Natural Language Processing (NLP)",
+  mlops: "MLOps: CI/CD Pipeline for Models",
+  llm_finetuning: "Fine-Tuning Generative AI Models"
+};
+
 // Main ML-based adaptive recommendation engine using Content-Based Filtering & Cosine Similarity
 export function getRecommendations(
   focusDomain: "Frontend" | "Backend" | "Mobile" | "AI" = "Mobile",
   proficiency: "Beginner" | "Intermediate" | "Advanced" = "Beginner",
   learningHours: number = 5,
-  weakAreas: Array<{ topic: string; score: number }> = []
+  weakAreas: Array<{ topic: string; score: number }> = [],
+  targetLearningGoal?: string
 ): RecommendationOutput {
   const userVec = getUserVector(focusDomain, weakAreas);
 
@@ -262,9 +282,13 @@ export function getRecommendations(
     const isDomainMatch = course.difficulty === proficiency && COURSE_DATABASE[focusDomain]?.[proficiency]?.some(c => c.title === course.title);
     const domainBoost = isDomainMatch ? 0.3 : 0.0;
 
+    // Add target learning goal boost
+    const isTargetGoal = targetLearningGoal && GOAL_COURSE_MAPPING[targetLearningGoal] === course.title;
+    const goalBoost = isTargetGoal ? 10.0 : 0.0;
+
     return {
       course,
-      score: cosSim * diffMult + domainBoost
+      score: cosSim * diffMult + domainBoost + goalBoost
     };
   });
 
@@ -339,6 +363,8 @@ export interface SurveyAnswers {
   focusDomain: "Frontend" | "Backend" | "Mobile" | "AI";
   proficiency: "Beginner" | "Intermediate" | "Advanced";
   learningHours: number;
+  existingKnowledge?: string[];
+  targetLearningGoal?: string;
 }
 
 export interface UserProfile {

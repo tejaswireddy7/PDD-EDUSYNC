@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: edusync-db
+    environment:
+      POSTGRES_USER: edusync_user
+      POSTGRES_PASSWORD: edusync_password
+      POSTGRES_DB: edusync_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U edusync_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Node.js Backend
+  backend:
+    build: .
+    container_name: edusync-backend
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      DATABASE_URL: postgresql://edusync_user:edusync_password@postgres:5432/edusync_db
+      JWT_SECRET: ${JWT_SECRET:-edusync-secret-key-change-in-production}
+      JWT_EXPIRE: 7d
+      YOUTUBE_API_KEY: ${YOUTUBE_API_KEY:-}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      CORS_ORIGIN: http://localhost:3000,http://localhost:8081
+      API_CACHE_TTL: 3600
+      MAX_RECOMMENDATIONS: 12
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/dist
+    command: npm run dev
+
+volumes:
+  postgres_data:
+    driver: local

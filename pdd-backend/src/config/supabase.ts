@@ -1,11 +1,21 @@
 import { createClient } from "@supabase/supabase-js";
 import config from "./config";
 
-if (!config.supabaseUrl || !config.supabaseServiceRoleKey) {
-  throw new Error("Missing Supabase configuration environment variables: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY");
+export const isSupabaseConfigured = !!(
+  config.supabaseUrl &&
+  config.supabaseServiceRoleKey &&
+  config.supabaseUrl !== "placeholder-url" &&
+  !config.supabaseUrl.includes("your_supabase_url")
+);
+
+if (!isSupabaseConfigured) {
+  console.warn("⚠️ Supabase environment variables are missing or placeholders. Running backend in local in-memory fallback mode.");
 }
 
-export const supabase = createClient(config.supabaseUrl, config.supabaseServiceRoleKey, {
+const supabaseUrl = isSupabaseConfigured ? config.supabaseUrl : "https://placeholder-url.supabase.co";
+const supabaseServiceRoleKey = isSupabaseConfigured ? config.supabaseServiceRoleKey : "placeholder-service-role-key";
+
+export const supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
   auth: {
     persistSession: false,
     autoRefreshToken: false,

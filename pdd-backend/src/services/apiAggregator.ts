@@ -1,6 +1,6 @@
 import axios from "axios";
 import NodeCache from "node-cache";
-import { supabase } from "../config/supabase";
+import { supabase, isSupabaseConfigured } from "../config/supabase";
 import config from "../config/config";
 
 const apiCache = new NodeCache({ stdTTL: config.cacheTtl });
@@ -69,12 +69,14 @@ export const searchYoutube = async (
       expiresAt: new Date(Date.now() + config.cacheTtl * 1000).toISOString(),
     }));
 
-    const { error: insertError } = await supabase
-      .from("cached_resources")
-      .insert(cacheData);
+    if (isSupabaseConfigured) {
+      const { error: insertError } = await supabase
+        .from("cached_resources")
+        .insert(cacheData);
 
-    if (insertError) {
-      console.error("Error caching YouTube resources in Supabase:", insertError);
+      if (insertError) {
+        console.error("Error caching YouTube resources in Supabase:", insertError);
+      }
     }
 
     return resources;
@@ -135,12 +137,14 @@ export const searchGithub = async (
       expiresAt: new Date(Date.now() + config.cacheTtl * 1000).toISOString(),
     }));
 
-    const { error: insertError } = await supabase
-      .from("cached_resources")
-      .insert(cacheData);
+    if (isSupabaseConfigured) {
+      const { error: insertError } = await supabase
+        .from("cached_resources")
+        .insert(cacheData);
 
-    if (insertError) {
-      console.error("Error caching GitHub resources in Supabase:", insertError);
+      if (insertError) {
+        console.error("Error caching GitHub resources in Supabase:", insertError);
+      }
     }
 
     return resources;
@@ -196,12 +200,14 @@ export const searchDevto = async (
       expiresAt: new Date(Date.now() + config.cacheTtl * 1000).toISOString(),
     }));
 
-    const { error: insertError } = await supabase
-      .from("cached_resources")
-      .insert(cacheData);
+    if (isSupabaseConfigured) {
+      const { error: insertError } = await supabase
+        .from("cached_resources")
+        .insert(cacheData);
 
-    if (insertError) {
-      console.error("Error caching Dev.to resources in Supabase:", insertError);
+      if (insertError) {
+        console.error("Error caching Dev.to resources in Supabase:", insertError);
+      }
     }
 
     return resources;
@@ -263,12 +269,14 @@ export const searchCoursera = async (
       expiresAt: new Date(Date.now() + config.cacheTtl * 1000).toISOString(),
     }));
 
-    const { error: insertError } = await supabase
-      .from("cached_resources")
-      .insert(cacheData);
+    if (isSupabaseConfigured) {
+      const { error: insertError } = await supabase
+        .from("cached_resources")
+        .insert(cacheData);
 
-    if (insertError) {
-      console.error("Error caching Coursera resources in Supabase:", insertError);
+      if (insertError) {
+        console.error("Error caching Coursera resources in Supabase:", insertError);
+      }
     }
 
     return resources;
@@ -355,24 +363,26 @@ export const getRecommendedResources = async (
 ): Promise<ApiResource[]> => {
   try {
     // Check for cached resources
-    const { data: cachedResources, error } = await supabase
-      .from("cached_resources")
-      .select("*")
-      .eq("focusDomain", focusDomain)
-      .eq("proficiency", proficiency)
-      .gt("expiresAt", new Date().toISOString())
-      .limit(config.maxRecommendations);
+    if (isSupabaseConfigured) {
+      const { data: cachedResources, error } = await supabase
+        .from("cached_resources")
+        .select("*")
+        .eq("focusDomain", focusDomain)
+        .eq("proficiency", proficiency)
+        .gt("expiresAt", new Date().toISOString())
+        .limit(config.maxRecommendations);
 
-    if (error) {
-      console.error("Error fetching cached resources from Supabase:", error);
-    } else if (cachedResources && cachedResources.length > 0) {
-      return cachedResources.map((r) => ({
-        title: r.title,
-        description: r.description || undefined,
-        url: r.url || undefined,
-        difficulty: r.difficulty || undefined,
-        source: r.sourceAPI,
-      }));
+      if (error) {
+        console.error("Error fetching cached resources from Supabase:", error);
+      } else if (cachedResources && cachedResources.length > 0) {
+        return cachedResources.map((r: any) => ({
+          title: r.title,
+          description: r.description || undefined,
+          url: r.url || undefined,
+          difficulty: r.difficulty || undefined,
+          source: r.sourceAPI,
+        }));
+      }
     }
 
     // Fallback to API aggregation

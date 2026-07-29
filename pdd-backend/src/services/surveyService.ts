@@ -1,6 +1,9 @@
-import { supabase } from "../config/supabase";
+import { supabase, isSupabaseConfigured } from "../config/supabase";
 import { AppError, errorCodes } from "../utils/errors";
 import { SurveyAnswers } from "../types";
+
+// In-memory fallback database for surveys
+const localSurveys = new Map<string, any[]>();
 
 export const createSurvey = async (
   userId: string,
@@ -15,28 +18,52 @@ export const createSurvey = async (
     const nextSurveyDate = new Date();
     nextSurveyDate.setDate(nextSurveyDate.getDate() + 7);
 
-    // Create survey
-    const { data, error } = await supabase
-      .from("surveys")
-      .insert({
+    if (isSupabaseConfigured) {
+      // Create survey
+      const { data, error } = await supabase
+        .from("surveys")
+        .insert({
+          userId,
+          focusDomain: answers.focusDomain,
+          proficiency: answers.proficiency,
+          learningHours: answers.learningHours,
+          nextSurveyAt: nextSurveyDate.toISOString(),
+        })
+        .select()
+        .single();
+
+      if (error || !data) {
+        throw new Error(error?.message || "Failed to create survey");
+      }
+
+      return {
+        surveyId: data.id,
+        nextResuveyAt: nextSurveyDate.toISOString(),
+        nextSkipAt: nextSurveyDate.toISOString(),
+      };
+    } else {
+      const mockId = `mock-survey-${Date.now()}`;
+      const mockSurvey = {
+        id: mockId,
         userId,
         focusDomain: answers.focusDomain,
         proficiency: answers.proficiency,
         learningHours: answers.learningHours,
         nextSurveyAt: nextSurveyDate.toISOString(),
-      })
-      .select()
-      .single();
+        createdAt: new Date().toISOString(),
+        skippedAt: null,
+      };
 
-    if (error || !data) {
-      throw new Error(error?.message || "Failed to create survey");
+      const userSurveys = localSurveys.get(userId) || [];
+      userSurveys.push(mockSurvey);
+      localSurveys.set(userId, userSurveys);
+
+      return {
+        surveyId: mockId,
+        nextResuveyAt: nextSurveyDate.toISOString(),
+        nextSkipAt: nextSurveyDate.toISOString(),
+      };
     }
-
-    return {
-      surveyId: data.id,
-      nextResuveyAt: nextSurveyDate.toISOString(),
-      nextSkipAt: nextSurveyDate.toISOString(),
-    };
   } catch (error) {
     console.error("Error creating survey:", error);
     throw new AppError(
@@ -49,29 +76,43 @@ export const createSurvey = async (
 
 export const getLatestSurvey = async (userId: string) => {
   try {
-    const { data, error } = await supabase
-      .from("surveys")
-      .select("*")
-      .eq("userId", userId)
-      .order("createdAt", { ascending: false })
-      .limit(1);
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from("surveys")
+        .select("*")
+        .eq("userId", userId)
+        .order("createdAt", { ascending: false })
+        .limit(1);
 
-    if (error) {
-      console.error("Error fetching survey from Supabase:", error);
-      return null;
+      if (error) {
+        console.error("Error fetching survey from Supabase:", error);
+        return null;
+      }
+
+      if (!data || data.length === 0) {
+        return null;
+      }
+
+      const survey = data[0];
+      return {
+        ...survey,
+        createdAt: new Date(survey.createdAt),
+        nextSurveyAt: new Date(survey.nextSurveyAt),
+        skippedAt: survey.skippedAt ? new Date(survey.skippedAt) : null,
+      };
+    } else {
+      const userSurveys = localSurveys.get(userId) || [];
+      if (userSurveys.length === 0) {
+        return null;
+      }
+      const survey = userSurveys[userSurveys.length - 1];
+      return {
+        ...survey,
+        createdAt: new Date(survey.createdAt),
+        nextSurveyAt: new Date(survey.nextSurveyAt),
+        skippedAt: survey.skippedAt ? new Date(survey.skippedAt) : null,
+      };
     }
-
-    if (!data || data.length === 0) {
-      return null;
-    }
-
-    const survey = data[0];
-    return {
-      ...survey,
-      createdAt: new Date(survey.createdAt),
-      nextSurveyAt: new Date(survey.nextSurveyAt),
-      skippedAt: survey.skippedAt ? new Date(survey.skippedAt) : null,
-    };
   } catch (error) {
     console.error("Error fetching survey:", error);
     return null;
@@ -94,16 +135,25 @@ export const skipSurvey = async (userId: string): Promise<string> => {
     const newNextSurveyDate = new Date(survey.nextSurveyAt);
     newNextSurveyDate.setDate(newNextSurveyDate.getDate() + 7);
 
-    const { error: updateError } = await supabase
-      .from("surveys")
-      .update({
-        nextSurveyAt: newNextSurveyDate.toISOString(),
-        skippedAt: new Date().toISOString(),
-      })
-      .eq("id", survey.id);
+    if (isSupabaseConfigured) {
+      const { error: updateError } = await supabase
+        .from("surveys")
+        .update({
+          nextSurveyAt: newNextSurveyDate.toISOString(),
+          skippedAt: new Date().toISOString(),
+        })
+        .eq("id", survey.id);
 
-    if (updateError) {
-      throw new Error(updateError.message);
+      if (updateError) {
+        throw new Error(updateError.message);
+      }
+    } else {
+      const userSurveys = localSurveys.get(userId) || [];
+      const localSurvey = userSurveys.find((s) => s.id === survey.id);
+      if (localSurvey) {
+        localSurvey.nextSurveyAt = newNextSurveyDate.toISOString();
+        localSurvey.skippedAt = new Date().toISOString();
+      }
     }
 
     return newNextSurveyDate.toISOString();
@@ -135,4 +185,3 @@ export const shouldShowSurveyPrompt = async (userId: string): Promise<boolean> =
     return false;
   }
 };
-

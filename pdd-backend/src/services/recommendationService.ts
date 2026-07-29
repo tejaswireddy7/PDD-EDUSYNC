@@ -1,4 +1,4 @@
-import { supabase } from "../config/supabase";
+import { supabase, isSupabaseConfigured } from "../config/supabase";
 import { getRecommendedResources } from "./apiAggregator";
 import {
   RecommendedCourse,
@@ -8,6 +8,9 @@ import {
   SurveyAnswers,
 } from "../types";
 import { AppError, errorCodes } from "../utils/errors";
+
+// In-memory fallback database for recommendations
+const localRecommendations = new Map<string, any[]>();
 
 // Predefined course recommendations based on domain and proficiency
 const courseRecommendations: Record<
@@ -622,10 +625,14 @@ export const generateRecommendations = async (
 ): Promise<RecommendationOutput> => {
   try {
     // 1. Fetch weak areas for adaptive boosts
-    const { data: weakAreasData } = await supabase
-      .from("weak_areas")
-      .select("topic, score")
-      .eq("focus_domain", answers.focusDomain);
+    let weakAreasData = null;
+    if (isSupabaseConfigured) {
+      const { data } = await supabase
+        .from("weak_areas")
+        .select("topic, score")
+        .eq("focus_domain", answers.focusDomain);
+      weakAreasData = data;
+    }
 
     const weakAreas = weakAreasData || [];
     const userVec = getUserVector(answers.focusDomain as any, weakAreas);
@@ -722,21 +729,38 @@ export const generateRecommendations = async (
     };
 
     // Save recommendations in Database
-    const { error: insertError } = await supabase
-      .from("recommendations")
-      .insert({
+    if (isSupabaseConfigured) {
+      const { error: insertError } = await supabase
+        .from("recommendations")
+        .insert({
+          userId,
+          focusDomain: answers.focusDomain,
+          proficiency: answers.proficiency,
+          courses: JSON.stringify(courses),
+          resources: JSON.stringify(resources),
+          milestones: JSON.stringify(milestones),
+          weeklyHoursTarget,
+          nextAssessment: nextAssessment.toISOString(),
+        });
+
+      if (insertError) {
+        throw new Error(insertError.message);
+      }
+    } else {
+      const userRecs = localRecommendations.get(userId) || [];
+      userRecs.push({
+        id: `mock-rec-${Date.now()}`,
         userId,
         focusDomain: answers.focusDomain,
         proficiency: answers.proficiency,
-        courses: JSON.stringify(courses),
-        resources: JSON.stringify(resources),
-        milestones: JSON.stringify(milestones),
+        courses,
+        resources,
+        milestones,
         weeklyHoursTarget,
         nextAssessment: nextAssessment.toISOString(),
+        createdAt: new Date().toISOString()
       });
-
-    if (insertError) {
-      throw new Error(insertError.message);
+      localRecommendations.set(userId, userRecs);
     }
 
     return recommendation;
@@ -754,31 +778,46 @@ export const getLatestRecommendations = async (
   userId: string
 ): Promise<RecommendationOutput | null> => {
   try {
-    const { data, error } = await supabase
-      .from("recommendations")
-      .select("*")
-      .eq("userId", userId)
-      .order("createdAt", { ascending: false })
-      .limit(1);
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from("recommendations")
+        .select("*")
+        .eq("userId", userId)
+        .order("createdAt", { ascending: false })
+        .limit(1);
 
-    if (error) {
-      console.error("Error fetching recommendations from Supabase:", error);
-      return null;
+      if (error) {
+        console.error("Error fetching recommendations from Supabase:", error);
+        return null;
+      }
+
+      if (!data || data.length === 0) {
+        return null;
+      }
+
+      const recommendation = data[0];
+
+      return {
+        courses: typeof recommendation.courses === "string" ? JSON.parse(recommendation.courses) : recommendation.courses,
+        resources: typeof recommendation.resources === "string" ? JSON.parse(recommendation.resources) : recommendation.resources,
+        milestones: typeof recommendation.milestones === "string" ? JSON.parse(recommendation.milestones) : recommendation.milestones,
+        weeklyHoursTarget: recommendation.weeklyHoursTarget,
+        nextAssessment: new Date(recommendation.nextAssessment).toISOString(),
+      };
+    } else {
+      const userRecs = localRecommendations.get(userId) || [];
+      if (userRecs.length === 0) {
+        return null;
+      }
+      const recommendation = userRecs[userRecs.length - 1];
+      return {
+        courses: recommendation.courses,
+        resources: recommendation.resources,
+        milestones: recommendation.milestones,
+        weeklyHoursTarget: recommendation.weeklyHoursTarget,
+        nextAssessment: new Date(recommendation.nextAssessment).toISOString(),
+      };
     }
-
-    if (!data || data.length === 0) {
-      return null;
-    }
-
-    const recommendation = data[0];
-
-    return {
-      courses: typeof recommendation.courses === "string" ? JSON.parse(recommendation.courses) : recommendation.courses,
-      resources: typeof recommendation.resources === "string" ? JSON.parse(recommendation.resources) : recommendation.resources,
-      milestones: typeof recommendation.milestones === "string" ? JSON.parse(recommendation.milestones) : recommendation.milestones,
-      weeklyHoursTarget: recommendation.weeklyHoursTarget,
-      nextAssessment: new Date(recommendation.nextAssessment).toISOString(),
-    };
   } catch (error) {
     console.error("Error fetching recommendations:", error);
     return null;

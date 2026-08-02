@@ -96,6 +96,8 @@ create table if not exists public.assessments (
   skills text[] not null,
   progress integer default 0,
   status text not null, -- open, in-progress, submitted
+  questions jsonb,
+  responses jsonb,
   primary key (id, user_id)
 );
 

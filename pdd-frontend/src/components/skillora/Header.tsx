@@ -23,7 +23,9 @@ export function Header() {
     };
 
     if (Platform.OS === "web") {
-      await doLogout();
+      if (window.confirm("Are you sure you want to log out?")) {
+        await doLogout();
+      }
     } else {
       Alert.alert("Log Out", "Are you sure you want to log out?", [
         { text: "Cancel", style: "cancel" },

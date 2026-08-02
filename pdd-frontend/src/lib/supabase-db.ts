@@ -44,6 +44,8 @@ export interface DBAssessment {
   skills: string[];
   progress: number;
   status: "open" | "in-progress" | "submitted";
+  questions?: Array<{ question: string; options: string[]; correctAnswer: number }> | null;
+  responses?: Record<number, number> | null;
 }
 
 export interface DBContact {
@@ -282,6 +284,123 @@ export async function fetchDBCareerSuggestions(focusDomain: string): Promise<Arr
   return domainCareerMap[focusDomain] || domainCareerMap.Mobile;
 }
 
+const ASSESSMENT_QUESTION_BANK: Record<string, Array<{ question: string; options: string[]; correctAnswer: number }>> = {
+  "React State & Styling Quiz": [
+    { question: "Which React hook is used to perform side effects in functional components?", options: ["useState", "useEffect", "useContext", "useMemo"], correctAnswer: 1 },
+    { question: "Which hook is used to cache the result of a calculation between re-renders?", options: ["useMemo", "useCallback", "useRef", "useEffect"], correctAnswer: 0 },
+    { question: "What is the primary difference between useState and useRef?", options: ["useState does not trigger re-renders", "useRef does not trigger re-renders when updated", "useState values are immutable", "useRef cannot store objects"], correctAnswer: 1 },
+    { question: "Which hook is used to access context values in functional components?", options: ["useState", "useReducer", "useContext", "useMemo"], correctAnswer: 2 },
+    { question: "How can you run an effect cleanup function in useEffect?", options: ["By calling effect.cleanup()", "By returning a function from the effect callback", "By passing a cleanup dependency", "By calling clearEffect()"], correctAnswer: 1 },
+    { question: "What is the purpose of the key prop in React lists?", options: ["To style elements uniquely", "To identify which items have changed, been added, or removed", "To bind click events", "To enable class caching"], correctAnswer: 1 }
+  ],
+  "Visual Frontend Layout Challenge": [
+    { question: "What is the default layout direction of Flexbox in CSS?", options: ["row", "column", "grid", "inline"], correctAnswer: 0 },
+    { question: "In Flexbox, which property controls alignment along the main axis?", options: ["align-items", "justify-content", "align-content", "flex-direction"], correctAnswer: 1 },
+    { question: "How do you define a 3-column grid with equal-width columns in CSS Grid?", options: ["grid-template-columns: repeat(3, 1fr)", "grid-template-columns: 33% 33% 33%", "grid-columns: 3", "grid-template-columns: 1fr 2fr 1fr"], correctAnswer: 0 },
+    { question: "Which CSS property is used to change the stacking order of elements?", options: ["z-index", "display", "position", "float"], correctAnswer: 0 },
+    { question: "What does align-items: center do in a Flexbox container?", options: ["Aligns flex items along the cross axis in the center", "Aligns flex items along the main axis in the center", "Centers the container itself", "Distributes items evenly"], correctAnswer: 0 },
+    { question: "What is the purpose of the box-sizing: border-box CSS property?", options: ["Includes padding and border in the element's total width and height", "Adds a border around all elements", "Excludes padding from the element's width", "Prevents element from wrapping"], correctAnswer: 0 }
+  ],
+  "Comprehensive Frontend Fundamentals Quiz": [
+    { question: "What does semantic HTML primarily improve?", options: ["SEO and Accessibility", "Page load speed", "JavaScript execution time", "Database security"], correctAnswer: 0 },
+    { question: "What is the main purpose of the Virtual DOM in React?", options: ["To directly modify the browser's DOM for speed", "To synchronize local state with cloud databases", "To compute UI updates in memory before updating the real DOM", "To style web pages using CSS variables"], correctAnswer: 2 },
+    { question: "What is the difference between let and var in JavaScript?", options: ["let is block-scoped, while var is function-scoped", "let is function-scoped, while var is block-scoped", "let cannot be reassigned", "var is block-scoped"], correctAnswer: 0 },
+    { question: "Which method is used to select an element by its ID in JavaScript?", options: ["document.querySelector()", "document.getElementById()", "document.find()", "document.select()"], correctAnswer: 1 },
+    { question: "What is the purpose of the map() array method in JavaScript?", options: ["Mutates the original array in place", "Creates a new array populated with the results of calling a function on every element", "Filters out elements that do not match a criteria", "Sums up all numbers in the array"], correctAnswer: 1 },
+    { question: "What is event bubbling in JavaScript?", options: ["The event starts at the root document and goes down", "The event starts at the target element and propagates upwards to its ancestors", "The event is executed twice", "The event is prevented from executing"], correctAnswer: 1 }
+  ],
+  "Dockerized Server Setup Challenge": [
+    { question: "Which HTTP status code represents a successful resource creation?", options: ["200 OK", "201 Created", "400 Bad Request", "500 Server Error"], correctAnswer: 1 },
+    { question: "Which Docker command builds an image from a Dockerfile?", options: ["docker run", "docker build", "docker create", "docker compose"], correctAnswer: 1 },
+    { question: "In Express, how do you retrieve route parameters (e.g. /users/:id)?", options: ["req.body.id", "req.params.id", "req.query.id", "req.headers.id"], correctAnswer: 1 },
+    { question: "What is the role of a database connection pool?", options: ["To encrypt database passwords", "To cache database connections for reuse, improving performance", "To replicate databases across multiple servers", "To validate SQL queries"], correctAnswer: 1 },
+    { question: "Which Docker Compose command starts and runs containers in the background?", options: ["docker-compose start", "docker-compose up -d", "docker-compose run", "docker-compose daemon"], correctAnswer: 1 },
+    { question: "Which HTTP header is typically used to send authorization credentials?", options: ["Content-Type", "Authorization", "Accept", "User-Agent"], correctAnswer: 1 }
+  ],
+  "Visual Backend Layout Challenge": [
+    { question: "In REST API design, which HTTP method should be used to update an existing resource completely?", options: ["GET", "POST", "PUT", "DELETE"], correctAnswer: 2 },
+    { question: "Which HTTP method is designed to update a resource partially?", options: ["GET", "PUT", "PATCH", "POST"], correctAnswer: 2 },
+    { question: "What is middleware in Express?", options: ["A database optimization tool", "A function that runs between receiving a request and sending a response", "A server configuration file", "A frontend routing utility"], correctAnswer: 1 },
+    { question: "What does CORS stand for?", options: ["Core Origin Resource Sharing", "Cross-Origin Resource Sharing", "Cross-Origin Routing Server", "Cached Object Request System"], correctAnswer: 1 },
+    { question: "How do you handle JSON request payloads in Express?", options: ["By using express.json() middleware", "By parsing string arrays manually", "Using express.urlencoded()", "Using body-parser.xml()"], correctAnswer: 0 },
+    { question: "What does a 403 Forbidden status code indicate?", options: ["The server has crashed", "The client is authenticated but does not have permission for the resource", "The requested resource was not found", "Authentication is required"], correctAnswer: 1 }
+  ],
+  "Comprehensive Backend Fundamentals Quiz": [
+    { question: "What is the primary purpose of database indexing?", options: ["To encrypt credentials", "To optimize query search and data retrieval speeds", "To eliminate duplicate table rows", "To transform relational data to JSON automatically"], correctAnswer: 1 },
+    { question: "What is the core benefit of containerizing backend apps with Docker?", options: ["To generate random secret keys", "To package code and all its dependencies into a portable, isolated container", "To compile TypeScript into optimized JavaScript bundles", "To automatically write API documentation"], correctAnswer: 1 },
+    { question: "Which SQL statement is used to remove duplicate rows from a query result?", options: ["SELECT DISTINCT", "SELECT UNIQUE", "SELECT REMOVE_DUPLICATES", "SELECT MERGE"], correctAnswer: 0 },
+    { question: "What is the Node.js Event Loop responsible for?", options: ["Running database queries synchronously", "Executing non-blocking asynchronous callbacks", "Compiling TypeScript files", "Managing standard output streams"], correctAnswer: 1 },
+    { question: "In SQL, which clause is used to filter groups based on aggregate functions?", options: ["WHERE", "HAVING", "GROUP BY", "ORDER BY"], correctAnswer: 1 },
+    { question: "What is SQL injection?", options: ["A database caching technique", "A vulnerability where malicious SQL queries are executed via user inputs", "A way to insert millions of rows quickly", "An API routing strategy"], correctAnswer: 1 }
+  ],
+  "App Navigation & Screen Mapping": [
+    { question: "How is routing and navigation usually handled in modern Expo apps?", options: ["HTML anchor links", "Expo Router or React Navigation", "Window location redirects", "Conditional view rendering only"], correctAnswer: 1 },
+    { question: "In React Navigation, which navigator is used to slide in screens from the side?", options: ["StackNavigator", "DrawerNavigator", "TabNavigator", "SwitchNavigator"], correctAnswer: 1 },
+    { question: "How do you pass parameters to a route when navigating?", options: ["navigation.navigate('Details', { id: 123 })", "navigation.setParams({ id: 123 })", "navigation.push('Details?id=123')", "navigation.params = { id: 123 }"], correctAnswer: 0 },
+    { question: "What is the purpose of the NavigationContainer component?", options: ["To display a top header bar", "To manage the navigation state of the entire app tree", "To hold all tab screens", "To perform network fetch requests"], correctAnswer: 1 },
+    { question: "In Expo Router, how do you create a dynamic route?", options: ["By naming the file with square brackets, e.g., [id].tsx", "By using query strings in navigation", "Using the router.push(':id') function", "Configuring routes.json"], correctAnswer: 0 },
+    { question: "What is the difference between push and navigate in stack navigation?", options: ["push navigates backwards, navigate goes forwards", "push adds a new screen to the stack every time, navigate jumps to an existing screen if possible", "navigate resets the stack, push does not", "They are exactly identical"], correctAnswer: 1 }
+  ],
+  "Visual Mobile Layout Challenge": [
+    { question: "What layout system is used by React Native for positioning components?", options: ["CSS Grid", "Floats & Absolute layout", "Flexbox", "Table columns"], correctAnswer: 2 },
+    { question: "What is the default Flexbox direction in React Native?", options: ["row", "column", "row-reverse", "column-reverse"], correctAnswer: 1 },
+    { question: "How do you handle safe area padding for notches on iOS/Android?", options: ["By adding a top margin of 50px", "Using SafeAreaView from react-native-safe-area-context", "Configuring expo.json", "It is handled automatically by all View elements"], correctAnswer: 1 },
+    { question: "Which React Native component is used to register touch interactions with visual feedback?", options: ["View", "Text", "TouchableOpacity", "ScrollView"], correctAnswer: 2 },
+    { question: "How do you specify percentage-based width in React Native stylesheet?", options: ["width: 50", "width: '50%'", "width: '50vw'", "width: percent(50)"], correctAnswer: 1 },
+    { question: "Which flexbox property defines how elements wrap when there is not enough space?", options: ["flexWrap", "flexDirection", "justifyContent", "alignItems"], correctAnswer: 0 }
+  ],
+  "Comprehensive Mobile Fundamentals Quiz": [
+    { question: "In React Native, which component is best suited for rendering long, scrollable lists efficiently?", options: ["ScrollView", "FlatList", "View", "SafeAreaView"], correctAnswer: 1 },
+    { question: "Which React Native hook reactively returns the current screen width and height?", options: ["useWindowDimensions", "useEffect", "useDimensions", "useStyle"], correctAnswer: 0 },
+    { question: "What is the purpose of Expo CLI?", options: ["To run, build, and debug Expo projects locally", "To deploy apps to the App Store directly", "To style components using utility classes", "To manage backend database servers"], correctAnswer: 0 },
+    { question: "Which component should be used to display a basic image in React Native?", options: ["Img", "Image", "ImageBackground", "Picture"], correctAnswer: 1 },
+    { question: "How do you handle platform-specific code in React Native?", options: ["Using CSS media queries", "Using the Platform.select() helper or platform-specific extensions (e.g. .ios.tsx)", "By writing separate apps", "Using webpack configuration"], correctAnswer: 1 },
+    { question: "What is Fast Refresh in React Native?", options: ["A caching system for HTTP requests", "A feature that allows you to see changes to your code instantly in the emulator/device without losing state", "A database sync function", "A library for rendering high-rate animations"], correctAnswer: 1 }
+  ],
+  "PyTorch Data Loading & Gradient descent": [
+    { question: "What is the process of adjusting network parameters to minimize the loss function called?", options: ["Validation", "Regularization", "Optimization (e.g. Gradient Descent)", "Data augmentation"], correctAnswer: 2 },
+    { question: "What is the primary role of PyTorch DataLoader?", options: ["To download models from HuggingFace", "To batch, shuffle, and load data in parallel", "To normalize image pixel values", "To compile Python scripts"], correctAnswer: 1 },
+    { question: "Which PyTorch method computes the gradients during backpropagation?", options: ["loss.forward()", "loss.backward()", "optimizer.step()", "tensor.grad()"], correctAnswer: 1 },
+    { question: "What does requires_grad=True specify on a PyTorch Tensor?", options: ["That it must be stored on GPU", "That gradients should be tracked for this tensor", "That the tensor contains integers", "That it cannot be updated"], correctAnswer: 1 },
+    { question: "What is the purpose of optimizer.zero_grad() in the training loop?", options: ["To set model parameters to zero", "To clear old gradients before computing new ones", "To stop training", "To initialize weights"], correctAnswer: 1 },
+    { question: "What is the learning rate in gradient descent?", options: ["The number of training iterations", "A step size parameter that determines how much weights change in each iteration", "The rate of loss decrease", "The speed of calculation"], correctAnswer: 1 }
+  ],
+  "Visual AI Layout Challenge": [
+    { question: "Which data structure does PyTorch use to represent multi-dimensional arrays?", options: ["Dataframes", "Tensors", "Matrices", "Numpy Lists"], correctAnswer: 1 },
+    { question: "In Recharts, which component represents a line in a LineChart?", options: ["<ChartLine>", "<Line>", "<LinePlot>", "<StrokeLine>"], correctAnswer: 1 },
+    { question: "What is the purpose of <ResponsiveContainer> in Recharts?", options: ["To store responsive layout metadata", "To make charts responsive to parent container sizes", "To handle mobile screen rotation events", "To enable chart animations"], correctAnswer: 1 },
+    { question: "Which chart component is best for showing proportions of a whole?", options: ["<BarChart>", "<LineChart>", "<PieChart>", "<AreaChart>"], correctAnswer: 2 },
+    { question: "In Pandas, how do you quickly generate a line plot from a DataFrame?", options: ["df.line()", "df.plot(kind='line')", "df.draw_line()", "plot(df, type='line')"], correctAnswer: 1 },
+    { question: "Which Recharts component displays details when hovering over a data point?", options: ["<HoverLabel>", "<Tooltip>", "<DetailsBox>", "<Legend>"], correctAnswer: 1 }
+  ],
+  "Comprehensive AI Fundamentals Quiz": [
+    { question: "Which activation function is most widely used in hidden layers of deep neural networks?", options: ["Linear", "ReLU (Rectified Linear Unit)", "Softmax", "Sigmoid"], correctAnswer: 1 },
+    { question: "What is the main goal when training a machine learning model?", options: ["To minimize memory storage sizes", "To memorize all training samples exactly", "To generalize effectively to new, unseen data", "To execute network training as fast as possible"], correctAnswer: 2 },
+    { question: "In NumPy, how do you create a 3x3 matrix filled with zeros?", options: ["np.zeros((3, 3))", "np.matrix(0, 3, 3)", "np.empty(3, 3)", "np.zeros(9)"], correctAnswer: 0 },
+    { question: "What does standard deviation measure in statistics?", options: ["The middle value of a dataset", "The dispersion or spread of a dataset relative to its mean", "The total number of samples", "The difference between max and min values"], correctAnswer: 1 },
+    { question: "What is the main difference between a list and a tuple in Python?", options: ["Lists are mutable; tuples are immutable", "Lists are immutable; tuples are mutable", "Lists only hold integers", "Tuples cannot contain duplicate values"], correctAnswer: 0 },
+    { question: "What is the probability of flipping a fair coin twice and getting two heads?", options: ["0.5", "0.25", "0.125", "0.75"], correctAnswer: 1 }
+  ]
+};
+
+function getQuestionsForAssessment(title: string, subject: string): Array<{ question: string; options: string[]; correctAnswer: number }> {
+  if (ASSESSMENT_QUESTION_BANK[title]) {
+    return ASSESSMENT_QUESTION_BANK[title];
+  }
+  
+  for (const key of Object.keys(ASSESSMENT_QUESTION_BANK)) {
+    if (title.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(title.toLowerCase())) {
+      return ASSESSMENT_QUESTION_BANK[key];
+    }
+  }
+
+  // Fallback to domain match
+  if (subject === "Backend") return ASSESSMENT_QUESTION_BANK["Dockerized Server Setup Challenge"];
+  if (subject === "Mobile") return ASSESSMENT_QUESTION_BANK["App Navigation & Screen Mapping"];
+  if (subject === "AI") return ASSESSMENT_QUESTION_BANK["PyTorch Data Loading & Gradient descent"];
+  return ASSESSMENT_QUESTION_BANK["React State & Styling Quiz"];
+}
+
 // 7. Fetch User Assessments
 export async function fetchDBAssessments(userId: string, focusDomain: string, proficiency: string): Promise<DBAssessment[]> {
   const nextTitle = focusDomain === "Frontend" ? "React State & Styling Quiz"
@@ -290,9 +409,9 @@ export async function fetchDBAssessments(userId: string, focusDomain: string, pr
         : "PyTorch Data Loading & Gradient descent";
 
   const fallbackSeed: DBAssessment[] = [
-    { id: "a1", title: nextTitle, type: "Coding", subject: focusDomain, difficulty: proficiency as any, deadline: "Tue, May 19 · 9:00 AM", skills: [focusDomain, "Interactive"], progress: 0, status: "open" },
-    { id: "a2", title: `Visual ${focusDomain} Layout Challenge`, type: "Project", subject: focusDomain, difficulty: proficiency as any, deadline: "Thu, May 21 · 6:00 PM", skills: [focusDomain, "Architecture"], progress: 0, status: "open" },
-    { id: "a3", title: `Comprehensive ${focusDomain} Fundamentals Quiz`, type: "Essay", subject: focusDomain, difficulty: proficiency as any, deadline: "Sat, May 23 · 11:59 PM", skills: [focusDomain, "Theory"], progress: 0, status: "open" },
+    { id: "a1", title: nextTitle, type: "Coding", subject: focusDomain, difficulty: proficiency as any, deadline: "Tue, May 19 · 9:00 AM", skills: [focusDomain, "Interactive"], progress: 0, status: "open", questions: getQuestionsForAssessment(nextTitle, focusDomain) },
+    { id: "a2", title: `Visual ${focusDomain} Layout Challenge`, type: "Project", subject: focusDomain, difficulty: proficiency as any, deadline: "Thu, May 21 · 6:00 PM", skills: [focusDomain, "Architecture"], progress: 0, status: "open", questions: getQuestionsForAssessment(`Visual ${focusDomain} Layout Challenge`, focusDomain) },
+    { id: "a3", title: `Comprehensive ${focusDomain} Fundamentals Quiz`, type: "Essay", subject: focusDomain, difficulty: proficiency as any, deadline: "Sat, May 23 · 11:59 PM", skills: [focusDomain, "Theory"], progress: 0, status: "open", questions: getQuestionsForAssessment(`Comprehensive ${focusDomain} Fundamentals Quiz`, focusDomain) },
   ];
 
   try {
@@ -303,10 +422,29 @@ export async function fetchDBAssessments(userId: string, focusDomain: string, pr
 
     if (error) throw error;
     if (data && data.length > 0) {
+      // Ensure all assessments have questions populated
+      const updatedData = await Promise.all(data.map(async (item: any) => {
+        if (!item.questions || item.questions.length === 0) {
+          const generatedQuestions = getQuestionsForAssessment(item.title, item.subject);
+          const updatedItem = { ...item, questions: generatedQuestions };
+          // Attempt to update database asynchronously
+          supabase
+            .from("assessments")
+            .update({ questions: generatedQuestions })
+            .eq("user_id", userId)
+            .eq("id", item.id)
+            .then(({ error: updateErr }) => {
+              if (updateErr) console.warn("Failed to auto-populate assessment questions in Supabase:", updateErr);
+            });
+          return updatedItem;
+        }
+        return item;
+      }));
+
       if (typeof window !== "undefined" && window.localStorage) {
-        window.localStorage.setItem(`assessments_${userId}_${focusDomain}`, JSON.stringify(data));
+        window.localStorage.setItem(`assessments_${userId}_${focusDomain}`, JSON.stringify(updatedData));
       }
-      return data as DBAssessment[];
+      return updatedData as DBAssessment[];
     }
 
     // Insert fallback seed into Supabase to bootstrap
@@ -332,7 +470,14 @@ export async function fetchDBAssessments(userId: string, focusDomain: string, pr
     const cached = window.localStorage.getItem(`assessments_${userId}_${focusDomain}`);
     if (cached) {
       try {
-        return JSON.parse(cached);
+        const parsed = JSON.parse(cached);
+        const healed = parsed.map((item: any) => {
+          if (!item.questions || item.questions.length === 0) {
+            item.questions = getQuestionsForAssessment(item.title, item.subject);
+          }
+          return item;
+        });
+        return healed as DBAssessment[];
       } catch (err) {
         // Ignore
       }

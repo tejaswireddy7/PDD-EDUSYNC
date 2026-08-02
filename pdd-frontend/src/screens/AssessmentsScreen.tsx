@@ -18,6 +18,8 @@ type Assessment = {
   skills: string[];
   progress: number;
   status: Status;
+  questions?: Array<{ question: string; options: string[]; correctAnswer: number }> | null;
+  responses?: Record<number, number> | null;
 };
 
 const typeIcon = {
@@ -323,7 +325,7 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
   const isAdvanced = assessment.difficulty === "Advanced";
   
   const subjectKey = (assessment.subject || "Mobile") as keyof typeof QUIZ_QUESTIONS;
-  const questions = QUIZ_QUESTIONS[subjectKey] || QUIZ_QUESTIONS["Mobile"];
+  const questions = assessment.questions || QUIZ_QUESTIONS[subjectKey] || QUIZ_QUESTIONS["Mobile"];
   const templates = PROJECT_TEMPLATES[subjectKey] || PROJECT_TEMPLATES["Mobile"];
 
   // Reset inputs when changing active assessment
@@ -333,7 +335,7 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
     setGithubUrl("");
     setSelectedTemplate("");
     setCustomFileText("");
-    setSelectedAnswers({});
+    setSelectedAnswers(assessment.responses || {});
     setQuizScore(null);
     setProgress(0);
     setUploading(false);
@@ -379,11 +381,13 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
   };
 
   const handleSelectQuizAnswer = (qIdx: number, oIdx: number) => {
-    setSelectedAnswers(prev => ({
-      ...prev,
+    const updated = {
+      ...selectedAnswers,
       [qIdx]: oIdx
-    }));
+    };
+    setSelectedAnswers(updated);
     setValidationError("");
+    onUpdate({ responses: updated });
   };
 
   const submitProject = () => {
@@ -416,9 +420,9 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
   };
 
   const submitQuiz = () => {
-    // Validate that all 4 questions are answered
+    // Validate that all questions are answered
     if (Object.keys(selectedAnswers).length < questions.length) {
-      setValidationError("Please answer all 4 quiz questions before submitting.");
+      setValidationError(`Please answer all ${questions.length} quiz questions before submitting.`);
       return;
     }
 

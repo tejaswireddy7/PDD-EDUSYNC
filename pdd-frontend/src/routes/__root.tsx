@@ -121,9 +121,11 @@ function RootLayout() {
               </div>
             </div>
             <button 
-              onClick={() => {
-                supabase.auth.signOut();
-                store.resetStore();
+              onClick={async () => {
+                if (window.confirm("Are you sure you want to log out?")) {
+                  await supabase.auth.signOut();
+                  store.resetStore();
+                }
               }}
               title="Log Out"
               className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
@@ -180,8 +182,10 @@ function RootLayout() {
           {/* Mobile Log Out Button */}
           <button
             onClick={async () => {
-              await supabase.auth.signOut();
-              store.resetStore();
+              if (window.confirm("Are you sure you want to log out?")) {
+                await supabase.auth.signOut();
+                store.resetStore();
+              }
             }}
             className="flex flex-col items-center justify-center flex-1 py-1 text-slate-400 hover:text-red-500 transition-all duration-200 text-center cursor-pointer"
           >

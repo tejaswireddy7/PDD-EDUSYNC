@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Platform } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useDashboardStore } from "../../lib/store";
@@ -32,8 +32,21 @@ export function Sidebar({ activeRoute = "Dashboard", onNavigate }: SidebarProps)
   const store = useDashboardStore();
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    store.resetStore();
+    const doLogout = async () => {
+      await supabase.auth.signOut();
+      store.resetStore();
+    };
+
+    if (Platform.OS === "web") {
+      if (window.confirm("Are you sure you want to log out?")) {
+        await doLogout();
+      }
+    } else {
+      Alert.alert("Log Out", "Are you sure you want to log out?", [
+        { text: "Cancel", style: "cancel" },
+        { text: "Log Out", style: "destructive", onPress: doLogout },
+      ]);
+    }
   };
 
   return (

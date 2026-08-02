@@ -68,6 +68,18 @@ const getResourceVideo = (title: string): string => {
   return "https://www.youtube.com/embed/zjsYHGK6a4Q";
 };
 
+const ALL_COURSES = [
+  "React Native & Expo Ecosystem",
+  "HTML5, CSS3, & Modern Grid",
+  "JavaScript Fundamentals & DOM",
+  "Intro to React & Component States",
+  "Python Fundamentals & Packages",
+  "Neural Networks with PyTorch",
+  "SQL Fundamentals & Relational DBs",
+  "Intro to Node.js & REST API",
+  "Pandas & Numpy Data Wrangling"
+];
+
 export default function ResourcesScreen() {
   const store = useDashboardStore();
   const focusDomain = store.surveyAnswers?.focusDomain || "Mobile";
@@ -87,6 +99,7 @@ export default function ResourcesScreen() {
   const [newLevel, setNewLevel] = useState("Beginner");
   const [newType, setNewType] = useState<"Notes" | "PDF" | "Slides" | "Project">("Notes");
   const [newFileName, setNewFileName] = useState("");
+  const [selectedCourse, setSelectedCourse] = useState("React Native & Expo Ecosystem");
 
   const openResourceUrl = (title: string) => {
     const embedUrl = getResourceVideo(title);
@@ -99,9 +112,14 @@ export default function ResourcesScreen() {
       setLoading(true);
       try {
         const dbRes = await fetchDBResources(focusDomain, userProficiency);
-        setResources(dbRes as any);
+        const local = localStorage.getItem("uploaded_resources");
+        const localItems = local ? JSON.parse(local) : [];
+        setResources([...localItems, ...dbRes] as any);
       } catch (err) {
         console.warn("Failed to load resources from Supabase:", err);
+        const local = localStorage.getItem("uploaded_resources");
+        const localItems = local ? JSON.parse(local) : [];
+        setResources(localItems);
       } finally {
         setLoading(false);
       }
@@ -146,7 +164,7 @@ export default function ResourcesScreen() {
       alert("Please enter a resource title");
       return;
     }
-    const uploadedResource: Resource = {
+    const uploadedResource: any = {
       id: `uploaded_${Date.now()}`,
       title: newTitle,
       subject: newSubject,
@@ -155,10 +173,16 @@ export default function ResourcesScreen() {
       rating: 5.0,
       downloads: 1,
       trending: true,
-      author: store.user?.name || "Anonymous Learner"
+      author: store.user?.name || "Anonymous Learner",
+      courseTitle: selectedCourse
     };
 
     setResources((prev) => [uploadedResource, ...prev]);
+
+    // Save to localStorage for instant offline access
+    const local = localStorage.getItem("uploaded_resources");
+    const localItems = local ? JSON.parse(local) : [];
+    localStorage.setItem("uploaded_resources", JSON.stringify([uploadedResource, ...localItems]));
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -173,14 +197,19 @@ export default function ResourcesScreen() {
           downloads: uploadedResource.downloads,
           trending: uploadedResource.trending,
           author: uploadedResource.author,
-          focus_domain: uploadedResource.subject
+          focus_domain: uploadedResource.subject,
+          course_title: uploadedResource.courseTitle
         });
       }
     } catch (e) {
       console.warn("Failed to upload resource to Supabase:", e);
     }
 
+    // Reset fields and close modal
     setNewTitle("");
+    setNewSubject("Frontend");
+    setNewLevel("Beginner");
+    setNewType("Notes");
     setNewFileName("");
     setShowUploadModal(false);
   };
@@ -360,6 +389,25 @@ export default function ResourcesScreen() {
                 placeholderTextColor="#94a3b8"
                 style={styles.textInput}
               />
+
+              <Text style={styles.inputLabel}>Associate with Course</Text>
+              <View style={{ marginBottom: 12 }}>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingVertical: 4 }}>
+                  {ALL_COURSES.map((course) => {
+                    const active = selectedCourse === course;
+                    return (
+                      <TouchableOpacity
+                        key={course}
+                        onPress={() => setSelectedCourse(course)}
+                        style={[styles.pickerChip, active && styles.pickerChipActive]}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={[styles.pickerText, active && styles.pickerTextActive, { fontSize: 10 }]}>{course}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              </View>
 
               <Text style={styles.inputLabel}>Subject Focus</Text>
               <View style={styles.pickerRow}>

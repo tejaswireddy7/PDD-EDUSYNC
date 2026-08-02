@@ -1,5 +1,5 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import React, { useState } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, Modal, Alert, ScrollView, Switch } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useDashboardStore } from "../../lib/store";
@@ -9,6 +9,16 @@ export function SideRail() {
   const focusDomain = store.surveyAnswers?.focusDomain || "Mobile";
   const userProficiency = store.surveyAnswers?.proficiency || "Beginner";
   const nextAssessment = store.recommendations?.nextAssessment || `Introduction to ${focusDomain}`;
+
+  const [showRevisionPlan, setShowRevisionPlan] = useState(false);
+  const [showCacheManager, setShowCacheManager] = useState(false);
+
+  const showXpGuide = () => {
+    Alert.alert(
+      "XP Calculation Guide",
+      "XP represents your Experience Points. You earn it by completing learning tasks:\n\n• Complete Course Assignments: +800 XP\n• Pass Section Video Quizzes: +50 XP\n• Reviewing Syllabus Resources: +10 XP\n• Daily Consecutive Streaks: +100 XP consecutive bonus"
+    );
+  };
 
   // Domain-specific weak topics
   const domainWeakMap: Record<string, Array<{ topic: string; score: number }>> = {
@@ -34,14 +44,14 @@ export function SideRail() {
     ],
   };
 
-  const [weak, setWeak] = React.useState<Array<{ topic: string; score: number }>>([]);
+  const [weak, setWeak] = useState<Array<{ topic: string; score: number }>>([]);
 
   const initialUpcoming = [
     { title: nextAssessment, day: "Tue", date: "19", color: "primary" },
     { title: `${focusDomain} Lab Exercise`, day: "Thu", date: "21", color: "mint" },
     { title: `Comprehensive ${focusDomain} Exam`, day: "Sat", date: "23", color: "primary" },
   ];
-  const [upcoming, setUpcoming] = React.useState<Array<{ title: string; day: string; date: string; color: string }>>(initialUpcoming);
+  const [upcoming, setUpcoming] = useState<Array<{ title: string; day: string; date: string; color: string }>>(initialUpcoming);
 
   React.useEffect(() => {
     async function loadSideRailData() {
@@ -77,6 +87,7 @@ export function SideRail() {
     { name: "Consistent", emoji: "🔥" },
     { name: "Contributor", emoji: "🌟" },
   ];
+
   return (
     <View style={styles.container}>
       {/* Weak Areas Widget */}
@@ -96,7 +107,7 @@ export function SideRail() {
             weak.map((w) => (
               <View key={w.topic} style={styles.weakRow}>
                 <View style={styles.weakMeta}>
-                   <Text style={styles.weakLabel}>{w.topic}</Text>
+                  <Text style={styles.weakLabel}>{w.topic}</Text>
                   <Text style={styles.weakValue}>{w.score}%</Text>
                 </View>
                 <View style={styles.progressBarTrack}>
@@ -106,7 +117,7 @@ export function SideRail() {
             ))
           )}
         </View>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => setShowRevisionPlan(true)}>
           <Text style={styles.cardAction}>Generate revision plan →</Text>
         </TouchableOpacity>
       </View>
@@ -143,44 +154,184 @@ export function SideRail() {
       </View>
 
       {/* XP & Badges widget */}
-      <LinearGradient
-        colors={["#0d9488", "#14b8a6"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.xpCard}
-      >
-        <View style={styles.xpHeader}>
-          <Feather name="award" size={22} color="#ffffff" />
-          <Text style={styles.xpTitle}>{store.user?.xp !== undefined ? `${store.user.xp.toLocaleString()} XP` : "0 XP"} this week</Text>
-        </View>
-        <Text style={styles.xpSubtitle}>
-          {store.user?.xp && store.user.xp > 0 ? "You're in the top 8% of learners" : "Start learning to rank on the leaderboard!"}
-        </Text>
-        <View style={styles.badgesRow}>
-          {badges.map((b) => (
-            <View key={b.name} style={styles.badgeCol}>
-              <Text style={styles.badgeEmoji}>{b.emoji}</Text>
-              <Text style={styles.badgeName} numberOfLines={2}>{b.name}</Text>
-            </View>
-          ))}
-        </View>
-      </LinearGradient>
+      <TouchableOpacity activeOpacity={0.9} onPress={showXpGuide}>
+        <LinearGradient
+          colors={["#0d9488", "#14b8a6"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.xpCard}
+        >
+          <View style={styles.xpHeader}>
+            <Feather name="award" size={22} color="#ffffff" />
+            <Text style={styles.xpTitle}>{store.user?.xp !== undefined ? `${store.user.xp.toLocaleString()} XP` : "0 XP"} this week</Text>
+          </View>
+          <Text style={styles.xpSubtitle}>
+            {store.user?.xp && store.user.xp > 0 ? "You're in the top 8% of learners" : "Start learning to rank on the leaderboard!"}
+          </Text>
+          <View style={styles.badgesRow}>
+            {badges.map((b) => (
+              <View key={b.name} style={styles.badgeCol}>
+                <Text style={styles.badgeEmoji}>{b.emoji}</Text>
+                <Text style={styles.badgeName} numberOfLines={2}>{b.name}</Text>
+              </View>
+            ))}
+          </View>
+        </LinearGradient>
+      </TouchableOpacity>
 
       {/* Offline sync widget */}
-      <View style={[styles.card, styles.offlineCard]}>
+      <TouchableOpacity 
+        activeOpacity={0.85} 
+        onPress={() => setShowCacheManager(true)} 
+        style={[styles.card, styles.offlineCard]}
+      >
         <View style={styles.offlineLeft}>
           <View style={styles.iconBoxBeige}>
             <Feather name="wifi-off" size={18} color="#78350f" />
           </View>
           <View style={styles.offlineText}>
             <Text style={styles.offlineTitle}>Low-data mode</Text>
-            <Text style={styles.offlineSubtitle}>12 lessons synced offline</Text>
+            <Text style={styles.offlineSubtitle}>
+              {store.lowDataMode ? "Active" : "Disabled"} • {store.cachedMaterials.length} files cached
+            </Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.downloadBtn}>
+        <TouchableOpacity style={styles.downloadBtn} onPress={() => setShowCacheManager(true)}>
           <Feather name="download" size={14} color="#6366f1" />
         </TouchableOpacity>
-      </View>
+      </TouchableOpacity>
+
+      {/* 1. REVISION PLAN MODAL */}
+      <Modal
+        visible={showRevisionPlan}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowRevisionPlan(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>AI Study Revision Plan</Text>
+              <TouchableOpacity onPress={() => setShowRevisionPlan(false)} style={styles.closeBtn}>
+                <Feather name="x" size={18} color="#475569" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+              <Text style={styles.revisionWelcome}>
+                AI has analyzed your academic checkpoints to build this targeted recovery schedule:
+              </Text>
+
+              {weak.length === 0 ? (
+                <View style={styles.perfectStateBox}>
+                  <Text style={styles.perfectStateEmoji}>🎉</Text>
+                  <Text style={styles.perfectStateTitle}>All Areas Are Strong!</Text>
+                  <Text style={styles.perfectStateText}>
+                    You do not have any identified weak areas yet. Revisit past course materials and complete advanced project assessments to challenge yourself!
+                  </Text>
+                </View>
+              ) : (
+                weak.map((w, idx) => (
+                  <View key={idx} style={styles.revisionTopicCard}>
+                    <View style={styles.topicHeader}>
+                      <Text style={styles.topicName}>{w.topic}</Text>
+                      <Text style={styles.topicScore}>Score: {w.score}%</Text>
+                    </View>
+                    <View style={styles.recoverySteps}>
+                      <Text style={styles.stepItem}>• Step 1: Re-read official documentation and notes in the Resource Hub.</Text>
+                      <Text style={styles.stepItem}>• Step 2: Watch divided lessons and complete the interactive section quizzes.</Text>
+                      <Text style={styles.stepItem}>• Step 3: Connect with your mentor (Priya M.) via AI Coach for clarification.</Text>
+                      <Text style={styles.stepItem}>• Step 4: Re-take the layout assessment when you feel confident.</Text>
+                    </View>
+                  </View>
+                ))
+              )}
+            </ScrollView>
+
+            <TouchableOpacity 
+              style={styles.modalActionBtn} 
+              onPress={() => setShowRevisionPlan(false)}
+            >
+              <Text style={styles.modalActionText}>Start Revision Session</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* 2. OFFLINE CACHE MANAGER MODAL */}
+      <Modal
+        visible={showCacheManager}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowCacheManager(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Offline Cache Settings</Text>
+              <TouchableOpacity onPress={() => setShowCacheManager(false)} style={styles.closeBtn}>
+                <Feather name="x" size={18} color="#475569" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.cacheSettingRow}>
+              <View style={{ flex: 1, marginRight: 8 }}>
+                <Text style={styles.cacheSettingLabel}>Enable Low-Data Caching</Text>
+                <Text style={styles.cacheSettingDesc}>
+                  Stores all course documents, syllabus guides, and notes locally when opened so you don't need internet to revisit them.
+                </Text>
+              </View>
+              <Switch
+                value={store.lowDataMode}
+                onValueChange={store.toggleLowDataMode}
+              />
+            </View>
+
+            <Text style={styles.cachedSectionHeader}>
+              Cached Lessons ({store.cachedMaterials.length})
+            </Text>
+
+            <ScrollView style={styles.cachedListScroll} showsVerticalScrollIndicator={true}>
+              {store.cachedMaterials.length === 0 ? (
+                <Text style={styles.emptyCacheText}>No items stored in local cache memory yet.</Text>
+              ) : (
+                store.cachedMaterials.map((m, idx) => (
+                  <View key={idx} style={styles.cachedItemRow}>
+                    <Feather name="file-text" size={12} color="#6366f1" style={{ marginRight: 6 }} />
+                    <Text style={styles.cachedItemText} numberOfLines={1}>
+                      {m.title}
+                    </Text>
+                    <Text style={styles.cachedItemDate}>
+                      {new Date(m.cachedAt).toLocaleDateString()}
+                    </Text>
+                  </View>
+                ))
+              )}
+            </ScrollView>
+
+            <View style={styles.cacheFooterActions}>
+              <TouchableOpacity 
+                style={[styles.cacheActionBtn, { backgroundColor: "#ef4444" }]} 
+                onPress={() => {
+                  store.clearOfflineCache();
+                  Alert.alert("Success", "Offline cache memory has been cleared successfully.");
+                }}
+              >
+                <Text style={styles.cacheActionBtnText}>Clear Cache</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={[styles.cacheActionBtn, { backgroundColor: "#6366f1" }]} 
+                onPress={() => {
+                  Alert.alert("Cache Synced", "All focus domain learning documents are synced locally for offline revisit.");
+                }}
+              >
+                <Text style={styles.cacheActionBtnText}>Sync Domain</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -205,7 +356,6 @@ const styles = StyleSheet.create({
   cardHeader: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
     marginBottom: 14,
   },
   iconBox: {
@@ -214,12 +364,13 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
+    marginRight: 10,
   },
   bgDestructive: {
-    backgroundColor: "rgba(239, 68, 68, 0.1)",
+    backgroundColor: "rgba(239, 68, 68, 0.08)",
   },
   bgPrimary: {
-    backgroundColor: "rgba(99, 102, 241, 0.1)",
+    backgroundColor: "rgba(99, 102, 241, 0.08)",
   },
   cardTitle: {
     fontSize: 14,
@@ -227,7 +378,8 @@ const styles = StyleSheet.create({
     color: "#0f172a",
   },
   list: {
-    gap: 12,
+    gap: 10,
+    marginBottom: 12,
   },
   weakRow: {
     gap: 4,
@@ -240,11 +392,12 @@ const styles = StyleSheet.create({
   weakLabel: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#0f172a",
+    color: "#334155",
   },
   weakValue: {
-    fontSize: 12,
-    color: "#64748b",
+    fontSize: 11,
+    color: "#ef4444",
+    fontWeight: "700",
   },
   progressBarTrack: {
     height: 6,
@@ -254,37 +407,40 @@ const styles = StyleSheet.create({
   },
   progressBarDestructive: {
     height: "100%",
-    backgroundColor: "rgba(239, 68, 68, 0.7)",
+    backgroundColor: "#ef4444",
     borderRadius: 3,
   },
   cardAction: {
     fontSize: 12,
-    fontWeight: "700",
     color: "#6366f1",
-    marginTop: 14,
+    fontWeight: "700",
+    textAlign: "left",
   },
   upcomingList: {
-    gap: 8,
+    gap: 12,
   },
   upcomingItem: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
-    padding: 6,
-    borderRadius: 16,
   },
   dateBox: {
-    height: 40,
-    width: 40,
+    height: 38,
+    width: 38,
     borderRadius: 12,
-    justifyContent: "center",
     alignItems: "center",
+    justifyContent: "center",
   },
   bgPrimaryLight: {
     backgroundColor: "rgba(99, 102, 241, 0.08)",
   },
   bgMintLight: {
-    backgroundColor: "rgba(13, 148, 136, 0.1)",
+    backgroundColor: "rgba(13, 148, 136, 0.08)",
+  },
+  textPrimary: {
+    color: "#6366f1",
+  },
+  textMint: {
+    color: "#0d9488",
   },
   dayText: {
     fontSize: 8,
@@ -294,29 +450,25 @@ const styles = StyleSheet.create({
   dateText: {
     fontSize: 14,
     fontWeight: "800",
-  },
-  textPrimary: {
-    color: "#6366f1",
-  },
-  textMint: {
-    color: "#0d9488",
+    marginTop: -2,
   },
   upcomingDetails: {
     flex: 1,
+    marginLeft: 12,
   },
   upcomingTitle: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: "700",
     color: "#0f172a",
   },
   upcomingMeta: {
     fontSize: 10,
     color: "#64748b",
-    marginTop: 1,
+    marginTop: 2,
   },
   xpCard: {
     borderRadius: 24,
-    padding: 20,
+    padding: 16,
     shadowColor: "#0d9488",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.12,
@@ -378,7 +530,7 @@ const styles = StyleSheet.create({
     height: 36,
     width: 36,
     borderRadius: 12,
-    backgroundColor: "#fef3c7", // Amber/Beige
+    backgroundColor: "#fef3c7",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -401,5 +553,197 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(99, 102, 241, 0.1)",
     justifyContent: "center",
     alignItems: "center",
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.75)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 16,
+  },
+  modalContent: {
+    width: "100%",
+    maxWidth: 480,
+    backgroundColor: "#ffffff",
+    borderRadius: 24,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
+    paddingBottom: 12,
+    marginBottom: 12,
+  },
+  modalTitle: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#0f172a",
+  },
+  closeBtn: {
+    height: 28,
+    width: 28,
+    borderRadius: 14,
+    backgroundColor: "#f1f5f9",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalBody: {
+    maxHeight: 280,
+    marginBottom: 16,
+  },
+  revisionWelcome: {
+    fontSize: 12,
+    color: "#64748b",
+    lineHeight: 18,
+    marginBottom: 12,
+  },
+  perfectStateBox: {
+    alignItems: "center",
+    paddingVertical: 20,
+  },
+  perfectStateEmoji: {
+    fontSize: 36,
+    marginBottom: 8,
+  },
+  perfectStateTitle: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#0f172a",
+    marginBottom: 4,
+  },
+  perfectStateText: {
+    fontSize: 11,
+    color: "#64748b",
+    textAlign: "center",
+    lineHeight: 16,
+  },
+  revisionTopicCard: {
+    backgroundColor: "#f8fafc",
+    borderRadius: 16,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    marginBottom: 10,
+  },
+  topicHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e2e8f0",
+    paddingBottom: 6,
+    marginBottom: 8,
+  },
+  topicName: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#0f172a",
+  },
+  topicScore: {
+    fontSize: 11,
+    color: "#ef4444",
+    fontWeight: "700",
+  },
+  recoverySteps: {
+    gap: 4,
+  },
+  stepItem: {
+    fontSize: 11,
+    color: "#334155",
+    lineHeight: 16,
+  },
+  modalActionBtn: {
+    backgroundColor: "#6366f1",
+    paddingVertical: 12,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalActionText: {
+    color: "#ffffff",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  cacheSettingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f8fafc",
+    padding: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    marginBottom: 14,
+  },
+  cacheSettingLabel: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#0f172a",
+  },
+  cacheSettingDesc: {
+    fontSize: 10,
+    color: "#64748b",
+    marginTop: 2,
+    lineHeight: 14,
+  },
+  cachedSectionHeader: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#475569",
+    marginBottom: 8,
+    textTransform: "uppercase",
+  },
+  cachedListScroll: {
+    maxHeight: 120,
+    marginBottom: 16,
+  },
+  emptyCacheText: {
+    fontSize: 11,
+    color: "#94a3b8",
+    fontStyle: "italic",
+    textAlign: "center",
+    paddingVertical: 16,
+  },
+  cachedItemRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
+  },
+  cachedItemText: {
+    fontSize: 11,
+    color: "#334155",
+    flex: 1,
+  },
+  cachedItemDate: {
+    fontSize: 9,
+    color: "#94a3b8",
+    marginLeft: 8,
+  },
+  cacheFooterActions: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  cacheActionBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cacheActionBtnText: {
+    color: "#ffffff",
+    fontSize: 11,
+    fontWeight: "700",
   },
 });

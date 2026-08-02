@@ -1,9 +1,10 @@
 import React from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Linking, Platform, Modal } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Linking, Platform, Modal, Alert } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigate } from "@tanstack/react-router";
 import { useDashboardStore } from "../../lib/store";
+import { supabase } from "../../lib/supabase";
 
 const COURSE_VIDEOS: Record<string, string> = {
   "HTML5, CSS3, & Modern Grid": "https://www.youtube.com/embed/Dp3c7G1Qhgo",
@@ -73,12 +74,193 @@ const COURSE_MATERIALS: Record<string, Array<{ label: string; url: string; type:
   ]
 };
 
+interface Section {
+  title: string;
+  startSec: number;
+  duration: string;
+  quiz: {
+    question: string;
+    options: string[];
+    correctAnswer: number;
+  };
+}
+
+const COURSE_SECTIONS: Record<string, Section[]> = {
+  "React Native & Expo Ecosystem": [
+    {
+      title: "Section 1: Introduction to React Native & Expo Starter",
+      startSec: 0,
+      duration: "10 mins",
+      quiz: {
+        question: "What is the primary benefit of using Expo with React Native?",
+        options: [
+          "It compiles to native platforms without Xcode/Android Studio manual installs",
+          "It forces you to write code in pure HTML/CSS styles",
+          "It completely removes JavaScript from the runtime engine",
+          "It only supports web-based targets"
+        ],
+        correctAnswer: 0
+      }
+    },
+    {
+      title: "Section 2: Layouts, Styling, Flexbox & Component States",
+      startSec: 600,
+      duration: "15 mins",
+      quiz: {
+        question: "Which React Native element is the equivalent of a <div> in normal HTML web pages?",
+        options: ["Text", "Div", "View", "Container"],
+        correctAnswer: 2
+      }
+    },
+    {
+      title: "Section 3: Navigation, App Router & Device API Integrations",
+      startSec: 1500,
+      duration: "20 mins",
+      quiz: {
+        question: "Which navigation routing library is built-in in modern Expo SDK releases?",
+        options: ["react-router-dom", "Expo Router", "native-navigation", "window.location"],
+        correctAnswer: 1
+      }
+    }
+  ],
+  "HTML5, CSS3, & Modern Grid": [
+    {
+      title: "Section 1: Semantic Elements & Document Headers",
+      startSec: 0,
+      duration: "12 mins",
+      quiz: {
+        question: "Which HTML5 semantic element is most appropriate for a self-contained syndicatable blog post?",
+        options: ["<section>", "<div>", "<article>", "<aside>"],
+        correctAnswer: 2
+      }
+    },
+    {
+      title: "Section 2: Flexible Box Layouts & Media Queries",
+      startSec: 720,
+      duration: "15 mins",
+      quiz: {
+        question: "What is the default direction of flex-direction in CSS Flexbox?",
+        options: ["row", "column", "row-reverse", "grid"],
+        correctAnswer: 0
+      }
+    },
+    {
+      title: "Section 3: CSS Grid Gardens & Auto-fit Columns",
+      startSec: 1620,
+      duration: "18 mins",
+      quiz: {
+        question: "Which CSS property defines column tracks and sizes in grid templates?",
+        options: ["grid-column-gap", "grid-template-columns", "grid-rows", "flex-basis"],
+        correctAnswer: 1
+      }
+    }
+  ],
+  "JavaScript Fundamentals & DOM": [
+    {
+      title: "Section 1: Variables, Types & Block Scopes",
+      startSec: 0,
+      duration: "10 mins",
+      quiz: {
+        question: "Which variable declaration keyword is block-scoped and prevents value reassignments?",
+        options: ["var", "let", "const", "define"],
+        correctAnswer: 2
+      }
+    },
+    {
+      title: "Section 2: Functions, Array Map/Filter/Reduce & Callbacks",
+      startSec: 600,
+      duration: "12 mins",
+      quiz: {
+        question: "Which array method returns a new array containing items that evaluate true inside a callback function?",
+        options: ["map()", "filter()", "forEach()", "reduce()"],
+        correctAnswer: 1
+      }
+    },
+    {
+      title: "Section 3: DOM Selectors & Document Event Listeners",
+      startSec: 1320,
+      duration: "15 mins",
+      quiz: {
+        question: "Which DOM method returns the first element that matches the specified CSS selectors?",
+        options: ["getElementById", "getElementsByClassName", "querySelector", "querySelectorAll"],
+        correctAnswer: 2
+      }
+    }
+  ],
+  "Intro to React & Component States": [
+    {
+      title: "Section 1: JSX Syntax & Virtual DOM Diffing",
+      startSec: 0,
+      duration: "10 mins",
+      quiz: {
+        question: "What is JSX in React component development?",
+        options: ["A JavaScript XML syntax extension", "A styling stylesheet framework", "A transpiler utility", "A direct browser compiler"],
+        correctAnswer: 0
+      }
+    },
+    {
+      title: "Section 2: Functional Components & Custom Props passing",
+      startSec: 600,
+      duration: "12 mins",
+      quiz: {
+        question: "How are initial arguments passed down from parent to child React components?",
+        options: ["Via local storage", "Via component context hook", "Via Component Props object", "Via global window objects"],
+        correctAnswer: 2
+      }
+    },
+    {
+      title: "Section 3: useState Hooks & Rendering lifecycles",
+      startSec: 1320,
+      duration: "15 mins",
+      quiz: {
+        question: "Which built-in Hook allows functional components to store and update local state values?",
+        options: ["useEffect", "useState", "useRef", "useContext"],
+        correctAnswer: 1
+      }
+    }
+  ]
+};
+
 export function ContinueLearning() {
   const store = useDashboardStore();
   const navigate = useNavigate();
   const courses = store.recommendations?.courses || [];
   const [videoUrl, setVideoUrl] = React.useState<string | null>(null);
   const [videoTitle, setVideoTitle] = React.useState<string>("");
+
+  // Section timeline states
+  const [activeStartSec, setActiveStartSec] = React.useState<number>(0);
+  const [showQuizSectionIdx, setShowQuizSectionIdx] = React.useState<number | null>(null);
+  const [selectedQuizOption, setSelectedQuizOption] = React.useState<number | null>(null);
+  const [quizFeedback, setQuizFeedback] = React.useState<{ type: "correct" | "incorrect"; msg: string } | null>(null);
+  const [peerMaterials, setPeerMaterials] = React.useState<any[]>([]);
+
+  React.useEffect(() => {
+    if (!videoTitle) return;
+    async function loadPeerMaterials() {
+      try {
+        const local = localStorage.getItem("uploaded_resources");
+        const localItems = local ? JSON.parse(local) : [];
+        const courseLocal = localItems.filter((x: any) => x.courseTitle === videoTitle);
+
+        const { data, error } = await supabase
+          .from("resources")
+          .select("*")
+          .eq("course_title", videoTitle);
+
+        if (error) throw error;
+        const dbItems = data || [];
+        setPeerMaterials([...courseLocal, ...dbItems]);
+      } catch (e) {
+        console.warn("Failed to load peer materials:", e);
+        const local = localStorage.getItem("uploaded_resources");
+        const localItems = local ? JSON.parse(local) : [];
+        const courseLocal = localItems.filter((x: any) => x.courseTitle === videoTitle);
+        setPeerMaterials(courseLocal);
+      }
+    }
+    loadPeerMaterials();
+  }, [videoTitle]);
 
   const materials = COURSE_MATERIALS[videoTitle] || [
     { label: "EduSync Course Study Manual (PDF)", url: "https://developer.mozilla.org/en-US/docs/Learn", type: "doc" as const },
@@ -88,6 +270,40 @@ export function ContinueLearning() {
 
   const getWatchUrl = (embedUrl: string) => {
     return embedUrl.replace("/embed/", "/watch?v=");
+  };
+
+  const handleOpenMaterial = (label: string, url: string) => {
+    store.cacheMaterial(label, url);
+    if (store.lowDataMode) {
+      Alert.alert(
+        "Low-Data Cache Success",
+        `"${label}" has been saved in local cache memory for offline revisiting without internet access.`
+      );
+    }
+    Linking.openURL(url);
+  };
+
+  const handleQuizSubmit = (sectionIdx: number) => {
+    const sectList = COURSE_SECTIONS[videoTitle];
+    if (!sectList || showQuizSectionIdx === null) return;
+    const sect = sectList[sectionIdx];
+    if (selectedQuizOption === null) {
+      Alert.alert("Error", "Please select an answer first.");
+      return;
+    }
+
+    if (selectedQuizOption === sect.quiz.correctAnswer) {
+      setQuizFeedback({
+        type: "correct",
+        msg: "Correct! You have earned +50 XP!"
+      });
+      store.addXp(50);
+    } else {
+      setQuizFeedback({
+        type: "incorrect",
+        msg: "Incorrect. Re-watch the video section and try again!"
+      });
+    }
   };
 
   return (
@@ -112,6 +328,10 @@ export function ContinueLearning() {
               const url = COURSE_VIDEOS[c.title] || "https://www.youtube.com/embed/zjsYHGK6a4Q";
               setVideoTitle(c.title);
               setVideoUrl(url);
+              setActiveStartSec(0);
+              setShowQuizSectionIdx(null);
+              setSelectedQuizOption(null);
+              setQuizFeedback(null);
             }}
           >
             <LinearGradient
@@ -165,12 +385,12 @@ export function ContinueLearning() {
             <View style={styles.videoHeader}>
               <View style={{ flex: 1, marginRight: 8 }}>
                 <Text style={styles.videoTitle} numberOfLines={1}>{videoTitle}</Text>
-                <Text style={styles.materialsSubtitle}>Course Syllabus & Guide</Text>
+                <Text style={styles.materialsSubtitle}>Interactive Learning Hub</Text>
               </View>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                 {videoUrl && (
                   <TouchableOpacity
-                    onPress={() => Linking.openURL(getWatchUrl(videoUrl))}
+                    onPress={() => Linking.openURL(getWatchUrl(videoUrl) + (activeStartSec > 0 ? `&t=${activeStartSec}s` : ""))}
                     style={styles.watchOnYTBtn}
                     activeOpacity={0.75}
                   >
@@ -189,7 +409,7 @@ export function ContinueLearning() {
                 <iframe
                   width="100%"
                   height="100%"
-                  src={`${videoUrl}?autoplay=1`}
+                  src={`${videoUrl}?autoplay=1&start=${activeStartSec}`}
                   title={videoTitle}
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -203,48 +423,202 @@ export function ContinueLearning() {
               )}
             </View>
 
-            {/* STUDY MATERIALS SECTION */}
-            <View style={styles.materialsSection}>
-              <Text style={styles.materialsHeader}>Course Learning Materials</Text>
-              <View style={styles.materialsList}>
-                {materials.map((m, idx) => {
-                  let icon = "book-open";
-                  if (m.type === "tutorial") icon = "code";
-                  if (m.type === "article") icon = "file-text";
-                  return (
-                    <TouchableOpacity
-                      key={idx}
-                      onPress={() => Linking.openURL(m.url)}
-                      style={styles.materialItem}
-                      activeOpacity={0.7}
-                    >
-                      <View style={{ flexDirection: "row", alignItems: "center", flex: 1, gap: 8 }}>
-                        <Feather name={icon as any} size={13} color="#6366f1" style={{ marginTop: 1 }} />
-                        <Text style={styles.materialLabel} numberOfLines={1}>
-                          {m.label}
-                        </Text>
-                      </View>
-                      <Feather name="external-link" size={12} color="#94a3b8" />
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
+            {/* SECTION QUIZ OVERLAY PANEL */}
+            {showQuizSectionIdx !== null && (
+              <View style={styles.quizPanel}>
+                <View style={styles.quizPanelHeader}>
+                  <Text style={styles.quizPanelTitle}>
+                    Section Quiz: Lesson {showQuizSectionIdx + 1}
+                  </Text>
+                  <TouchableOpacity onPress={() => { setShowQuizSectionIdx(null); setSelectedQuizOption(null); setQuizFeedback(null); }}>
+                    <Feather name="x-circle" size={16} color="#ef4444" />
+                  </TouchableOpacity>
+                </View>
 
-            {/* GO TO ASSESSMENTS ACTION BUTTON */}
-            <View style={styles.modalFooter}>
-              <TouchableOpacity
-                style={styles.quizBtn}
-                onPress={() => {
-                  setVideoUrl(null);
-                  navigate({ to: "/assessments" });
-                }}
-                activeOpacity={0.8}
-              >
-                <MaterialCommunityIcons name="clipboard-text-outline" size={16} color="#ffffff" style={{ marginRight: 6 }} />
-                <Text style={styles.quizBtnText}>Test Your Knowledge (Go to Quiz)</Text>
-              </TouchableOpacity>
-            </View>
+                {(() => {
+                  const sect = COURSE_SECTIONS[videoTitle]?.[showQuizSectionIdx];
+                  if (!sect) return null;
+                  return (
+                    <View style={styles.quizPanelBody}>
+                      <Text style={styles.quizQuestion}>{sect.quiz.question}</Text>
+                      <View style={styles.quizOptions}>
+                        {sect.quiz.options.map((opt, oIdx) => {
+                          const isSel = selectedQuizOption === oIdx;
+                          return (
+                            <TouchableOpacity
+                              key={oIdx}
+                              onPress={() => {
+                                if (quizFeedback) return;
+                                setSelectedQuizOption(oIdx);
+                              }}
+                              style={[styles.quizOptionBtn, isSel && styles.quizOptionBtnActive]}
+                              activeOpacity={0.7}
+                            >
+                              <View style={[styles.quizOptionCircle, isSel && styles.quizOptionCircleActive]}>
+                                {isSel && <View style={styles.quizOptionInner} />}
+                              </View>
+                              <Text style={[styles.quizOptionText, isSel && styles.quizOptionTextActive]}>{opt}</Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
+
+                      {quizFeedback && (
+                        <View style={[styles.feedbackBox, quizFeedback.type === "correct" ? styles.feedbackCorrect : styles.feedbackIncorrect]}>
+                          <Feather
+                            name={quizFeedback.type === "correct" ? "check-circle" : "alert-circle"}
+                            size={14}
+                            color={quizFeedback.type === "correct" ? "#10b981" : "#ef4444"}
+                            style={{ marginRight: 6 }}
+                          />
+                          <Text style={[styles.feedbackText, quizFeedback.type === "correct" ? styles.textCorrect : styles.textIncorrect]}>
+                            {quizFeedback.msg}
+                          </Text>
+                        </View>
+                      )}
+
+                      {!quizFeedback ? (
+                        <TouchableOpacity
+                          style={styles.quizSubmitBtn}
+                          onPress={() => handleQuizSubmit(showQuizSectionIdx)}
+                        >
+                          <Text style={styles.quizSubmitText}>Submit Answer</Text>
+                        </TouchableOpacity>
+                      ) : (
+                        <TouchableOpacity
+                          style={[styles.quizSubmitBtn, { backgroundColor: "#475569" }]}
+                          onPress={() => {
+                            setShowQuizSectionIdx(null);
+                            setSelectedQuizOption(null);
+                            setQuizFeedback(null);
+                          }}
+                        >
+                          <Text style={styles.quizSubmitText}>Close Quiz</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  );
+                })()}
+              </View>
+            )}
+
+            {/* VIDEO SECTIONS TIMELINE */}
+            {COURSE_SECTIONS[videoTitle] && showQuizSectionIdx === null && (
+              <View style={styles.sectionsContainer}>
+                <Text style={styles.sectionsHeaderTitle}>Divided Video Lessons</Text>
+                <ScrollView style={{ maxHeight: 110 }} showsVerticalScrollIndicator={true}>
+                  {COURSE_SECTIONS[videoTitle].map((sect, sIdx) => (
+                    <View key={sIdx} style={styles.sectionItemRow}>
+                      <TouchableOpacity
+                        onPress={() => setActiveStartSec(sect.startSec)}
+                        style={styles.sectionPlayPart}
+                        activeOpacity={0.7}
+                      >
+                        <Feather name="play" size={11} color="#6366f1" style={{ marginRight: 6 }} />
+                        <Text style={styles.sectionItemTitle} numberOfLines={1}>
+                          {sect.title}
+                        </Text>
+                        <Text style={styles.sectionItemDuration}>({sect.duration})</Text>
+                      </TouchableOpacity>
+                      
+                      <TouchableOpacity
+                        onPress={() => {
+                          setShowQuizSectionIdx(sIdx);
+                          setSelectedQuizOption(null);
+                          setQuizFeedback(null);
+                        }}
+                        style={styles.sectionQuizBtn}
+                        activeOpacity={0.7}
+                      >
+                        <Feather name="award" size={10} color="#ffffff" style={{ marginRight: 4 }} />
+                        <Text style={styles.sectionQuizBtnText}>Quiz</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* STUDY MATERIALS SECTION */}
+            {showQuizSectionIdx === null && (
+              <View style={styles.materialsSection}>
+                <Text style={styles.materialsHeader}>Syllabus Study Materials & References</Text>
+                <View style={styles.materialsList}>
+                  {materials.slice(0, 2).map((m, idx) => {
+                    let icon = "book-open";
+                    if (m.type === "tutorial") icon = "code";
+                    if (m.type === "article") icon = "file-text";
+                    return (
+                      <TouchableOpacity
+                        key={idx}
+                        onPress={() => handleOpenMaterial(m.label, m.url)}
+                        style={styles.materialItem}
+                        activeOpacity={0.7}
+                      >
+                        <View style={{ flexDirection: "row", alignItems: "center", flex: 1, gap: 8 }}>
+                          <Feather name={icon as any} size={13} color="#6366f1" style={{ marginTop: 1 }} />
+                          <Text style={styles.materialLabel} numberOfLines={1}>
+                            {m.label}
+                          </Text>
+                        </View>
+                        <Feather name="external-link" size={12} color="#94a3b8" />
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+            )}
+
+            {/* PEER UPLOADED MATERIALS SECTION */}
+            {showQuizSectionIdx === null && peerMaterials.length > 0 && (
+              <View style={styles.peerSection}>
+                <Text style={styles.peerHeader}>Community Shared Documents</Text>
+                <View style={styles.materialsList}>
+                  {peerMaterials.slice(0, 2).map((p, idx) => {
+                    let icon = "file";
+                    if (p.type === "Notes") icon = "edit-3";
+                    if (p.type === "PDF") icon = "file-text";
+                    if (p.type === "Project") icon = "folder";
+                    return (
+                      <TouchableOpacity
+                        key={idx}
+                        onPress={() => handleOpenMaterial(p.title, "https://developer.mozilla.org/en-US/")}
+                        style={styles.materialItem}
+                        activeOpacity={0.7}
+                      >
+                        <View style={{ flexDirection: "row", alignItems: "center", flex: 1, gap: 8 }}>
+                          <Feather name={icon as any} size={13} color="#14b8a6" style={{ marginTop: 1 }} />
+                          <View>
+                            <Text style={styles.materialLabel} numberOfLines={1}>
+                              {p.title}
+                            </Text>
+                            <Text style={styles.authorLabel}>Uploaded by {p.author}</Text>
+                          </View>
+                        </View>
+                        <Feather name="external-link" size={12} color="#94a3b8" />
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+            )}
+
+            {/* ASSESSMENTS ACTION BUTTON */}
+            {showQuizSectionIdx === null && (
+              <View style={styles.modalFooter}>
+                <TouchableOpacity
+                  style={styles.quizBtn}
+                  onPress={() => {
+                    setVideoUrl(null);
+                    navigate({ to: "/assessments" });
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <MaterialCommunityIcons name="clipboard-text-outline" size={16} color="#ffffff" style={{ marginRight: 6 }} />
+                  <Text style={styles.quizBtnText}>Test Your Knowledge (Go to Quiz)</Text>
+                </TouchableOpacity>
+              </View>
+            )}
 
           </View>
         </View>
@@ -424,7 +798,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: 12,
   },
   videoTitle: {
     fontSize: 16,
@@ -445,7 +819,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: "hidden",
     backgroundColor: "#000000",
-    marginBottom: 16,
+    marginBottom: 12,
   },
   watchOnYTBtn: {
     flexDirection: "row",

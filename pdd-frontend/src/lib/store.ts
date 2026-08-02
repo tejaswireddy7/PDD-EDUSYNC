@@ -22,6 +22,8 @@ export interface DashboardState {
   recommendations: RecommendationOutput | null;
   isLoadingRecommendations: boolean;
   isLoadingProfile: boolean;
+  lowDataMode: boolean;
+  cachedMaterials: Array<{ title: string; url: string; cachedAt: number }>;
 }
 
 // Default initial state
@@ -37,6 +39,8 @@ const DEFAULT_STATE: DashboardState = {
   recommendations: null,
   isLoadingRecommendations: false,
   isLoadingProfile: true,
+  lowDataMode: false,
+  cachedMaterials: [],
 };
 
 // Internal store variables
@@ -57,6 +61,16 @@ export function useDashboardStore() {
   const [current, setCurrent] = useState<DashboardState>(state);
 
   useEffect(() => {
+    // Hydrate local cache and low data settings on mount
+    if (typeof window !== "undefined" && window.localStorage) {
+      const cached = window.localStorage.getItem("cached_materials");
+      const mode = window.localStorage.getItem("low_data_mode");
+      updateState({
+        lowDataMode: mode === "true",
+        cachedMaterials: cached ? JSON.parse(cached) : []
+      });
+    }
+
     const listener = () => setCurrent(state);
     listeners.add(listener);
     return () => {
@@ -228,6 +242,35 @@ export function useDashboardStore() {
       });
     },
 
+    addXp: async (amount: number) => {
+      const prevUser = state.user;
+      if (!prevUser) return;
+      const nextUser = {
+        ...prevUser,
+        xp: (prevUser.xp || 0) + amount
+      };
+      updateState({ user: nextUser });
+      try {
+        const sessionData = await supabase.auth.getSession();
+        const session = sessionData.data.session;
+        if (session && session.user) {
+          await saveDBProfile(session.user.id, {
+            name: nextUser.name,
+            email: nextUser.email,
+            focusDomain: state.surveyAnswers?.focusDomain || "Mobile",
+            proficiency: state.surveyAnswers?.proficiency || "Beginner",
+            learningHours: state.surveyAnswers?.learningHours || 5,
+            streak: nextUser.streak,
+            coursesCompleted: nextUser.coursesCompleted,
+            careerFitScore: nextUser.careerFitScore,
+            xp: nextUser.xp
+          });
+        }
+      } catch (e) {
+        console.warn("Failed to save XP profile update:", e);
+      }
+    },
+
     submitAssessment: async (id: string) => {
       const prevUser = state.user;
       const nextUser = prevUser ? {
@@ -263,6 +306,31 @@ export function useDashboardStore() {
         } catch (e) {
           console.warn("Failed to save profile progress on assessment submission:", e);
         }
+      }
+    },
+
+    toggleLowDataMode: () => {
+      const nextMode = !state.lowDataMode;
+      updateState({ lowDataMode: nextMode });
+      if (typeof window !== "undefined" && window.localStorage) {
+        window.localStorage.setItem("low_data_mode", String(nextMode));
+      }
+    },
+
+    cacheMaterial: (title: string, url: string) => {
+      const alreadyCached = state.cachedMaterials.some(m => m.title === title);
+      if (alreadyCached) return;
+      const nextCache = [...state.cachedMaterials, { title, url, cachedAt: Date.now() }];
+      updateState({ cachedMaterials: nextCache });
+      if (typeof window !== "undefined" && window.localStorage) {
+        window.localStorage.setItem("cached_materials", JSON.stringify(nextCache));
+      }
+    },
+
+    clearOfflineCache: () => {
+      updateState({ cachedMaterials: [] });
+      if (typeof window !== "undefined" && window.localStorage) {
+        window.localStorage.setItem("cached_materials", "[]");
       }
     },
 

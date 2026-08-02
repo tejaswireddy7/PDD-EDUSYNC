@@ -177,7 +177,8 @@ export function useDashboardStore() {
           streak: state.user?.streak ?? 0,
           coursesCompleted: state.user?.coursesCompleted ?? 0,
           careerFitScore: state.user?.careerFitScore ?? 0,
-          xp: state.user?.xp ?? 0
+          xp: state.user?.xp ?? 0,
+          lastSurveyDate: Date.now()
         });
       }
 

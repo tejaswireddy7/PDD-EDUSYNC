@@ -50,6 +50,16 @@ export function Header() {
       </View>
 
       <View style={styles.actionsContainer}>
+        {/* Retake Survey / Preferences Button */}
+        <TouchableOpacity 
+          style={styles.iconButton} 
+          onPress={store.triggerInstantResurvey}
+          activeOpacity={0.75}
+          title="Update learning path preferences"
+        >
+          <Feather name="sliders" size={18} color="#475569" />
+        </TouchableOpacity>
+
         <TouchableOpacity style={styles.iconButton} onPress={() => setShowNotifications(!showNotifications)}>
           <Feather name="bell" size={20} color="#475569" />
           <View style={styles.badge} />

@@ -1,5 +1,5 @@
-import React, { useMemo, useState, useEffect } from "react";
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Dimensions, ActivityIndicator, Linking, Platform, Modal, Pressable } from "react-native";
+import React, { useMemo, useState, useEffect, useRef } from "react";
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Dimensions, ActivityIndicator, Linking, Platform, Modal, Pressable, Alert, Image } from "react-native";
 import { Feather, FontAwesome } from "@expo/vector-icons";
 import { Header } from "../components/skillora/Header";
 import { useDashboardStore } from "../lib/store";
@@ -101,10 +101,46 @@ export default function ResourcesScreen() {
   const [newFileName, setNewFileName] = useState("");
   const [selectedCourse, setSelectedCourse] = useState("React Native & Expo Ecosystem");
 
-  const openResourceUrl = (title: string) => {
-    const embedUrl = getResourceVideo(title);
-    setVideoTitle(title);
-    setVideoUrl(embedUrl);
+  const fileInputRef = useRef<any>(null);
+  const [selectedFileContent, setSelectedFileContent] = useState<string | null>(null);
+  const [selectedFileType, setSelectedFileType] = useState<string | null>(null);
+  const [viewingResource, setViewingResource] = useState<any | null>(null);
+
+  const handleDeleteResource = async (id: string) => {
+    setResources((prev) => prev.filter((x) => x.id !== id));
+    const local = localStorage.getItem("uploaded_resources");
+    if (local) {
+      const localItems = JSON.parse(local);
+      const updated = localItems.filter((x: any) => x.id !== id);
+      localStorage.setItem("uploaded_resources", JSON.stringify(updated));
+    }
+    try {
+      await supabase.from("resources").delete().eq("id", id);
+    } catch (e) {
+      console.warn("Failed to delete remote resource:", e);
+    }
+    Alert.alert("Success", "Your uploaded resource has been deleted successfully.");
+  };
+
+  const handleAttachClick = () => {
+    if (Platform.OS === "web" && fileInputRef.current) {
+      fileInputRef.current.click();
+    } else {
+      setNewFileName("notes_expo.pdf");
+      setSelectedFileType("application/pdf");
+      setSelectedFileContent("mock_base64_data");
+    }
+  };
+
+  const handleOpenResource = (r: any) => {
+    store.cacheMaterial(r.title, "https://developer.mozilla.org/en-US/");
+    if (store.lowDataMode) {
+      Alert.alert(
+        "Low-Data Cache Success",
+        `"${r.title}" has been saved in local cache memory for offline revisiting without internet access.`
+      );
+    }
+    setViewingResource(r);
   };
 
   useEffect(() => {
@@ -112,9 +148,10 @@ export default function ResourcesScreen() {
       setLoading(true);
       try {
         const dbRes = await fetchDBResources(focusDomain, userProficiency);
+        const dynamicDBRes = dbRes.filter((x: any) => !x.id.startsWith("res_"));
         const local = localStorage.getItem("uploaded_resources");
         const localItems = local ? JSON.parse(local) : [];
-        setResources([...localItems, ...dbRes] as any);
+        setResources([...localItems, ...dynamicDBRes] as any);
       } catch (err) {
         console.warn("Failed to load resources from Supabase:", err);
         const local = localStorage.getItem("uploaded_resources");
@@ -174,7 +211,10 @@ export default function ResourcesScreen() {
       downloads: 1,
       trending: true,
       author: store.user?.name || "Anonymous Learner",
-      courseTitle: selectedCourse
+      courseTitle: selectedCourse,
+      fileName: newFileName,
+      fileType: selectedFileType,
+      fileContent: selectedFileContent
     };
 
     setResources((prev) => [uploadedResource, ...prev]);
@@ -211,6 +251,8 @@ export default function ResourcesScreen() {
     setNewLevel("Beginner");
     setNewType("Notes");
     setNewFileName("");
+    setSelectedFileType(null);
+    setSelectedFileContent(null);
     setShowUploadModal(false);
   };
 
@@ -300,21 +342,35 @@ export default function ResourcesScreen() {
             <TouchableOpacity 
               key={r.id} 
               style={styles.resourceCard}
-              onPress={() => openResourceUrl(r.title)}
+              onPress={() => handleOpenResource(r)}
               activeOpacity={0.85}
             >
               <View style={styles.resourceCardTop}>
                 <View style={styles.iconBox}>
                   <Feather name="file-text" size={16} color="#6366f1" />
                 </View>
-                <TouchableOpacity onPress={() => toggleBookmark(r.id)}>
-                  <Feather 
-                    name="bookmark" 
-                    size={16} 
-                    color={isBookmarked ? "#6366f1" : "#64748b"} 
-                    style={isBookmarked && styles.fillIcon}
-                  />
-                </TouchableOpacity>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  <TouchableOpacity onPress={() => toggleBookmark(r.id)}>
+                    <Feather 
+                      name="bookmark" 
+                      size={16} 
+                      color={isBookmarked ? "#6366f1" : "#64748b"} 
+                      style={isBookmarked && styles.fillIcon}
+                    />
+                  </TouchableOpacity>
+                  {r.id.startsWith("uploaded_") && (
+                    <TouchableOpacity 
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        handleDeleteResource(r.id);
+                      }}
+                      style={styles.deleteResourceBtn}
+                      activeOpacity={0.7}
+                    >
+                      <Feather name="trash-2" size={14} color="#ef4444" />
+                    </TouchableOpacity>
+                  )}
+                </View>
               </View>
 
               <View style={styles.resourceBadges}>
@@ -457,13 +513,38 @@ export default function ResourcesScreen() {
                 })}
               </View>
 
-              <Text style={styles.inputLabel}>Attach Document (Simulated)</Text>
-              <TouchableOpacity style={styles.attachBox} onPress={() => setNewFileName("cheatsheet_v1.pdf")}>
+              <Text style={styles.inputLabel}>Attach Document</Text>
+              <TouchableOpacity style={styles.attachBox} onPress={handleAttachClick}>
                 <Feather name="paperclip" size={16} color="#64748b" style={{ marginRight: 6 }} />
                 <Text style={{ fontSize: 12, color: "#475569" }}>
-                  {newFileName || "Choose document/zip file..."}
+                  {newFileName || "Choose image, PDF, or text notes file..."}
                 </Text>
               </TouchableOpacity>
+
+              {Platform.OS === "web" && (
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  style={{ display: "none" }}
+                  accept="image/*,application/pdf,text/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setNewFileName(file.name);
+                      setSelectedFileType(file.type);
+                      const reader = new FileReader();
+                      reader.onload = () => {
+                        setSelectedFileContent(reader.result as string);
+                      };
+                      if (file.type.startsWith("text/")) {
+                        reader.readAsText(file);
+                      } else {
+                        reader.readAsDataURL(file);
+                      }
+                    }
+                  }}
+                />
+              )}
             </ScrollView>
 
             <View style={styles.modalFooter}>
@@ -509,6 +590,71 @@ export default function ResourcesScreen() {
           </View>
         </View>
       )}
+
+      {/* Resource Viewer Modal */}
+      <Modal
+        visible={viewingResource !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setViewingResource(null)}
+      >
+        <View style={styles.viewerOverlay}>
+          <View style={styles.viewerModal}>
+            <View style={styles.viewerHeader}>
+              <View style={{ flex: 1, marginRight: 8 }}>
+                <Text style={styles.viewerTitle} numberOfLines={1}>{viewingResource?.title}</Text>
+                <Text style={styles.viewerSubtitle}>
+                  Uploaded by {viewingResource?.author} • {viewingResource?.type}
+                </Text>
+              </View>
+              <TouchableOpacity onPress={() => setViewingResource(null)} style={styles.viewerCloseBtn}>
+                <Feather name="x" size={18} color="#ffffff" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.viewerBody} contentContainerStyle={{ paddingBottom: 20 }} showsVerticalScrollIndicator={true}>
+              {viewingResource?.fileContent ? (
+                <>
+                  {viewingResource.fileType?.startsWith("image/") ? (
+                    <Image
+                      source={{ uri: viewingResource.fileContent }}
+                      style={{ width: "100%", height: 320, borderRadius: 16, backgroundColor: "#0f172a" }}
+                      resizeMode="contain"
+                    />
+                  ) : viewingResource.fileType?.includes("pdf") ? (
+                    Platform.OS === "web" ? (
+                      <iframe
+                        src={viewingResource.fileContent}
+                        style={{ width: "100%", height: 420, borderRadius: 16, border: "none" }}
+                      />
+                    ) : (
+                      <View style={styles.pdfFallback}>
+                        <Feather name="file-text" size={48} color="#a5b4fc" />
+                        <Text style={{ color: "#ffffff", marginTop: 12, textAlign: "center" }}>
+                          PDF preview is only supported on Web.
+                        </Text>
+                      </View>
+                    )
+                  ) : (
+                    // Plain text notes/files
+                    <View style={styles.notesTextContainer}>
+                      <Text style={styles.notesTextContent}>{viewingResource.fileContent}</Text>
+                    </View>
+                  )}
+                </>
+              ) : (
+                // Preseeded / fallback notes text content
+                <View style={styles.notesTextContainer}>
+                  <Text style={styles.notesTextContent}>
+                    {viewingResource?.title} description and details:\n\n
+                    This reference material has been prepared to help you study dynamic concepts related to {viewingResource?.subject || focusDomain}.\n\nRevisit this guide to prepare for checkpoints!
+                  </Text>
+                </View>
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
 
       <View style={styles.spacer} />
     </ScrollView>
@@ -989,5 +1135,78 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: "hidden",
     backgroundColor: "#000000",
+  },
+  deleteResourceBtn: {
+    padding: 6,
+    borderRadius: 6,
+    backgroundColor: "rgba(239, 68, 68, 0.08)",
+  },
+  viewerOverlay: {
+    position: (Platform.OS === "web" ? "fixed" : "absolute") as any,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(15, 23, 42, 0.8)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 9999,
+    padding: 16,
+  },
+  viewerModal: {
+    width: "95%",
+    maxWidth: 620,
+    backgroundColor: "#1e293b",
+    borderRadius: 24,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+  },
+  viewerHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255,255,255,0.1)",
+    paddingBottom: 12,
+    marginBottom: 14,
+  },
+  viewerTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#ffffff",
+  },
+  viewerSubtitle: {
+    fontSize: 11,
+    color: "#94a3b8",
+    marginTop: 2,
+  },
+  viewerCloseBtn: {
+    height: 32,
+    width: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  viewerBody: {
+    maxHeight: 480,
+  },
+  notesTextContainer: {
+    backgroundColor: "rgba(255,255,255,0.03)",
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.05)",
+  },
+  notesTextContent: {
+    fontSize: 13,
+    color: "#cbd5e1",
+    lineHeight: 20,
+  },
+  pdfFallback: {
+    height: 200,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

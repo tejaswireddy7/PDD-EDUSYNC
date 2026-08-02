@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Linking, Platform, Modal, Alert } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Linking, Platform, Modal, Alert, Image } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigate } from "@tanstack/react-router";
@@ -234,6 +234,7 @@ export function ContinueLearning() {
   const [selectedQuizOption, setSelectedQuizOption] = React.useState<number | null>(null);
   const [quizFeedback, setQuizFeedback] = React.useState<{ type: "correct" | "incorrect"; msg: string } | null>(null);
   const [peerMaterials, setPeerMaterials] = React.useState<any[]>([]);
+  const [viewingResource, setViewingResource] = React.useState<any | null>(null);
 
   React.useEffect(() => {
     if (!videoTitle) return;
@@ -272,6 +273,22 @@ export function ContinueLearning() {
     return embedUrl.replace("/embed/", "/watch?v=");
   };
 
+  const handleDeletePeerMaterial = async (id: string) => {
+    setPeerMaterials((prev) => prev.filter((x) => x.id !== id));
+    const local = localStorage.getItem("uploaded_resources");
+    if (local) {
+      const localItems = JSON.parse(local);
+      const updated = localItems.filter((x: any) => x.id !== id);
+      localStorage.setItem("uploaded_resources", JSON.stringify(updated));
+    }
+    try {
+      await supabase.from("resources").delete().eq("id", id);
+    } catch (e) {
+      console.warn("Failed to delete remote resource:", e);
+    }
+    Alert.alert("Success", "Your uploaded resource has been deleted successfully.");
+  };
+
   const handleOpenMaterial = (label: string, url: string) => {
     store.cacheMaterial(label, url);
     if (store.lowDataMode) {
@@ -281,6 +298,17 @@ export function ContinueLearning() {
       );
     }
     Linking.openURL(url);
+  };
+
+  const handleOpenPeerMaterial = (m: any) => {
+    store.cacheMaterial(m.title, "https://developer.mozilla.org/en-US/");
+    if (store.lowDataMode) {
+      Alert.alert(
+        "Low-Data Cache Success",
+        `"${m.title}" has been saved in local cache memory for offline revisiting without internet access.`
+      );
+    }
+    setViewingResource(m);
   };
 
   const handleQuizSubmit = (sectionIdx: number) => {
@@ -506,7 +534,7 @@ export function ContinueLearning() {
             {COURSE_SECTIONS[videoTitle] && showQuizSectionIdx === null && (
               <View style={styles.sectionsContainer}>
                 <Text style={styles.sectionsHeaderTitle}>Divided Video Lessons</Text>
-                <ScrollView style={{ maxHeight: 110 }} showsVerticalScrollIndicator={true}>
+                <ScrollView style={{ maxHeight: 140 }} showsVerticalScrollIndicator={true}>
                   {COURSE_SECTIONS[videoTitle].map((sect, sIdx) => (
                     <View key={sIdx} style={styles.sectionItemRow}>
                       <TouchableOpacity
@@ -514,11 +542,15 @@ export function ContinueLearning() {
                         style={styles.sectionPlayPart}
                         activeOpacity={0.7}
                       >
-                        <Feather name="play" size={11} color="#6366f1" style={{ marginRight: 6 }} />
-                        <Text style={styles.sectionItemTitle} numberOfLines={1}>
-                          {sect.title}
-                        </Text>
-                        <Text style={styles.sectionItemDuration}>({sect.duration})</Text>
+                        <View style={styles.sectionPlayIconCircle}>
+                          <Feather name="play" size={10} color="#6366f1" style={{ marginLeft: 1 }} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.sectionItemTitle} numberOfLines={2}>
+                            {sect.title}
+                          </Text>
+                          <Text style={styles.sectionItemDuration}>{sect.duration}</Text>
+                        </View>
                       </TouchableOpacity>
                       
                       <TouchableOpacity
@@ -539,66 +571,58 @@ export function ContinueLearning() {
               </View>
             )}
 
-            {/* STUDY MATERIALS SECTION */}
+            {/* SYLLABUS STUDY MATERIALS & DOCUMENTS (DYNAMIC DATA ONLY) */}
             {showQuizSectionIdx === null && (
-              <View style={styles.materialsSection}>
-                <Text style={styles.materialsHeader}>Syllabus Study Materials & References</Text>
-                <View style={styles.materialsList}>
-                  {materials.slice(0, 2).map((m, idx) => {
-                    let icon = "book-open";
-                    if (m.type === "tutorial") icon = "code";
-                    if (m.type === "article") icon = "file-text";
-                    return (
-                      <TouchableOpacity
-                        key={idx}
-                        onPress={() => handleOpenMaterial(m.label, m.url)}
-                        style={styles.materialItem}
-                        activeOpacity={0.7}
-                      >
-                        <View style={{ flexDirection: "row", alignItems: "center", flex: 1, gap: 8 }}>
-                          <Feather name={icon as any} size={13} color="#6366f1" style={{ marginTop: 1 }} />
-                          <Text style={styles.materialLabel} numberOfLines={1}>
-                            {m.label}
-                          </Text>
-                        </View>
-                        <Feather name="external-link" size={12} color="#94a3b8" />
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              </View>
-            )}
-
-            {/* PEER UPLOADED MATERIALS SECTION */}
-            {showQuizSectionIdx === null && peerMaterials.length > 0 && (
               <View style={styles.peerSection}>
-                <Text style={styles.peerHeader}>Community Shared Documents</Text>
+                <Text style={styles.peerHeader}>Syllabus Study Materials & Documents</Text>
                 <View style={styles.materialsList}>
-                  {peerMaterials.slice(0, 2).map((p, idx) => {
-                    let icon = "file";
-                    if (p.type === "Notes") icon = "edit-3";
-                    if (p.type === "PDF") icon = "file-text";
-                    if (p.type === "Project") icon = "folder";
-                    return (
-                      <TouchableOpacity
-                        key={idx}
-                        onPress={() => handleOpenMaterial(p.title, "https://developer.mozilla.org/en-US/")}
-                        style={styles.materialItem}
-                        activeOpacity={0.7}
-                      >
-                        <View style={{ flexDirection: "row", alignItems: "center", flex: 1, gap: 8 }}>
-                          <Feather name={icon as any} size={13} color="#14b8a6" style={{ marginTop: 1 }} />
-                          <View>
-                            <Text style={styles.materialLabel} numberOfLines={1}>
-                              {p.title}
-                            </Text>
-                            <Text style={styles.authorLabel}>Uploaded by {p.author}</Text>
+                  {peerMaterials.length === 0 ? (
+                    <View style={styles.emptyUploadsCard}>
+                      <Feather name="folder-open" size={24} color="#94a3b8" />
+                      <Text style={styles.emptyUploadsText}>
+                        No peer documents uploaded yet for this course. Be the first to upload reference study notes or PDFs in the Resource Hub!
+                      </Text>
+                    </View>
+                  ) : (
+                    peerMaterials.map((p, idx) => {
+                      let icon = "file";
+                      if (p.type === "Notes") icon = "edit-3";
+                      if (p.type === "PDF") icon = "file-text";
+                      if (p.type === "Project") icon = "folder";
+                      return (
+                        <View key={p.id || idx} style={styles.materialItemRow}>
+                          <TouchableOpacity
+                            onPress={() => handleOpenPeerMaterial(p)}
+                            style={{ flexDirection: "row", alignItems: "center", flex: 1, gap: 10 }}
+                            activeOpacity={0.7}
+                          >
+                            <View style={styles.peerIconBox}>
+                              <Feather name={icon as any} size={13} color="#14b8a6" />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                              <Text style={styles.materialLabel} numberOfLines={1}>
+                                {p.title}
+                              </Text>
+                              <Text style={styles.authorLabel}>Uploaded by {p.author}</Text>
+                            </View>
+                          </TouchableOpacity>
+                          
+                          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                            <Feather name="eye" size={12} color="#94a3b8" />
+                            {p.id?.startsWith("uploaded_") && (
+                              <TouchableOpacity
+                                onPress={() => handleDeletePeerMaterial(p.id)}
+                                style={styles.deletePeerBtn}
+                                activeOpacity={0.7}
+                              >
+                                <Feather name="trash-2" size={12} color="#ef4444" />
+                              </TouchableOpacity>
+                            )}
                           </View>
                         </View>
-                        <Feather name="external-link" size={12} color="#94a3b8" />
-                      </TouchableOpacity>
-                    );
-                  })}
+                      );
+                    })
+                  )}
                 </View>
               </View>
             )}
@@ -620,6 +644,71 @@ export function ContinueLearning() {
               </View>
             )}
 
+          </View>
+        </View>
+      </Modal>
+
+      {/* 3. UPLOADED RESOURCE VIEWER MODAL */}
+      <Modal
+        visible={viewingResource !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setViewingResource(null)}
+      >
+        <View style={styles.viewerOverlay}>
+          <View style={styles.viewerModal}>
+            <View style={styles.viewerHeader}>
+              <View style={{ flex: 1, marginRight: 8 }}>
+                <Text style={styles.viewerTitle} numberOfLines={1}>{viewingResource?.title}</Text>
+                <Text style={styles.viewerSubtitle}>
+                  Uploaded by {viewingResource?.author} • {viewingResource?.type}
+                </Text>
+              </View>
+              <TouchableOpacity onPress={() => setViewingResource(null)} style={styles.viewerCloseBtn}>
+                <Feather name="x" size={18} color="#ffffff" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.viewerBody} contentContainerStyle={{ paddingBottom: 20 }} showsVerticalScrollIndicator={true}>
+              {viewingResource?.fileContent ? (
+                <>
+                  {viewingResource.fileType?.startsWith("image/") ? (
+                    <Image
+                      source={{ uri: viewingResource.fileContent }}
+                      style={{ width: "100%", height: 320, borderRadius: 16, backgroundColor: "#0f172a" }}
+                      resizeMode="contain"
+                    />
+                  ) : viewingResource.fileType?.includes("pdf") ? (
+                    Platform.OS === "web" ? (
+                      <iframe
+                        src={viewingResource.fileContent}
+                        style={{ width: "100%", height: 420, borderRadius: 16, border: "none" }}
+                      />
+                    ) : (
+                      <View style={styles.pdfFallback}>
+                        <Feather name="file-text" size={48} color="#a5b4fc" />
+                        <Text style={{ color: "#ffffff", marginTop: 12, textAlign: "center" }}>
+                          PDF preview is only supported on Web.
+                        </Text>
+                      </View>
+                    )
+                  ) : (
+                    // Plain text notes/files
+                    <View style={styles.notesTextContainer}>
+                      <Text style={styles.notesTextContent}>{viewingResource.fileContent}</Text>
+                    </View>
+                  )}
+                </>
+              ) : (
+                // Fallback for preseeded / notes preview
+                <View style={styles.notesTextContainer}>
+                  <Text style={styles.notesTextContent}>
+                    {viewingResource?.title} description and details:\n\n
+                    This reference material has been prepared to help you study dynamic concepts related to {viewingResource?.courseTitle || videoTitle}.\n\nRevisit this guide to prepare for checkpoints!
+                  </Text>
+                </View>
+              )}
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -886,5 +975,187 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 13,
     fontWeight: "700",
+  },
+  sectionsContainer: {
+    backgroundColor: "rgba(255,255,255,0.03)",
+    padding: 12,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.05)",
+    marginBottom: 14,
+  },
+  sectionsHeaderTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#ffffff",
+    marginBottom: 8,
+  },
+  sectionItemRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "rgba(255,255,255,0.04)",
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.04)",
+  },
+  sectionPlayPart: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+    marginRight: 8,
+    gap: 8,
+  },
+  sectionPlayIconCircle: {
+    height: 22,
+    width: 22,
+    borderRadius: 11,
+    backgroundColor: "rgba(99, 102, 241, 0.15)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  sectionItemTitle: {
+    fontSize: 12,
+    color: "#f1f5f9",
+    fontWeight: "600",
+  },
+  sectionItemDuration: {
+    fontSize: 10,
+    color: "#38bdf8",
+    marginTop: 1,
+    fontWeight: "500",
+  },
+  sectionQuizBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#6366f1",
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+  },
+  sectionQuizBtnText: {
+    color: "#ffffff",
+    fontSize: 10,
+    fontWeight: "700",
+  },
+  peerSection: {
+    marginTop: 8,
+    marginBottom: 14,
+  },
+  peerHeader: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#14b8a6",
+    marginBottom: 8,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  emptyUploadsCard: {
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.02)",
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.04)",
+    borderStyle: "dashed",
+  },
+  emptyUploadsText: {
+    fontSize: 11,
+    color: "#94a3b8",
+    textAlign: "center",
+    lineHeight: 16,
+    marginTop: 8,
+  },
+  materialItemRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "rgba(255,255,255,0.05)",
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    marginBottom: 6,
+  },
+  peerIconBox: {
+    height: 28,
+    width: 28,
+    borderRadius: 8,
+    backgroundColor: "rgba(20, 184, 166, 0.1)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  deletePeerBtn: {
+    padding: 6,
+    borderRadius: 6,
+    backgroundColor: "rgba(239, 68, 68, 0.1)",
+  },
+  // Viewer styles
+  viewerOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.8)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 16,
+    zIndex: 10000,
+  },
+  viewerModal: {
+    width: "95%",
+    maxWidth: 620,
+    backgroundColor: "#1e293b",
+    borderRadius: 24,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+  },
+  viewerHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255,255,255,0.1)",
+    paddingBottom: 12,
+    marginBottom: 14,
+  },
+  viewerTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#ffffff",
+  },
+  viewerSubtitle: {
+    fontSize: 11,
+    color: "#94a3b8",
+    marginTop: 2,
+  },
+  viewerCloseBtn: {
+    height: 32,
+    width: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  viewerBody: {
+    maxHeight: 480,
+  },
+  notesTextContainer: {
+    backgroundColor: "rgba(255,255,255,0.03)",
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.05)",
+  },
+  notesTextContent: {
+    fontSize: 13,
+    color: "#f1f5f9",
+    lineHeight: 20,
+  },
+  pdfFallback: {
+    height: 200,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

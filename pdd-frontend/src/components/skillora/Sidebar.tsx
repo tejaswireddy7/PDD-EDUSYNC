@@ -119,7 +119,7 @@ export function Sidebar({ activeRoute = "Dashboard", onNavigate }: SidebarProps)
         onPress={handleLogout}
         activeOpacity={0.75}
       >
-        <Feather name="log-out" size={14} color="#ef4444" />
+        <MaterialCommunityIcons name="logout" size={14} color="#ef4444" />
         <Text style={styles.logoutBtnText}>Log Out</Text>
       </TouchableOpacity>
     </View>

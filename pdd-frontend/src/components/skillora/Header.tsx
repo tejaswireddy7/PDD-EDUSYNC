@@ -76,7 +76,7 @@ export function Header() {
 
         {/* Logout Button — right beside streak */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.75}>
-          <Feather name="log-out" size={18} color="#475569" />
+          <MaterialCommunityIcons name="logout" size={18} color="#475569" />
         </TouchableOpacity>
 
         {showNotifications && (
@@ -84,7 +84,7 @@ export function Header() {
             <View style={styles.notifHeader}>
               <Text style={styles.notifTitle}>Notifications</Text>
               <TouchableOpacity onPress={() => setShowNotifications(false)}>
-                <Feather name="x" size={14} color="#64748b" />
+                <Text style={{ fontSize: 13, color: "#64748b", fontWeight: "700" }}>✕</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.notifList}>

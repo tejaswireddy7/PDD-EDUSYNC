@@ -42,7 +42,7 @@ export default function DashboardScreen() {
           </TouchableOpacity>
           <TouchableOpacity 
             activeOpacity={0.8} 
-            onPress={store.resetStore} 
+            onPress={store.resetSurvey} 
             style={[styles.sandboxBtn, styles.sandboxBtnReset]}
           >
             <Text style={[styles.sandboxBtnText, styles.sandboxBtnTextReset]}>🔄 Reset Survey</Text>

@@ -266,6 +266,46 @@ export function useDashboardStore() {
       }
     },
 
+    resetSurvey: async () => {
+      updateState({
+        surveyCompleted: false,
+        surveyAnswers: null,
+        lastSurveyDate: null,
+        recommendations: null
+      });
+
+      // Clear survey state in localStorage
+      if (typeof window !== "undefined" && window.localStorage) {
+        const sessionData = await supabase.auth.getSession();
+        const session = sessionData.data.session;
+        if (session && session.user) {
+          window.localStorage.removeItem(`assessments_${session.user.id}_Mobile`);
+          window.localStorage.removeItem(`assessments_${session.user.id}_Frontend`);
+          window.localStorage.removeItem(`assessments_${session.user.id}_Backend`);
+          window.localStorage.removeItem(`assessments_${session.user.id}_AI`);
+        }
+      }
+
+      try {
+        const sessionData = await supabase.auth.getSession();
+        const session = sessionData.data.session;
+        if (session && session.user) {
+          const { error } = await supabase
+            .from("profiles")
+            .update({
+              last_survey_date: null,
+              focus_domain: "Mobile",
+              proficiency: "Beginner",
+              learning_hours: 5
+            })
+            .eq("id", session.user.id);
+          if (error) throw error;
+        }
+      } catch (err) {
+        console.warn("Failed to clear survey state in database:", err);
+      }
+    },
+
     resetStore: () => {
       updateState({
         ...DEFAULT_STATE,
@@ -283,28 +323,44 @@ export function useDashboardStore() {
 
 // Keep store session synced with Supabase Auth state changes
 supabase.auth.onAuthStateChange((event: any, session: any) => {
-  if (session && session.user) {
-    const userId = session.user.id;
-    const userEmail = session.user.email || "";
-    const userName = session.user.user_metadata?.full_name || userEmail.split("@")[0] || "Student";
-    const userCreatedAt = new Date(session.user.created_at || Date.now()).getTime();
-
-    // Set user state immediately so login completes instantly
+  if (!session || !session.user) {
     updateState({
-      isLoadingProfile: true,
-      user: {
-        name: userName,
-        email: userEmail,
-        registeredAt: userCreatedAt,
-        streak: 0,
-        coursesCompleted: 0,
-        careerFitScore: 0,
-        xp: 0
-      },
+      user: null,
       surveyCompleted: false,
       surveyAnswers: null,
-      token: session.access_token
+      token: null,
+      recommendations: null,
+      isLoadingProfile: false
     });
+    return;
+  }
+
+  // Optimization: If already authenticated with the same access token, DO NOT reset state
+  if (state.token === session.access_token && state.user !== null) {
+    return;
+  }
+
+  const userId = session.user.id;
+  const userEmail = session.user.email || "";
+  const userName = session.user.user_metadata?.full_name || userEmail.split("@")[0] || "Student";
+  const userCreatedAt = new Date(session.user.created_at || Date.now()).getTime();
+
+  // Set user state immediately so login completes instantly
+  updateState({
+    isLoadingProfile: true,
+    user: {
+      name: userName,
+      email: userEmail,
+      registeredAt: userCreatedAt,
+      streak: 0,
+      coursesCompleted: 0,
+      careerFitScore: 0,
+      xp: 0
+    },
+    surveyCompleted: false,
+    surveyAnswers: null,
+    token: session.access_token
+  });
 
     // Fetch DB Profile asynchronously in the background
     fetchDBProfile(userId).then(async (dbProfile) => {
@@ -389,16 +445,6 @@ supabase.auth.onAuthStateChange((event: any, session: any) => {
       console.warn("Background fetch profile failed:", err);
       updateState({ isLoadingProfile: false });
     });
-  } else {
-    updateState({
-      user: null,
-      surveyCompleted: false,
-      surveyAnswers: null,
-      token: null,
-      recommendations: null,
-      isLoadingProfile: false
-    });
-  }
 });
 
 export type { SurveyAnswers, UserProfile };

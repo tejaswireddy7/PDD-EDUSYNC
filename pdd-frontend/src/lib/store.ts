@@ -8,7 +8,9 @@ import {
   fetchDBCourses, 
   fetchDBResources, 
   fetchDBMilestones,
-  fetchDBAssessments
+  fetchDBAssessments,
+  fetchDBRecommendations,
+  saveDBCourseProgress
 } from "./supabase-db";
 
 async function getNextAssessmentTitle(userId: string, focusDomain: string, proficiency: string): Promise<string> {
@@ -126,6 +128,30 @@ export function useDashboardStore() {
 
     fetchRecommendations: async () => {
       const answers = state.surveyAnswers;
+      updateState({ isLoadingRecommendations: true });
+      try {
+        const sessionData = await supabase.auth.getSession();
+        const session = sessionData.data.session;
+        if (session && session.user) {
+          const dbRec = await fetchDBRecommendations(session.user.id);
+          if (dbRec && dbRec.courses && dbRec.courses.length > 0) {
+            updateState({
+              recommendations: {
+                courses: dbRec.courses,
+                resources: dbRec.resources,
+                milestones: dbRec.milestones,
+                weeklyHoursTarget: dbRec.weeklyHoursTarget || (answers ? answers.learningHours : 5),
+                nextAssessment: dbRec.nextAssessment
+              },
+              isLoadingRecommendations: false
+            });
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn("Failed to fetch user-specific recommendations from DB:", e);
+      }
+
       if (answers) {
         updateState({ isLoadingRecommendations: true });
         try {
@@ -203,6 +229,12 @@ export function useDashboardStore() {
         forceResurveyTriggered: false
       });
       
+      if (typeof window !== "undefined" && window.localStorage) {
+        const email = state.user?.email || "guest";
+        window.localStorage.setItem(`survey_completed_${email}`, "true");
+        window.localStorage.setItem(`survey_answers_${email}`, JSON.stringify(answers));
+      }
+
       // Persist survey details to Supabase if authenticated
       const sessionData = await supabase.auth.getSession();
       const session = sessionData.data.session;
@@ -343,9 +375,36 @@ export function useDashboardStore() {
             careerFitScore: nextUser.careerFitScore ?? 0,
             xp: nextUser.xp
           });
+
+          if (nextRecs && nextRecs.courses) {
+            await saveDBCourseProgress(session.user.id, nextRecs.courses);
+          }
         }
       } catch (e) {
         console.warn("Failed to save completed course profile in Supabase:", e);
+      }
+    },
+
+    updateCourseProgress: async (courseTitle: string, progress: number) => {
+      let nextRecs = state.recommendations;
+      if (nextRecs && nextRecs.courses) {
+        nextRecs = {
+          ...nextRecs,
+          courses: nextRecs.courses.map(c => 
+            c.title === courseTitle ? { ...c, progress: Math.max(c.progress || 0, progress) } : c
+          )
+        };
+      }
+      updateState({ recommendations: nextRecs });
+
+      try {
+        const sessionData = await supabase.auth.getSession();
+        const session = sessionData.data.session;
+        if (session && session.user && nextRecs && nextRecs.courses) {
+          await saveDBCourseProgress(session.user.id, nextRecs.courses);
+        }
+      } catch (e) {
+        console.warn("Failed to update course progress in Supabase:", e);
       }
     },
 
@@ -438,6 +497,9 @@ export function useDashboardStore() {
         const sessionData = await supabase.auth.getSession();
         const session = sessionData.data.session;
         if (session && session.user) {
+          const email = session.user.email || "guest";
+          window.localStorage.removeItem(`survey_completed_${email}`);
+          window.localStorage.removeItem(`survey_answers_${email}`);
           window.localStorage.removeItem(`assessments_${session.user.id}_Mobile`);
           window.localStorage.removeItem(`assessments_${session.user.id}_Frontend`);
           window.localStorage.removeItem(`assessments_${session.user.id}_Backend`);
@@ -588,6 +650,18 @@ supabase.auth.onAuthStateChange((event: any, session: any) => {
         }
       }
 
+      let localSurveyDone = false;
+      let localAnswers = null;
+      if (typeof window !== "undefined" && window.localStorage) {
+        localSurveyDone = window.localStorage.getItem(`survey_completed_${userEmail}`) === "true";
+        const saved = window.localStorage.getItem(`survey_answers_${userEmail}`);
+        if (saved) {
+          try {
+            localAnswers = JSON.parse(saved);
+          } catch (e) {}
+        }
+      }
+
       updateState({
         isLoadingProfile: false,
         user: {
@@ -599,12 +673,12 @@ supabase.auth.onAuthStateChange((event: any, session: any) => {
           careerFitScore: dbProfile?.career_fit_score ?? 0,
           xp: dbProfile?.xp ?? 0
         },
-        surveyCompleted: dbProfile ? (!!dbProfile.last_survey_date || !!dbProfile.focus_domain) : false,
-        surveyAnswers: dbProfile ? {
-          focusDomain: dbProfile.focus_domain || "Mobile",
+        surveyCompleted: localSurveyDone || (dbProfile ? (!!dbProfile.last_survey_date || !!dbProfile.focus_domain) : false),
+        surveyAnswers: dbProfile && dbProfile.focus_domain ? {
+          focusDomain: dbProfile.focus_domain,
           proficiency: dbProfile.proficiency || "Beginner",
           learningHours: dbProfile.learning_hours || 5
-        } : null
+        } : (localAnswers || null)
       });
     }).catch(err => {
       console.warn("Background fetch profile failed:", err);

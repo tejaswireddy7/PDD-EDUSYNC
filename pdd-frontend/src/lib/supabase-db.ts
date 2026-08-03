@@ -1220,3 +1220,72 @@ export async function fetchDBWeakAreas(userId: string, focusDomain: string): Pro
 
   return localWeakMap[focusDomain] || localWeakMap["Mobile"];
 }
+
+// 18. Fetch User Recommendations containing personalized course progress
+export async function fetchDBRecommendations(userId: string): Promise<any | null> {
+  try {
+    const { data, error } = await supabase
+      .from("recommendations")
+      .select("*")
+      .eq("userId", userId)
+      .order("id", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      const { data: dataAlt, error: errorAlt } = await supabase
+        .from("recommendations")
+        .select("*")
+        .eq("user_id", userId)
+        .order("id", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (errorAlt) throw errorAlt;
+      if (dataAlt) {
+        return {
+          ...dataAlt,
+          courses: typeof dataAlt.courses === "string" ? JSON.parse(dataAlt.courses) : dataAlt.courses,
+          resources: typeof dataAlt.resources === "string" ? JSON.parse(dataAlt.resources) : dataAlt.resources,
+          milestones: typeof dataAlt.milestones === "string" ? JSON.parse(dataAlt.milestones) : dataAlt.milestones,
+        };
+      }
+      return null;
+    }
+
+    if (data) {
+      return {
+        ...data,
+        courses: typeof data.courses === "string" ? JSON.parse(data.courses) : data.courses,
+        resources: typeof data.resources === "string" ? JSON.parse(data.resources) : data.resources,
+        milestones: typeof data.milestones === "string" ? JSON.parse(data.milestones) : data.milestones,
+      };
+    }
+  } catch (e) {
+    logError("fetchDBRecommendations", e);
+  }
+  return null;
+}
+
+// 19. Update courses progress inside recommendations table
+export async function saveDBCourseProgress(userId: string, courses: DBCourse[]): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from("recommendations")
+      .update({
+        courses: JSON.stringify(courses)
+      })
+      .eq("userId", userId);
+
+    if (error) {
+      await supabase
+        .from("recommendations")
+        .update({
+          courses: JSON.stringify(courses)
+        })
+        .eq("user_id", userId);
+    }
+  } catch (e) {
+    logError("saveDBCourseProgress", e);
+  }
+}

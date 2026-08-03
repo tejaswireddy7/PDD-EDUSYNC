@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useDashboardStore } from "../../lib/store";
@@ -151,8 +151,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   card: {
-    width: "48%",
-    aspectRatio: 1.85, // Highly compact grid squares
+    width: Platform.OS === "web" ? "23.5%" : "48%",
+    aspectRatio: 1.05, // Small passport-sized square grid items
     backgroundColor: "#ffffff",
     borderRadius: 12,
     borderWidth: 1,

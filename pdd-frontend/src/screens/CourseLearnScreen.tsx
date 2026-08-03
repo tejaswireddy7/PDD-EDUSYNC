@@ -567,6 +567,21 @@ export default function CourseLearnScreen() {
   const [fifteenMinQuizFeedback, setFifteenMinQuizFeedback] = useState<string | null>(null);
   const [fifteenMinScore, setFifteenMinScore] = useState<number | null>(null);
 
+  // Load saved video progress on mount
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.localStorage) {
+      const cacheKey = `video_progress_${courseTitle}_${store.user?.email || "guest"}`;
+      const savedTime = window.localStorage.getItem(cacheKey);
+      if (savedTime) {
+        const seconds = parseInt(savedTime, 10);
+        if (!isNaN(seconds)) {
+          setWatchedTime(seconds);
+          setActiveStartSec(seconds);
+        }
+      }
+    }
+  }, [courseTitle, store.user?.email]);
+
   // Listen for YouTube player state changes via postMessage (enablejsapi=1)
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -592,6 +607,13 @@ export default function CourseLearnScreen() {
     const interval = setInterval(() => {
       setWatchedTime((prev) => {
         const next = prev + 1;
+
+        // Save watched time progress to local storage
+        if (typeof window !== "undefined" && window.localStorage) {
+          const cacheKey = `video_progress_${courseTitle}_${store.user?.email || "guest"}`;
+          window.localStorage.setItem(cacheKey, next.toString());
+        }
+
         if (next >= 900) {
           clearInterval(interval);
           setQuizTriggered(true);
@@ -611,7 +633,7 @@ export default function CourseLearnScreen() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isPlaying, quizTriggered]);
+  }, [isPlaying, quizTriggered, courseTitle, store.user?.email]);
 
   const handleFifteenMinQuizSubmit = () => {
     const sectList = COURSE_SECTIONS[courseTitle] || defaultSections;
@@ -720,6 +742,11 @@ export default function CourseLearnScreen() {
       window.localStorage.setItem(cacheKey, JSON.stringify(updated));
     }
 
+    // Dynamic course progress sync based on section quiz passes
+    const correctCount = Object.values(updated).filter((x) => x.correct).length;
+    const nextProgress = Math.min(99, Math.round((correctCount / sectList.length) * 99));
+    store.updateCourseProgress(courseTitle, nextProgress);
+
     if (isCorrect) {
       setQuizFeedback({
         type: "correct",
@@ -809,7 +836,13 @@ export default function CourseLearnScreen() {
               </Text>
             </View>
             <TouchableOpacity
-              onPress={() => setWatchedTime(895)}
+              onPress={() => {
+                setWatchedTime(895);
+                if (typeof window !== "undefined" && window.localStorage) {
+                  const cacheKey = `video_progress_${courseTitle}_${store.user?.email || "guest"}`;
+                  window.localStorage.setItem(cacheKey, "895");
+                }
+              }}
               style={styles.simulateBtn}
               activeOpacity={0.7}
             >

@@ -342,6 +342,11 @@ export function ContinueLearning() {
   const [showAllCoursesModal, setShowAllCoursesModal] = React.useState(false);
   const [modalTab, setModalTab] = React.useState<"my" | "all">("my");
 
+  const modalCourses = allCourses;
+  const listToRender = modalTab === "my"
+    ? modalCourses.filter((c) => c.progress > 0)
+    : modalCourses;
+
   const handleOpenAllCourses = () => {
     setShowAllCoursesModal(true);
     setModalTab("my");

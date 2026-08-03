@@ -52,24 +52,23 @@ export function StatCards() {
   );
 }
 
-const screenWidth = Dimensions.get("window").width;
-const cardWidth = (screenWidth - 32 - 12) / 2; // (Total width - padding - gap) / 2
-
 const styles = StyleSheet.create({
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    gap: 12,
-    marginBottom: 20,
+    gap: 8,
+    marginBottom: 16,
   },
   card: {
-    width: cardWidth,
+    width: "48%",
+    aspectRatio: 1.35,
     backgroundColor: "#ffffff",
-    borderRadius: 20,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: "#e2e8f0",
-    padding: 14,
+    padding: 12,
+    justifyContent: "space-between",
     shadowColor: "#0f172a",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.03,

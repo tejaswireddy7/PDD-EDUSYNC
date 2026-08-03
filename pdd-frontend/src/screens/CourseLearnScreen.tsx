@@ -6,12 +6,90 @@ import { supabase } from "../lib/supabase";
 
 const COURSE_VIDEOS: Record<string, string> = {
   "HTML5, CSS3, & Modern Grid": "https://www.youtube.com/embed/Dp3c7G1Qhgo",
-  "JavaScript Fundamentals & DOM": "https://www.youtube.com/embed/Ke90Tje7VS0",
+  "JavaScript Fundamentals & DOM": "https://www.youtube.com/embed/hdI2bqOjy3c",
   "Intro to React & Component States": "https://www.youtube.com/embed/Ke90Tje7VS0",
-  "React Native & Expo Ecosystem": "https://www.youtube.com/embed/zjsYHGK6a4Q",
-  "SQL Fundamentals & Relational DBs": "https://www.youtube.com/embed/HXTt1AjbTtc",
   "Intro to Node.js & REST API": "https://www.youtube.com/embed/Oe421EPjeBE",
-  "Pandas & Numpy Data Wrangling": "https://www.youtube.com/embed/V_xro1bcAuA"
+  "SQL Fundamentals & Relational DBs": "https://www.youtube.com/embed/HXTt1AjbTtc",
+  "React Native & Expo Ecosystem": "https://www.youtube.com/embed/gvkqT_qiVxM",
+  "Python Fundamentals & Packages": "https://www.youtube.com/embed/_uQrJ0TkZlc",
+  "Neural Networks with PyTorch": "https://www.youtube.com/embed/V_xro1bcAuA",
+  "React Router & Global Context": "https://www.youtube.com/embed/59IXY5IDYbA",
+  "Tailwind CSS & Responsive Layouts": "https://www.youtube.com/embed/m7OWXtbiXX8",
+  "TypeScript Essentials for Web": "https://www.youtube.com/embed/zQnOB4tV3MC",
+  "Java Spring Boot Microservices": "https://www.youtube.com/embed/35EQXmHKZYs",
+  "PostgreSQL Queries & Optimization": "https://www.youtube.com/embed/7VfZYMXZmeI",
+  "SwiftUI Mastery for iOS Platforms": "https://www.youtube.com/embed/F2CznepmCg4",
+  "Kotlin & Android Jetpack UI": "https://www.youtube.com/embed/Ch5QqJmOzCQ",
+  "Pandas & Numpy Data Wrangling": "https://www.youtube.com/embed/F6kmIpWWEdU",
+  "Basics of Routing & HTTP Methods": "https://www.youtube.com/embed/yQleTeoUskc",
+};
+
+const COURSE_MATERIALS: Record<string, Array<{ label: string; url: string; type: "doc" | "tutorial" | "article" }>> = {
+  "HTML5, CSS3, & Modern Grid": [
+    { label: "MDN Web Docs: HTML & CSS Basics", url: "https://developer.mozilla.org/en-US/docs/Learn", type: "doc" },
+    { label: "CSS Tricks: Complete Guide to Flexbox", url: "https://css-tricks.com/snippets/css/a-guide-to-flexbox/", type: "article" },
+    { label: "Interactive CSS Grid Garden Game", url: "https://cssgridgarden.com/", type: "tutorial" }
+  ],
+  "JavaScript Fundamentals & DOM": [
+    { label: "MDN Web Docs: JavaScript Programming Guide", url: "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide", type: "doc" },
+    { label: "JavaScript.info - Comprehensive Tutorial", url: "https://javascript.info/", type: "tutorial" },
+    { label: "Eloquent JavaScript (Free Digital Book)", url: "https://eloquentjavascript.net/", type: "doc" }
+  ],
+  "Intro to React & Component States": [
+    { label: "React Official Docs: Quick Start Guide", url: "https://react.dev/learn", type: "doc" },
+    { label: "Scrimba: Free Interactive React Course", url: "https://scrimba.com/learn/learnreact", type: "tutorial" },
+    { label: "Robin Wieruch: Complete React State tutorial", url: "https://www.robinwieruch.de/react-state/", type: "article" }
+  ],
+  "Intro to Node.js & REST API": [
+    { label: "Node.js Official Documentation Guide", url: "https://nodejs.org/en/docs", type: "doc" },
+    { label: "Express.js RESTful API Routing guide", url: "https://expressjs.com/en/guide/routing.html", type: "doc" },
+    { label: "RestApiTutorial: What is REST?", url: "https://restapitutorial.com/", type: "tutorial" }
+  ],
+  "SQL Fundamentals & Relational DBs": [
+    { label: "W3Schools Interactive SQL Reference", url: "https://www.w3schools.com/sql/", type: "tutorial" },
+    { label: "SQLBolt: Interactive SQL Lessons", url: "https://sqlbolt.com/", type: "tutorial" },
+    { label: "Use The Index, Luke: SQL query speed guide", url: "https://use-the-index-luke.com/", type: "doc" }
+  ],
+  "React Native & Expo Ecosystem": [
+    { label: "React Native official Layout Guides", url: "https://reactnative.dev/docs/flexbox", type: "doc" },
+    { label: "Expo CLI Docs: Building native bundles", url: "https://docs.expo.dev/", type: "doc" },
+    { label: "React Navigation state container setups", url: "https://reactnavigation.org/", type: "article" }
+  ],
+  "Python Fundamentals & Packages": [
+    { label: "Python.org Official Tutorial", url: "https://docs.python.org/3/tutorial/", type: "doc" },
+    { label: "Real Python: Comprehensive Learning Path", url: "https://realpython.com/", type: "tutorial" }
+  ],
+  "Neural Networks with PyTorch": [
+    { label: "PyTorch Official Neural Network Tutorial", url: "https://pytorch.org/tutorials/beginner/blitz/neural_networks_tutorial.html", type: "doc" },
+    { label: "Deep Learning with PyTorch (Free book)", url: "https://pytorch.org/deep-learning-with-pytorch-book", type: "doc" }
+  ],
+  "React Router & Global Context": [
+    { label: "React Router Docs: Routing Basics", url: "https://reactrouter.com/", type: "doc" }
+  ],
+  "Tailwind CSS & Responsive Layouts": [
+    { label: "Tailwind CSS Official Docs", url: "https://tailwindcss.com/", type: "doc" }
+  ],
+  "TypeScript Essentials for Web": [
+    { label: "TypeScript Deep Dive Handbook", url: "https://basarat.gitbook.io/typescript/", type: "doc" }
+  ],
+  "Java Spring Boot Microservices": [
+    { label: "Spring Boot Official Guides", url: "https://spring.io/guides", type: "doc" }
+  ],
+  "PostgreSQL Queries & Optimization": [
+    { label: "Postgres Guide: Indexes & Queries", url: "https://www.postgresguide.com/", type: "doc" }
+  ],
+  "SwiftUI Mastery for iOS Platforms": [
+    { label: "Apple Developer SwiftUI Tutorials", url: "https://developer.apple.com/tutorials/swiftui", type: "doc" }
+  ],
+  "Kotlin & Android Jetpack UI": [
+    { label: "Android Developers Jetpack Compose Guide", url: "https://developer.android.com/jetpack/compose", type: "doc" }
+  ],
+  "Pandas & Numpy Data Wrangling": [
+    { label: "Pandas User Guide & Exercises", url: "https://pandas.pydata.org/docs/user_guide/index.html", type: "doc" }
+  ],
+  "Basics of Routing & HTTP Methods": [
+    { label: "HTTP Protocols MDN Reference", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP", type: "doc" }
+  ]
 };
 
 interface Section {
@@ -69,7 +147,7 @@ const COURSE_SECTIONS: Record<string, Section[]> = {
       startSec: 0,
       duration: "12 mins",
       quiz: {
-        question: "Which HTML5 semantic element is most appropriate for a self-contained syndicatable blog post?",
+        question: "Which HTML5 semantic element is most appropriate for a self-contained blog post?",
         options: ["<section>", "<div>", "<article>", "<aside>"],
         correctAnswer: 2
       }
@@ -158,6 +236,292 @@ const COURSE_SECTIONS: Record<string, Section[]> = {
         correctAnswer: 1
       }
     }
+  ],
+  "SQL Fundamentals & Relational DBs": [
+    {
+      title: "Section 1: Relational Database Models & Tables",
+      startSec: 0,
+      duration: "10 mins",
+      quiz: {
+        question: "What does the SQL acronym stand for?",
+        options: ["Structured Query Language", "Simple Query List", "Server Queue Language", "Stateful Query Loop"],
+        correctAnswer: 0
+      }
+    },
+    {
+      title: "Section 2: Primary Keys, Foreign Keys & Schema relations",
+      startSec: 600,
+      duration: "12 mins",
+      quiz: {
+        question: "Which constraint uniquely identifies each record in a database table?",
+        options: ["Foreign Key", "Primary Key", "Unique Index", "NotNull Constraint"],
+        correctAnswer: 1
+      }
+    }
+  ],
+  "Intro to Node.js & REST API": [
+    {
+      title: "Section 1: Event Loops & Non-blocking I/O operations",
+      startSec: 0,
+      duration: "11 mins",
+      quiz: {
+        question: "Is Node.js multi-threaded or single-threaded by default?",
+        options: ["Multi-threaded", "Single-threaded with event loop", "Dual-threaded", "Process-isolated"],
+        correctAnswer: 1
+      }
+    },
+    {
+      title: "Section 2: Creating REST Endpoints with Express middleware",
+      startSec: 660,
+      duration: "14 mins",
+      quiz: {
+        question: "Which HTTP status code represents a successful REST operation?",
+        options: ["200 OK", "404 Not Found", "500 Server Error", "403 Forbidden"],
+        correctAnswer: 0
+      }
+    }
+  ],
+  "Python Fundamentals & Packages": [
+    {
+      title: "Section 1: Syntax basics, variables, list comprehensions",
+      startSec: 0,
+      duration: "10 mins",
+      quiz: {
+        question: "Which Python data structure is mutable and ordered?",
+        options: ["Tuple", "Set", "List", "Dictionary"],
+        correctAnswer: 2
+      }
+    },
+    {
+      title: "Section 2: Packages, modules import & PIP package manager",
+      startSec: 600,
+      duration: "12 mins",
+      quiz: {
+        question: "Which command-line utility is used to install Python external packages?",
+        options: ["npm", "pip", "brew", "apt-get"],
+        correctAnswer: 1
+      }
+    }
+  ],
+  "Neural Networks with PyTorch": [
+    {
+      title: "Section 1: Tensors, Gradient computation, backpropagation",
+      startSec: 0,
+      duration: "15 mins",
+      quiz: {
+        question: "What is the primary multidimensional array data structure in PyTorch?",
+        options: ["DataFrame", "List", "Tensor", "Matrix"],
+        correctAnswer: 2
+      }
+    },
+    {
+      title: "Section 2: Building Neural Networks using torch.nn",
+      startSec: 900,
+      duration: "15 mins",
+      quiz: {
+        question: "Which activation function is most commonly used in deep network hidden layers?",
+        options: ["Sigmoid", "ReLU", "Tanh", "Linear"],
+        correctAnswer: 1
+      }
+    }
+  ],
+  "React Router & Global Context": [
+    {
+      title: "Section 1: Dynamic client-side routing setups",
+      startSec: 0,
+      duration: "10 mins",
+      quiz: {
+        question: "Which hook is used to get URL query params in React Router?",
+        options: ["useParams", "useNavigate", "useLocation", "useSearchParams"],
+        correctAnswer: 3
+      }
+    },
+    {
+      title: "Section 2: Global state sharing via useContext",
+      startSec: 600,
+      duration: "12 mins",
+      quiz: {
+        question: "What is the primary benefit of React Context API?",
+        options: ["It optimizes database queries", "It avoids prop drilling by sharing state globally", "It styles components dynamically", "It compiles code to WebAssembly"],
+        correctAnswer: 1
+      }
+    }
+  ],
+  "Tailwind CSS & Responsive Layouts": [
+    {
+      title: "Section 1: Utility classes & style compilation",
+      startSec: 0,
+      duration: "10 mins",
+      quiz: {
+        question: "What describes Tailwind CSS?",
+        options: ["A utility-first CSS framework", "A preprocessor compiler", "A component framework like Bootstrap", "An inline styles generator"],
+        correctAnswer: 0
+      }
+    },
+    {
+      title: "Section 2: Responsive screen prefixes & modifiers",
+      startSec: 600,
+      duration: "12 mins",
+      quiz: {
+        question: "Which breakpoint prefix applies styles on screens 768px and wider in Tailwind?",
+        options: ["sm:", "md:", "lg:", "xl:"],
+        correctAnswer: 1
+      }
+    }
+  ],
+  "TypeScript Essentials for Web": [
+    {
+      title: "Section 1: Interfaces, Types & Static type checks",
+      startSec: 0,
+      duration: "10 mins",
+      quiz: {
+        question: "What compiles TypeScript code into browser-readable JavaScript?",
+        options: ["Babel", "TypeScript Compiler (tsc)", "Vite", "Webpack"],
+        correctAnswer: 1
+      }
+    },
+    {
+      title: "Section 2: Generics & Union Types mapping",
+      startSec: 600,
+      duration: "12 mins",
+      quiz: {
+        question: "Which type utility allows defining parameters that accept multiple distinct type definitions?",
+        options: ["Generics", "Union Types", "Interfaces", "Tuples"],
+        correctAnswer: 1
+      }
+    }
+  ],
+  "Java Spring Boot Microservices": [
+    {
+      title: "Section 1: Dependency Injection & Beans configurations",
+      startSec: 0,
+      duration: "12 mins",
+      quiz: {
+        question: "Which annotation registers a class as a Spring component bean?",
+        options: ["@Autowired", "@Component", "@Bean", "@Service"],
+        correctAnswer: 1
+      }
+    },
+    {
+      title: "Section 2: Creating REST APIs using @RestController",
+      startSec: 720,
+      duration: "15 mins",
+      quiz: {
+        question: "Which annotation maps HTTP GET requests in Spring controllers?",
+        options: ["@GetMapping", "@PostMapping", "@RequestMapping", "@PathValue"],
+        correctAnswer: 0
+      }
+    }
+  ],
+  "PostgreSQL Queries & Optimization": [
+    {
+      title: "Section 1: Select joins, filters & aggregate commands",
+      startSec: 0,
+      duration: "11 mins",
+      quiz: {
+        question: "Which join returns all matched records and unmatched rows from both tables?",
+        options: ["Inner Join", "Left Join", "Full Outer Join", "Right Join"],
+        correctAnswer: 2
+      }
+    },
+    {
+      title: "Section 2: B-Tree Indexing, EXPLAIN ANALYZE checks",
+      startSec: 660,
+      duration: "14 mins",
+      quiz: {
+        question: "Which PostgreSQL statement is used to show query execution plans and costs?",
+        options: ["DESCRIBE", "EXPLAIN ANALYZE", "SELECT INDEX", "SHOW COSTS"],
+        correctAnswer: 1
+      }
+    }
+  ],
+  "SwiftUI Mastery for iOS Platforms": [
+    {
+      title: "Section 1: Declarative UI structures & State variables",
+      startSec: 0,
+      duration: "10 mins",
+      quiz: {
+        question: "Which property wrapper triggers view updates on state changes in SwiftUI?",
+        options: ["@State", "@Binding", "@ObservedObject", "@Environment"],
+        correctAnswer: 0
+      }
+    },
+    {
+      title: "Section 2: NavigationStack, lists, grids scaling",
+      startSec: 600,
+      duration: "12 mins",
+      quiz: {
+        question: "What is the equivalent of ScrollView with items in SwiftUI?",
+        options: ["ListView", "List", "VStack", "GridView"],
+        correctAnswer: 1
+      }
+    }
+  ],
+  "Kotlin & Android Jetpack UI": [
+    {
+      title: "Section 1: Composable layouts & state modifiers",
+      startSec: 0,
+      duration: "10 mins",
+      quiz: {
+        question: "Which function defines a composable UI element in Jetpack Compose?",
+        options: ["@Compose", "@Composable", "onCreateView", "buildUI"],
+        correctAnswer: 1
+      }
+    },
+    {
+      title: "Section 2: State hoisting & viewModels binding",
+      startSec: 600,
+      duration: "12 mins",
+      quiz: {
+        question: "Which wrapper preserves composable state values across recompositions?",
+        options: ["remember", "mutableStateOf", "remember { mutableStateOf(value) }", "stateSave"],
+        correctAnswer: 2
+      }
+    }
+  ],
+  "Pandas & Numpy Data Wrangling": [
+    {
+      title: "Section 1: NDArrays & Vectorized math in NumPy",
+      startSec: 0,
+      duration: "10 mins",
+      quiz: {
+        question: "Which property gets the dimensions of a NumPy array?",
+        options: ["ndim", "shape", "size", "dtype"],
+        correctAnswer: 1
+      }
+    },
+    {
+      title: "Section 2: Series, DataFrames & group aggregations in Pandas",
+      startSec: 600,
+      duration: "12 mins",
+      quiz: {
+        question: "Which Pandas method aggregates grouped rows by function values?",
+        options: ["groupby()", "merge()", "concat()", "apply()"],
+        correctAnswer: 0
+      }
+    }
+  ],
+  "Basics of Routing & HTTP Methods": [
+    {
+      title: "Section 1: Client-Server requests & Headers",
+      startSec: 0,
+      duration: "10 mins",
+      quiz: {
+        question: "Which HTTP request header specifies content encoding/type?",
+        options: ["Content-Type", "Accept", "User-Agent", "Authorization"],
+        correctAnswer: 0
+      }
+    },
+    {
+      title: "Section 2: GET, POST, PUT, DELETE method routing",
+      startSec: 600,
+      duration: "12 mins",
+      quiz: {
+        question: "Which HTTP method should be used to create a new resource on the server?",
+        options: ["GET", "POST", "PUT", "DELETE"],
+        correctAnswer: 1
+      }
+    }
   ]
 };
 
@@ -177,6 +541,90 @@ export default function CourseLearnScreen() {
   const [quizFeedback, setQuizFeedback] = useState<{ type: "correct" | "incorrect"; msg: string } | null>(null);
   const [peerMaterials, setPeerMaterials] = useState<any[]>([]);
   const [viewingResource, setViewingResource] = useState<any | null>(null);
+
+  // New: Watch time threshold tracking states
+  const [watchedTime, setWatchedTime] = useState<number>(0);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [quizTriggered, setQuizTriggered] = useState<boolean>(false);
+  const [showFifteenMinQuiz, setShowFifteenMinQuiz] = useState<boolean>(false);
+  const [q1Answer, setQ1Answer] = useState<number | null>(null);
+  const [q2Answer, setQ2Answer] = useState<number | null>(null);
+  const [fifteenMinQuizFeedback, setFifteenMinQuizFeedback] = useState<string | null>(null);
+  const [fifteenMinScore, setFifteenMinScore] = useState<number | null>(null);
+
+  // Listen for YouTube player state changes via postMessage (enablejsapi=1)
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== "https://www.youtube.com") return;
+      try {
+        const data = JSON.parse(event.data);
+        if (data.event === "infoDelivery" && data.info) {
+          if (data.info.playerState !== undefined) {
+            setIsPlaying(data.info.playerState === 1);
+          }
+        }
+      } catch (e) {}
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
+
+  // Watch timer: increments watched seconds if playing
+  useEffect(() => {
+    if (!isPlaying || quizTriggered) return;
+
+    const interval = setInterval(() => {
+      setWatchedTime((prev) => {
+        const next = prev + 1;
+        if (next >= 900) {
+          clearInterval(interval);
+          setQuizTriggered(true);
+          setShowFifteenMinQuiz(true);
+
+          // Attempt to pause video inside iframe
+          const iframe = document.querySelector("iframe");
+          if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.postMessage(
+              JSON.stringify({ event: "command", func: "pauseVideo", args: [] }),
+              "*"
+            );
+          }
+        }
+        return next;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isPlaying, quizTriggered]);
+
+  const handleFifteenMinQuizSubmit = () => {
+    const sectList = COURSE_SECTIONS[courseTitle] || defaultSections;
+    if (q1Answer === null || q2Answer === null) {
+      Alert.alert("Error", "Please answer both questions before submitting.");
+      return;
+    }
+
+    const correctQ1 = sectList[0]?.quiz.correctAnswer;
+    const correctQ2 = sectList[1]?.quiz.correctAnswer;
+
+    let score = 0;
+    if (q1Answer === correctQ1) score++;
+    if (q2Answer === correctQ2) score++;
+
+    setFifteenMinScore(score);
+
+    if (score === 2) {
+      setFifteenMinQuizFeedback("Excellent! Flawless score! Course marked as completed. You earned +100 XP!");
+      store.completeCourse(courseTitle);
+    } else if (score === 1) {
+      setFifteenMinQuizFeedback("Good job! You answered 1 out of 2 correctly. Course marked as completed. You earned +100 XP!");
+      store.completeCourse(courseTitle);
+    } else {
+      setFifteenMinQuizFeedback("You got 0 out of 2 correctly. We recommend re-watching sections, but course progress is updated. You earned +100 XP!");
+      store.completeCourse(courseTitle);
+    }
+  };
 
   useEffect(() => {
     async function loadPeerMaterials() {
@@ -311,7 +759,7 @@ export default function CourseLearnScreen() {
               <iframe
                 width="100%"
                 height="100%"
-                src={`${videoUrl}?autoplay=1&start=${activeStartSec}`}
+                src={`${videoUrl}?autoplay=1&enablejsapi=1&start=${activeStartSec}`}
                 title={courseTitle}
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -323,6 +771,22 @@ export default function CourseLearnScreen() {
                 <Text style={{ color: "#fff" }}>Playback only supported on Web version.</Text>
               </View>
             )}
+          </View>
+
+          <View style={styles.timerRow}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <MaterialCommunityIcons name="timer-outline" size={16} color="#6366f1" />
+              <Text style={styles.timerText}>
+                Watch Progress: {Math.floor(watchedTime / 60)}m {Math.floor(watchedTime % 60)}s / 15m 00s
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => setWatchedTime(895)}
+              style={styles.simulateBtn}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.simulateBtnText}>⚡ Simulate Watch</Text>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.videoFooterRow}>
@@ -467,11 +931,44 @@ export default function CourseLearnScreen() {
             <View style={styles.peerSection}>
               <Text style={styles.peerHeader}>Syllabus Study Materials & Documents</Text>
               <View style={styles.materialsList}>
+                {/* 1. Official Course Materials */}
+                <Text style={styles.materialsSubHeader}>Official Reference Guides</Text>
+                {(COURSE_MATERIALS[courseTitle] || [
+                  { label: "EduSync Course Study Manual (PDF)", url: "https://developer.mozilla.org/en-US/docs/Learn", type: "doc" },
+                  { label: "Topic Reference Guides & Examples", url: "https://dev.to", type: "article" },
+                  { label: "Interactive Coding Sandbox Practice", url: "https://www.freecodecamp.org/learn", type: "tutorial" }
+                ]).map((m, idx) => {
+                  let icon = "file-pdf-box";
+                  if (m.type === "article") icon = "pencil-box-outline";
+                  if (m.type === "tutorial") icon = "folder-outline";
+                  return (
+                    <View key={`static_${idx}`} style={styles.materialItemRow}>
+                      <TouchableOpacity
+                        onPress={() => handleOpenPeerMaterial({ ...m, title: m.label, author: "System Instructor" })}
+                        style={{ flexDirection: "row", alignItems: "center", flex: 1, gap: 10 }}
+                        activeOpacity={0.7}
+                      >
+                        <View style={styles.peerIconBox}>
+                          <MaterialCommunityIcons name={icon as any} size={15} color="#6366f1" />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.materialLabel} numberOfLines={1}>
+                            {m.label}
+                          </Text>
+                          <Text style={styles.authorLabel}>Official Syllabus Resource</Text>
+                        </View>
+                      </TouchableOpacity>
+                    </View>
+                  );
+                })}
+
+                {/* 2. Peer Shared Notes */}
+                <Text style={[styles.materialsSubHeader, { marginTop: 16 }]}>Student Shared Notes</Text>
                 {peerMaterials.length === 0 ? (
                   <View style={styles.emptyUploadsCard}>
-                    <MaterialCommunityIcons name="folder-open-outline" size={32} color="#64748b" />
+                    <MaterialCommunityIcons name="folder-open-outline" size={24} color="#64748b" />
                     <Text style={styles.emptyUploadsText}>
-                      No peer documents uploaded yet for this course. Be the first to upload reference study notes or PDFs in the Resource Hub!
+                      No shared student notes yet. Be the first to upload in the Resource Hub!
                     </Text>
                   </View>
                 ) : (
@@ -581,6 +1078,113 @@ export default function CourseLearnScreen() {
                 </View>
               )}
             </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* 15-Minute Watch Threshold Checkpoint Quiz Modal */}
+      <Modal
+        visible={showFifteenMinQuiz}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => {}}
+      >
+        <View style={styles.fifteenOverlay}>
+          <View style={styles.fifteenModal}>
+            <View style={styles.fifteenHeader}>
+              <MaterialCommunityIcons name="timer-sand" size={24} color="#6366f1" />
+              <Text style={styles.fifteenTitle}>15-Minute Lesson Checkpoint Quiz</Text>
+            </View>
+            
+            <Text style={styles.fifteenIntro}>
+              Great job! You have watched 15 minutes of this lesson video. Answer these 2 questions based on what you have learned to complete the course and submit your progress:
+            </Text>
+
+            <ScrollView contentContainerStyle={styles.fifteenBody} showsVerticalScrollIndicator={true}>
+              {/* Question 1 */}
+              {sections[0] && (
+                <View style={styles.fifteenQCard}>
+                  <Text style={styles.fifteenQText}>Q1: {sections[0].quiz.question}</Text>
+                  <View style={styles.fifteenOptions}>
+                    {sections[0].quiz.options.map((opt, oIdx) => {
+                      const isSel = q1Answer === oIdx;
+                      return (
+                        <TouchableOpacity
+                          key={oIdx}
+                          onPress={() => {
+                            if (fifteenMinScore !== null) return;
+                            setQ1Answer(oIdx);
+                          }}
+                          style={[styles.quizOptionBtn, isSel && styles.quizOptionBtnActive]}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={[styles.quizOptionText, isSel && styles.quizOptionTextActive]}>{opt}</Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+              )}
+
+              {/* Question 2 */}
+              {sections[1] && (
+                <View style={styles.fifteenQCard}>
+                  <Text style={styles.fifteenQText}>Q2: {sections[1].quiz.question}</Text>
+                  <View style={styles.fifteenOptions}>
+                    {sections[1].quiz.options.map((opt, oIdx) => {
+                      const isSel = q2Answer === oIdx;
+                      return (
+                        <TouchableOpacity
+                          key={oIdx}
+                          onPress={() => {
+                            if (fifteenMinScore !== null) return;
+                            setQ2Answer(oIdx);
+                          }}
+                          style={[styles.quizOptionBtn, isSel && styles.quizOptionBtnActive]}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={[styles.quizOptionText, isSel && styles.quizOptionTextActive]}>{opt}</Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+              )}
+            </ScrollView>
+
+            {fifteenMinQuizFeedback && (
+              <View style={styles.fifteenScoreBox}>
+                <Text style={styles.fifteenScoreText}>
+                  Your Score: {fifteenMinScore} / 2
+                </Text>
+                <Text style={styles.fifteenFeedbackText}>
+                  {fifteenMinQuizFeedback}
+                </Text>
+              </View>
+            )}
+
+            <View style={styles.fifteenFooter}>
+              {fifteenMinScore === null ? (
+                <TouchableOpacity
+                  style={styles.fifteenSubmitBtn}
+                  onPress={handleFifteenMinQuizSubmit}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.fifteenSubmitText}>Submit Lesson Checkpoint</Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  style={[styles.fifteenSubmitBtn, { backgroundColor: "#6366f1" }]}
+                  onPress={() => {
+                    setShowFifteenMinQuiz(false);
+                    closeWindow();
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.fifteenSubmitText}>Complete & Close</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
         </View>
       </Modal>
@@ -1014,5 +1618,142 @@ const styles = StyleSheet.create({
     height: 250,
     alignItems: "center",
     justifyContent: "center",
+  },
+  // Timer & Watch Check styles
+  timerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 12,
+    backgroundColor: "rgba(99, 102, 241, 0.08)",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "rgba(99, 102, 241, 0.2)",
+  },
+  timerText: {
+    color: "#a5b4fc",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  simulateBtn: {
+    backgroundColor: "rgba(99, 102, 241, 0.2)",
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(99, 102, 241, 0.4)",
+  },
+  simulateBtnText: {
+    color: "#ffffff",
+    fontSize: 10,
+    fontWeight: "800",
+  },
+  materialsSubHeader: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#64748b",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginTop: 10,
+    marginBottom: 8,
+  },
+  // Fifteen Minute Checkpoint Modal styles
+  fifteenOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.92)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+    zIndex: 20000,
+  },
+  fifteenModal: {
+    width: "100%",
+    maxWidth: 650,
+    backgroundColor: "#1e293b",
+    borderRadius: 24,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: "rgba(99, 102, 241, 0.25)",
+    boxShadow: "0 20px 25px -5px rgba(0,0,0,0.7)",
+  },
+  fifteenHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255,255,255,0.08)",
+    paddingBottom: 16,
+    marginBottom: 16,
+  },
+  fifteenTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#ffffff",
+  },
+  fifteenIntro: {
+    fontSize: 13,
+    color: "#94a3b8",
+    lineHeight: 18,
+    marginBottom: 16,
+  },
+  fifteenBody: {
+    gap: 16,
+    paddingBottom: 16,
+  },
+  fifteenQCard: {
+    backgroundColor: "rgba(255,255,255,0.02)",
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.05)",
+  },
+  fifteenQText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#ffffff",
+    marginBottom: 12,
+  },
+  fifteenOptions: {
+    gap: 8,
+  },
+  fifteenScoreBox: {
+    backgroundColor: "rgba(16, 185, 129, 0.08)",
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(16, 185, 129, 0.2)",
+    marginTop: 16,
+    alignItems: "center",
+  },
+  fifteenScoreText: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#10b981",
+  },
+  fifteenFeedbackText: {
+    fontSize: 13,
+    color: "#34d399",
+    textAlign: "center",
+    marginTop: 4,
+    lineHeight: 18,
+  },
+  fifteenFooter: {
+    marginTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255,255,255,0.08)",
+    paddingTop: 16,
+  },
+  fifteenSubmitBtn: {
+    backgroundColor: "#4f46e5",
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  fifteenSubmitText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "700",
   },
 });

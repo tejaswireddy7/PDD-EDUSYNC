@@ -304,6 +304,51 @@ export function useDashboardStore() {
       }
     },
 
+    completeCourse: async (courseTitle: string) => {
+      const prevUser = state.user;
+      if (!prevUser) return;
+      const nextUser = {
+        ...prevUser,
+        coursesCompleted: (prevUser.coursesCompleted || 0) + 1,
+        xp: (prevUser.xp || 0) + 100
+      };
+      
+      let nextRecs = state.recommendations;
+      if (nextRecs && nextRecs.courses) {
+        nextRecs = {
+          ...nextRecs,
+          courses: nextRecs.courses.map(c => 
+            c.title === courseTitle ? { ...c, progress: 100 } : c
+          )
+        };
+      }
+      
+      updateState({
+        user: nextUser,
+        recommendations: nextRecs
+      });
+
+      try {
+        const sessionData = await supabase.auth.getSession();
+        const session = sessionData.data.session;
+        if (session && session.user) {
+          await saveDBProfile(session.user.id, {
+            name: nextUser.name,
+            email: nextUser.email,
+            focusDomain: state.surveyAnswers?.focusDomain || "Mobile",
+            proficiency: state.surveyAnswers?.proficiency || "Beginner",
+            learningHours: state.surveyAnswers?.learningHours || 5,
+            streak: nextUser.streak ?? 0,
+            coursesCompleted: nextUser.coursesCompleted,
+            careerFitScore: nextUser.careerFitScore ?? 0,
+            xp: nextUser.xp
+          });
+        }
+      } catch (e) {
+        console.warn("Failed to save completed course profile in Supabase:", e);
+      }
+    },
+
     submitAssessment: async (id: string) => {
       const prevUser = state.user;
       const nextUser = prevUser ? {

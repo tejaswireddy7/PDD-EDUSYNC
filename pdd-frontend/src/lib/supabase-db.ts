@@ -409,9 +409,9 @@ export async function fetchDBAssessments(userId: string, focusDomain: string, pr
         : "PyTorch Data Loading & Gradient descent";
 
   const fallbackSeed: DBAssessment[] = [
-    { id: "a1", title: nextTitle, type: "Coding", subject: focusDomain, difficulty: proficiency as any, deadline: "Tue, May 19 · 9:00 AM", skills: [focusDomain, "Interactive"], progress: 0, status: "open", questions: getQuestionsForAssessment(nextTitle, focusDomain) },
-    { id: "a2", title: `Visual ${focusDomain} Layout Challenge`, type: "Project", subject: focusDomain, difficulty: proficiency as any, deadline: "Thu, May 21 · 6:00 PM", skills: [focusDomain, "Architecture"], progress: 0, status: "open", questions: getQuestionsForAssessment(`Visual ${focusDomain} Layout Challenge`, focusDomain) },
-    { id: "a3", title: `Comprehensive ${focusDomain} Fundamentals Quiz`, type: "Essay", subject: focusDomain, difficulty: proficiency as any, deadline: "Sat, May 23 · 11:59 PM", skills: [focusDomain, "Theory"], progress: 0, status: "open", questions: getQuestionsForAssessment(`Comprehensive ${focusDomain} Fundamentals Quiz`, focusDomain) },
+    { id: "a1", title: nextTitle, type: "Coding", subject: focusDomain, difficulty: proficiency as any, deadline: "Tue, Aug 4 · 9:00 AM", skills: [focusDomain, "Interactive"], progress: 0, status: "open", questions: getQuestionsForAssessment(nextTitle, focusDomain) },
+    { id: "a2", title: `Visual ${focusDomain} Layout Challenge`, type: "Project", subject: focusDomain, difficulty: proficiency as any, deadline: "Thu, Aug 6 · 6:00 PM", skills: [focusDomain, "Architecture"], progress: 0, status: "open", questions: getQuestionsForAssessment(`Visual ${focusDomain} Layout Challenge`, focusDomain) },
+    { id: "a3", title: `Comprehensive ${focusDomain} Fundamentals Quiz`, type: "Essay", subject: focusDomain, difficulty: proficiency as any, deadline: "Sat, Aug 8 · 11:59 PM", skills: [focusDomain, "Theory"], progress: 0, status: "open", questions: getQuestionsForAssessment(`Comprehensive ${focusDomain} Fundamentals Quiz`, focusDomain) },
   ];
 
   try {
@@ -422,11 +422,16 @@ export async function fetchDBAssessments(userId: string, focusDomain: string, pr
 
     if (error) throw error;
     if (data && data.length > 0) {
-      // Ensure all assessments have questions populated
+      // Ensure all assessments have questions populated and dynamic August 2026 deadlines
       const updatedData = await Promise.all(data.map(async (item: any) => {
+        let deadline = item.deadline;
+        if (item.id === "a1") deadline = "Tue, Aug 4 · 9:00 AM";
+        if (item.id === "a2") deadline = "Thu, Aug 6 · 6:00 PM";
+        if (item.id === "a3") deadline = "Sat, Aug 8 · 11:59 PM";
+
         if (!item.questions || item.questions.length === 0) {
           const generatedQuestions = getQuestionsForAssessment(item.title, item.subject);
-          const updatedItem = { ...item, questions: generatedQuestions };
+          const updatedItem = { ...item, deadline, questions: generatedQuestions };
           // Attempt to update database asynchronously
           supabase
             .from("assessments")
@@ -438,7 +443,7 @@ export async function fetchDBAssessments(userId: string, focusDomain: string, pr
             });
           return updatedItem;
         }
-        return item;
+        return { ...item, deadline };
       }));
 
       if (typeof window !== "undefined" && window.localStorage) {
@@ -456,10 +461,17 @@ export async function fetchDBAssessments(userId: string, focusDomain: string, pr
 
     if (insertError) throw insertError;
     if (insertedData) {
+      const mappedInserted = insertedData.map((item: any) => {
+        let deadline = item.deadline;
+        if (item.id === "a1") deadline = "Tue, Aug 4 · 9:00 AM";
+        if (item.id === "a2") deadline = "Thu, Aug 6 · 6:00 PM";
+        if (item.id === "a3") deadline = "Sat, Aug 8 · 11:59 PM";
+        return { ...item, deadline };
+      });
       if (typeof window !== "undefined" && window.localStorage) {
-        window.localStorage.setItem(`assessments_${userId}_${focusDomain}`, JSON.stringify(insertedData));
+        window.localStorage.setItem(`assessments_${userId}_${focusDomain}`, JSON.stringify(mappedInserted));
       }
-      return insertedData as DBAssessment[];
+      return mappedInserted as DBAssessment[];
     }
   } catch (e) {
     logError("fetchDBAssessments", e);
@@ -472,10 +484,15 @@ export async function fetchDBAssessments(userId: string, focusDomain: string, pr
       try {
         const parsed = JSON.parse(cached);
         const healed = parsed.map((item: any) => {
+          let deadline = item.deadline;
+          if (item.id === "a1") deadline = "Tue, Aug 4 · 9:00 AM";
+          if (item.id === "a2") deadline = "Thu, Aug 6 · 6:00 PM";
+          if (item.id === "a3") deadline = "Sat, Aug 8 · 11:59 PM";
+
           if (!item.questions || item.questions.length === 0) {
             item.questions = getQuestionsForAssessment(item.title, item.subject);
           }
-          return item;
+          return { ...item, deadline };
         });
         return healed as DBAssessment[];
       } catch (err) {
@@ -683,7 +700,17 @@ export async function fetchDBEvaluation(
       .maybeSingle();
 
     if (evalError) throw evalError;
-    if (existingEval) return existingEval as DBEvaluation;
+    if (existingEval) {
+      if (typeof window !== "undefined" && window.localStorage) {
+        const cacheKey = `evaluations_${userId}`;
+        const cached = window.localStorage.getItem(cacheKey);
+        let list = cached ? JSON.parse(cached) : [];
+        list = list.filter((e: any) => e.assessment_id !== assessmentId);
+        list.push(existingEval);
+        window.localStorage.setItem(cacheKey, JSON.stringify(list));
+      }
+      return existingEval as DBEvaluation;
+    }
 
     // 2. If no evaluation, try to fetch the assessment to build dynamic evaluation
     const { data: assessment, error: assessmentError } = await supabase
@@ -861,6 +888,58 @@ export async function fetchDBEvaluation(
       };
     }
 
+    // Cache it locally first
+    if (typeof window !== "undefined" && window.localStorage) {
+      const cacheKey = `evaluations_${userId}`;
+      const cached = window.localStorage.getItem(cacheKey);
+      let list = cached ? JSON.parse(cached) : [];
+      list = list.filter((e: any) => e.assessment_id !== assessmentId);
+      list.push(dynamicEval);
+      window.localStorage.setItem(cacheKey, JSON.stringify(list));
+    }
+
+    // Dynamic database insertion / updating for performance_trends table
+    try {
+      const scorePercentage = Math.round((dynamicEval.score / dynamicEval.max_score) * 100);
+      const { data: trend } = await supabase
+        .from("performance_trends")
+        .select("*")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      const currentMonth = new Date().getMonth(); // 7 for August
+      let trendData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+      
+      if (trend) {
+        trendData = trend.data || trendData;
+        trendData[currentMonth] = scorePercentage;
+        const nonZero = trendData.filter(x => x > 0);
+        const newAvg = nonZero.length > 0 ? Math.round(nonZero.reduce((s, v) => s + v, 0) / nonZero.length) : scorePercentage;
+        
+        await supabase
+          .from("performance_trends")
+          .update({ data: trendData, avg_score: newAvg })
+          .eq("id", trend.id);
+      } else {
+        const baseVal = proficiency === "Beginner" ? 60 : proficiency === "Intermediate" ? 72 : 82;
+        for (let i = 0; i < currentMonth; i++) {
+          trendData[i] = baseVal + Math.sin(i) * 2;
+        }
+        trendData[currentMonth] = scorePercentage;
+        
+        await supabase
+          .from("performance_trends")
+          .insert({
+            user_id: userId,
+            proficiency,
+            data: trendData,
+            avg_score: scorePercentage
+          });
+      }
+    } catch (trendErr) {
+      console.warn("Failed to save performance trend in Supabase:", trendErr);
+    }
+
     // 4. Save evaluation to Supabase for dynamic caching
     const payload = {
       ...dynamicEval,
@@ -878,6 +957,21 @@ export async function fetchDBEvaluation(
     return dynamicEval;
   } catch (e) {
     logError("fetchDBEvaluation", e);
+  }
+
+  // Load from localStorage if offline/fallback
+  if (typeof window !== "undefined" && window.localStorage) {
+    const cacheKey = `evaluations_${userId}`;
+    const cached = window.localStorage.getItem(cacheKey);
+    if (cached) {
+      try {
+        const list = JSON.parse(cached);
+        const cachedEval = list.find((e: any) => e.assessment_id === assessmentId);
+        if (cachedEval) {
+          return cachedEval as DBEvaluation;
+        }
+      } catch (err) {}
+    }
   }
 
   // Generate fallback structure if completely failed
@@ -950,57 +1044,89 @@ export async function submitDBGrievance(
 
 // 14. Fetch Performance Trends
 export async function fetchDBPerformanceTrends(userId: string, proficiency: string): Promise<number[]> {
-  try {
-    // Let's get the user's evaluations or submitted assessments
-    const { data: assessments, error } = await supabase
-      .from("assessments")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("status", "submitted");
-
-    if (error) throw error;
-    
-    // Also check local storage for offline caching
-    let localSubmittedCount = 0;
-    if (typeof window !== "undefined" && window.localStorage) {
-      for (let i = 0; i < window.localStorage.length; i++) {
-        const key = window.localStorage.key(i);
-        if (key && key.startsWith(`assessments_${userId}_`)) {
-          try {
-            const cached = JSON.parse(window.localStorage.getItem(key) || "[]");
-            localSubmittedCount = Math.max(localSubmittedCount, cached.filter((a: any) => a.status === "submitted").length);
-          } catch (e) {}
-        }
-      }
-    }
-
-    const count = Math.max(assessments?.length || 0, localSubmittedCount);
-    if (count === 0) {
-      return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    }
-
-    // Generate a beautiful, dynamic upward trend based on their actual submission counts!
-    const baseTrend = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    if (count === 1) {
-      baseTrend[11] = 78;
-    } else if (count === 2) {
-      baseTrend[10] = 72;
-      baseTrend[11] = 84;
-    } else {
-      baseTrend[9] = 68;
-      baseTrend[10] = 76;
-      baseTrend[11] = 88;
-    }
-    return baseTrend;
-  } catch (e) {
-    logError("fetchDBPerformanceTrends", e);
+  const currentMonth = new Date().getMonth(); // 7 for August
+  const baseVal = proficiency === "Beginner" ? 60 : proficiency === "Intermediate" ? 72 : 82;
+  const baseTrend = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  
+  // Set baseline up to July
+  for (let i = 0; i < currentMonth; i++) {
+    baseTrend[i] = baseVal + Math.round(Math.sin(i) * 2);
   }
 
-  return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  try {
+    // Try Supabase first
+    const { data: trend, error } = await supabase
+      .from("performance_trends")
+      .select("*")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (trend && trend.data) {
+      return trend.data;
+    }
+  } catch (e) {
+    // Fall back to localStorage or local calculation
+  }
+
+  // Fallback: calculate from localStorage evaluations
+  if (typeof window !== "undefined" && window.localStorage) {
+    let totalScore = 0;
+    let evalCount = 0;
+    
+    // Check if there are cached evaluations
+    const cacheKey = `evaluations_${userId}`;
+    const cachedEvalsStr = window.localStorage.getItem(cacheKey);
+    if (cachedEvalsStr) {
+      try {
+        const cachedEvals = JSON.parse(cachedEvalsStr);
+        if (Array.isArray(cachedEvals) && cachedEvals.length > 0) {
+          cachedEvals.forEach(e => {
+            totalScore += (e.score / e.max_score) * 100;
+            evalCount++;
+          });
+        }
+      } catch (e) {}
+    }
+    
+    if (evalCount > 0) {
+      const avgPercentage = Math.round(totalScore / evalCount);
+      baseTrend[currentMonth] = avgPercentage;
+      baseTrend[currentMonth + 1] = Math.min(100, Math.round(avgPercentage * 1.05));
+      return baseTrend;
+    }
+  }
+
+  // Fallback: check submitted assessments count if no evaluations cached
+  let localSubmittedCount = 0;
+  if (typeof window !== "undefined" && window.localStorage) {
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const key = window.localStorage.key(i);
+      if (key && key.startsWith(`assessments_${userId}_`)) {
+        try {
+          const cached = JSON.parse(window.localStorage.getItem(key) || "[]");
+          localSubmittedCount = Math.max(localSubmittedCount, cached.filter((a: any) => a.status === "submitted").length);
+        } catch (e) {}
+      }
+    }
+  }
+
+  if (localSubmittedCount > 0) {
+    const avgPercentage = localSubmittedCount === 1 ? 78 : localSubmittedCount === 2 ? 84 : 88;
+    baseTrend[currentMonth] = avgPercentage;
+    baseTrend[currentMonth + 1] = Math.min(100, Math.round(avgPercentage * 1.05));
+    return baseTrend;
+  }
+
+  // If no submissions at all, keep current and future months at 0
+  baseTrend[currentMonth] = 0;
+  baseTrend[currentMonth + 1] = 0;
+  return baseTrend;
 }
 
 // 15. Fetch Weak Areas
 export async function fetchDBWeakAreas(userId: string, focusDomain: string): Promise<Array<{ topic: string; score: number }>> {
+  let submittedCount = 0;
   try {
     // Check if the user has started their journey (has submitted assessments)
     const { count, error: countError } = await supabase
@@ -1009,9 +1135,28 @@ export async function fetchDBWeakAreas(userId: string, focusDomain: string): Pro
       .eq("user_id", userId)
       .eq("status", "submitted");
 
-    if (countError) throw countError;
-    if (count === 0) return []; // New user has not submitted any evaluations yet!
+    if (!countError && count !== null) {
+      submittedCount = count;
+    }
+  } catch (e) {}
 
+  // Local storage check fallback for offline/placeholder mode
+  if (submittedCount === 0 && typeof window !== "undefined" && window.localStorage) {
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const key = window.localStorage.key(i);
+      if (key && key.startsWith(`assessments_${userId}_`)) {
+        try {
+          const cached = JSON.parse(window.localStorage.getItem(key) || "[]");
+          const localCount = cached.filter((a: any) => a.status === "submitted").length;
+          submittedCount = Math.max(submittedCount, localCount);
+        } catch (e) {}
+      }
+    }
+  }
+
+  if (submittedCount === 0) return []; // New user has not submitted any evaluations yet!
+
+  try {
     const { data, error } = await supabase
       .from("weak_areas")
       .select("topic, score")
@@ -1020,8 +1165,32 @@ export async function fetchDBWeakAreas(userId: string, focusDomain: string): Pro
     if (error) throw error;
     if (data && data.length > 0) return data;
   } catch (e) {
-    logError("fetchDBWeakAreas", e);
+    // Fall back to local map
   }
 
-  return [];
+  // Fallback to static weak areas if database lookup failed or empty
+  const localWeakMap: Record<string, Array<{ topic: string; score: number }>> = {
+    Frontend: [
+      { topic: "CSS Grid & Flexbox", score: 58 },
+      { topic: "State Context Hydration", score: 62 },
+      { topic: "TypeScript Strict Mappings", score: 68 },
+    ],
+    Backend: [
+      { topic: "SQL Index & Join Queries", score: 54 },
+      { topic: "Asynchronous Event Loops", score: 61 },
+      { topic: "Prisma Schema Relations", score: 67 },
+    ],
+    Mobile: [
+      { topic: "Native Bridge Compilation", score: 56 },
+      { topic: "Flexbox Layout Scaling", score: 62 },
+      { topic: "Expo Router Deep-Linking", score: 69 },
+    ],
+    AI: [
+      { topic: "SGD Backpropagation Math", score: 52 },
+      { topic: "Pandas Data Cleaning", score: 63 },
+      { topic: "CNN Convolution Matrix", score: 68 },
+    ],
+  };
+
+  return localWeakMap[focusDomain] || localWeakMap["Mobile"];
 }

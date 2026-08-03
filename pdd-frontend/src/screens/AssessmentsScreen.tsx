@@ -108,64 +108,14 @@ export default function AssessmentsScreen() {
     <ScrollView ref={scrollViewRef} style={styles.container} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
       <Header />
       
-      {/* 1. Upcoming Horizontal Strip */}
-      <UpcomingStrip items={items} onPick={setActive} activeId={current.id} />
+      {/* 1. Filterable Assessments List */}
+      <AssessmentList items={items} activeId={current.id} onPick={setActive} />
       
       {/* 2. Submission & Upload Panel */}
       <SubmissionPanel assessment={current} onUpdate={handleUpdate} />
       
-      {/* 3. Filterable Assessments List */}
-      <AssessmentList items={items} activeId={current.id} onPick={setActive} />
-      
       <View style={styles.spacer} />
     </ScrollView>
-  );
-}
-
-// 1. Horizontal Upcoming deadlines component
-function UpcomingStrip({ items, onPick, activeId }: { items: Assessment[]; onPick: (a: Assessment) => void; activeId: string }) {
-  const upcoming = items.filter((i) => i.status !== "submitted").slice(0, 4);
-  return (
-    <View style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <View>
-          <Text style={styles.sectionTitle}>Upcoming Assessments</Text>
-          <Text style={styles.sectionSubtitle}>Next deadlines this week</Text>
-        </View>
-        <Feather name="calendar" size={16} color="#64748b" />
-      </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalScroll}>
-        {upcoming.map((u) => {
-          const icon = typeIcon[u.type] || "file";
-          const isActive = u.id === activeId;
-          const statusBg = tintByStatus[u.status];
-          const statusText = tintTextByStatus[u.status];
-          return (
-            <TouchableOpacity
-              key={u.id}
-              onPress={() => onPick(u)}
-              style={[styles.upcomingCard, isActive ? styles.activeBorder : styles.inactiveBorder]}
-            >
-              <View style={styles.upcomingTop}>
-                <View style={styles.upcomingIconContainer}>
-                  <Feather name={icon as any} size={14} color="#6366f1" />
-                </View>
-                <View style={[styles.statusBadge, styles[statusBg as keyof typeof styles]]}>
-                  <Text style={[styles.statusBadgeText, styles[statusText as keyof typeof styles]]}>
-                    {u.status === "in-progress" ? "in progress" : u.status}
-                  </Text>
-                </View>
-              </View>
-              <Text style={styles.upcomingTitle} numberOfLines={2}>{u.title}</Text>
-              <View style={styles.upcomingDeadline}>
-                <Feather name="clock" size={11} color="#64748b" />
-                <Text style={styles.upcomingDeadlineText} numberOfLines={1}>{u.deadline}</Text>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
-    </View>
   );
 }
 

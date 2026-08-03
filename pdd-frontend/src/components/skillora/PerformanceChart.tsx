@@ -27,7 +27,10 @@ export function PerformanceChart() {
   }, [userProficiency]);
 
   const labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const avgScore = data.length > 0 ? Math.round(data.reduce((s, v) => s + v, 0) / data.length) : (userProficiency === "Beginner" ? 61 : userProficiency === "Intermediate" ? 74 : 88);
+  const activeMonths = data.filter((v) => v > 0);
+  const avgScore = activeMonths.length > 0 
+    ? Math.round(activeMonths.reduce((s, v) => s + v, 0) / activeMonths.length) 
+    : (userProficiency === "Beginner" ? 61 : userProficiency === "Intermediate" ? 74 : 88);
 
   const [activeTab, setActiveTab] = useState("Month");
   const max = 100;

@@ -47,9 +47,9 @@ export function SideRail() {
   const [weak, setWeak] = useState<Array<{ topic: string; score: number }>>([]);
 
   const initialUpcoming = [
-    { title: nextAssessment, day: "Tue", date: "19", color: "primary" },
-    { title: `${focusDomain} Lab Exercise`, day: "Thu", date: "21", color: "mint" },
-    { title: `Comprehensive ${focusDomain} Exam`, day: "Sat", date: "23", color: "primary" },
+    { title: nextAssessment, day: "Tue", date: "04", color: "primary" },
+    { title: `${focusDomain} Lab Exercise`, day: "Thu", date: "06", color: "mint" },
+    { title: `Comprehensive ${focusDomain} Exam`, day: "Sat", date: "08", color: "primary" },
   ];
   const [upcoming, setUpcoming] = useState<Array<{ title: string; day: string; date: string; color: string }>>(initialUpcoming);
 
@@ -75,9 +75,9 @@ export function SideRail() {
 
   React.useEffect(() => {
     setUpcoming([
-      { title: nextAssessment, day: "Tue", date: "19", color: "primary" },
-      { title: `${focusDomain} Lab Exercise`, day: "Thu", date: "21", color: "mint" },
-      { title: `Comprehensive ${focusDomain} Exam`, day: "Sat", date: "23", color: "primary" },
+      { title: nextAssessment, day: "Tue", date: "04", color: "primary" },
+      { title: `${focusDomain} Lab Exercise`, day: "Thu", date: "06", color: "mint" },
+      { title: `Comprehensive ${focusDomain} Exam`, day: "Sat", date: "08", color: "primary" },
     ]);
   }, [focusDomain, nextAssessment]);
 

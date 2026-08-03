@@ -1,10 +1,11 @@
 import React from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Linking, Platform, Modal, Alert, Image } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Linking, Platform, Modal, Alert, Image, ActivityIndicator } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigate } from "@tanstack/react-router";
 import { useDashboardStore } from "../../lib/store";
 import { supabase } from "../../lib/supabase";
+import { fetchDBCourses } from "../../lib/supabase-db";
 
 const COURSE_VIDEOS: Record<string, string> = {
   "HTML5, CSS3, & Modern Grid": "https://www.youtube.com/embed/Dp3c7G1Qhgo",
@@ -334,11 +335,30 @@ export function ContinueLearning() {
     }
   };
 
+  const [showAllCoursesModal, setShowAllCoursesModal] = React.useState(false);
+  const [allCourses, setAllCourses] = React.useState<any[]>([]);
+  const [loadingAllCourses, setLoadingAllCourses] = React.useState(false);
+
+  const handleOpenAllCourses = async () => {
+    setShowAllCoursesModal(true);
+    setLoadingAllCourses(true);
+    try {
+      const domain = store.surveyAnswers?.focusDomain || "Mobile";
+      const prof = store.surveyAnswers?.proficiency || "Beginner";
+      const list = await fetchDBCourses(domain, prof);
+      setAllCourses(list);
+    } catch (e) {
+      console.warn("Failed to fetch all courses for modal:", e);
+    } finally {
+      setLoadingAllCourses(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Continue Learning</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={handleOpenAllCourses}>
           <Text style={styles.viewAll}>View all</Text>
         </TouchableOpacity>
       </View>
@@ -399,6 +419,68 @@ export function ContinueLearning() {
           </TouchableOpacity>
         ))}
       </ScrollView>
+
+      {/* View All Courses Modal */}
+      <Modal
+        visible={showAllCoursesModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowAllCoursesModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>All {store.surveyAnswers?.focusDomain || "Mobile"} Courses</Text>
+              <TouchableOpacity onPress={() => setShowAllCoursesModal(false)} style={styles.closeButton}>
+                <Feather name="x" size={20} color="#64748b" />
+              </TouchableOpacity>
+            </View>
+
+            {loadingAllCourses ? (
+              <View style={styles.modalLoading}>
+                <ActivityIndicator size="large" color="#6366f1" />
+              </View>
+            ) : (
+              <ScrollView contentContainerStyle={styles.modalList} showsVerticalScrollIndicator={false}>
+                {allCourses.map((c) => (
+                  <TouchableOpacity
+                    key={c.title}
+                    style={styles.modalCard}
+                    onPress={() => {
+                      setShowAllCoursesModal(false);
+                      if (Platform.OS === "web") {
+                        window.open("/course-learn?course=" + encodeURIComponent(c.title), "_blank");
+                      } else {
+                        navigate({ to: "/course-learn", search: { course: c.title } });
+                      }
+                    }}
+                  >
+                    <LinearGradient
+                      colors={c.colors || ["#6366f1", "#4f46e5"]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.modalCardGradient}
+                    >
+                      <View style={styles.modalCardLeft}>
+                        <View style={styles.badge}>
+                          <Text style={styles.badgeText}>{c.difficulty || "Beginner"}</Text>
+                        </View>
+                        <Text style={styles.modalCardTitle}>{c.title}</Text>
+                        <Text style={styles.modalCardDuration}>
+                          <Feather name="clock" size={12} color="#ffffffaa" /> {c.time || "10 hrs"}
+                        </Text>
+                      </View>
+                      <View style={styles.modalCardRight}>
+                        <Feather name="play-circle" size={32} color="#ffffff" />
+                      </View>
+                    </LinearGradient>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -844,5 +926,93 @@ const styles = StyleSheet.create({
     height: 200,
     alignItems: "center",
     justifyContent: "center",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+    zIndex: 9999,
+  },
+  modalContent: {
+    width: "100%",
+    maxWidth: 600,
+    maxHeight: "85%",
+    backgroundColor: "#ffffff",
+    borderRadius: 24,
+    padding: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
+    paddingBottom: 16,
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#0f172a",
+  },
+  closeButton: {
+    padding: 4,
+  },
+  modalLoading: {
+    height: 200,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalList: {
+    paddingVertical: 4,
+  },
+  modalCard: {
+    marginBottom: 16,
+    borderRadius: 16,
+    overflow: "hidden",
+  },
+  modalCardGradient: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 20,
+  },
+  modalCardLeft: {
+    flex: 1,
+    marginRight: 16,
+  },
+  modalCardTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#ffffff",
+    marginVertical: 6,
+  },
+  modalCardDuration: {
+    fontSize: 12,
+    color: "rgba(255, 255, 255, 0.8)",
+  },
+  modalCardRight: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  badge: {
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    paddingVertical: 2,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+  },
+  badgeText: {
+    fontSize: 10,
+    color: "#ffffff",
+    fontWeight: "600",
+    textTransform: "uppercase",
   },
 });

@@ -49,6 +49,28 @@ const getResourceVideo = (title: string): string => {
   return "https://www.youtube.com/embed/zjsYHGK6a4Q";
 };
 
+const getResourceIcon = (title: string, type?: string) => {
+  const lowerTitle = title.toLowerCase();
+  const lowerType = (type || "").toLowerCase();
+  
+  if (lowerTitle.includes("video") || lowerType.includes("video") || lowerType.includes("tutorial")) {
+    return "play-circle";
+  }
+  if (lowerTitle.includes("sandbox") || lowerTitle.includes("playground") || lowerType.includes("sandbox") || lowerType.includes("tool")) {
+    return "terminal";
+  }
+  if (lowerTitle.includes("cheat sheet") || lowerTitle.includes("manual") || lowerType.includes("sheet") || lowerType.includes("doc") || lowerTitle.includes("pdf")) {
+    return "file";
+  }
+  if (lowerTitle.includes("code") || lowerTitle.includes("programming") || lowerType.includes("code") || lowerType.includes("lab")) {
+    return "code";
+  }
+  if (lowerTitle.includes("guide") || lowerTitle.includes("explain") || lowerType.includes("article") || lowerType.includes("blog")) {
+    return "book-open";
+  }
+  return "file-text";
+};
+
 export function ResourceHub() {
   const store = useDashboardStore();
   const focusDomain = store.surveyAnswers?.focusDomain || "General";
@@ -69,6 +91,7 @@ export function ResourceHub() {
     return list.map((res, index) => ({
       id: `hub_res_${index}`,
       title: res.title,
+      type: res.type,
       subject: focusDomain,
       level: userProficiency,
       rating: 4.8 + (index * 0.05) > 5 ? 5.0 : parseFloat((4.8 + (index * 0.05)).toFixed(1)),
@@ -100,7 +123,7 @@ export function ResourceHub() {
           >
             <View style={styles.cardTop}>
               <View style={styles.iconBox}>
-                <Feather name="file-text" size={16} color="#6366f1" />
+                <Feather name={getResourceIcon(r.title, r.type) as any} size={16} color="#6366f1" />
               </View>
               <TouchableOpacity>
                 <Feather name="bookmark" size={16} color="#64748b" />

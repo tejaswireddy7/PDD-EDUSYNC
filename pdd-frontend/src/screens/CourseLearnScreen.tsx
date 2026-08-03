@@ -525,14 +525,65 @@ const COURSE_SECTIONS: Record<string, Section[]> = {
   ]
 };
 
+function normalizeCourseTitle(title: string): string {
+  const mapping: Record<string, string> = {
+    // Frontend aliases
+    "HTML & CSS Fundamentals": "HTML5, CSS3, & Modern Grid",
+    "JavaScript Essentials": "JavaScript Fundamentals & DOM",
+    "Responsive Web Design": "Tailwind CSS & Responsive Layouts",
+    "React.js Fundamentals": "Intro to React & Component States",
+    "TypeScript for React": "TypeScript Essentials for Web",
+    "State Management with Redux": "React Router & Global Context",
+    "Next.js & Server Components": "React Router & Global Context",
+    "Advanced TypeScript Patterns": "TypeScript Essentials for Web",
+    "Performance Optimization": "Intro to React & Component States",
+
+    // Backend aliases
+    "Node.js & Express Basics": "Intro to Node.js & REST API",
+    "REST API Design": "Basics of Routing & HTTP Methods",
+    "Database Basics (SQL)": "SQL Fundamentals & Relational DBs",
+    "Authentication & Authorization": "Intro to Node.js & REST API",
+    "PostgreSQL Advanced": "PostgreSQL Queries & Optimization",
+    "API Testing & Documentation": "Intro to Node.js & REST API",
+    "Microservices Architecture": "Java Spring Boot Microservices",
+    "Message Queues & Event Streaming": "Java Spring Boot Microservices",
+    "DevOps & Deployment": "Java Spring Boot Microservices",
+
+    // Mobile aliases
+    "React Native Basics": "React Native & Expo Ecosystem",
+    "Mobile UI/UX Principles": "React Native & Expo Ecosystem",
+    "Mobile Navigation & Routing": "React Native & Expo Ecosystem",
+    "Native Modules & Bridging": "React Native & Expo Ecosystem",
+    "Mobile App Performance": "React Native & Expo Ecosystem",
+    "Offline-First Architecture": "React Native & Expo Ecosystem",
+    "Cross-Platform Optimization": "React Native & Expo Ecosystem",
+    "Mobile Security Best Practices": "React Native & Expo Ecosystem",
+    "App Store Deployment & Analytics": "React Native & Expo Ecosystem",
+
+    // AI aliases
+    "Python for AI/ML": "Python Fundamentals & Packages",
+    "Machine Learning Fundamentals": "Neural Networks with PyTorch",
+    "Data Science Essentials": "Pandas & Numpy Data Wrangling",
+    "TensorFlow & Keras": "Neural Networks with PyTorch",
+    "NLP & Text Processing": "Neural Networks with PyTorch",
+    "Computer Vision Basics": "Neural Networks with PyTorch",
+    "Advanced Neural Networks": "Neural Networks with PyTorch",
+    "Generative AI & LLMs": "Neural Networks with PyTorch",
+    "ML Model Production & MLOps": "Neural Networks with PyTorch",
+  };
+
+  return mapping[title] || title;
+}
+
 export default function CourseLearnScreen() {
   const store = useDashboardStore();
   
   // Extract course title from search queries
   const params = new URLSearchParams(Platform.OS === "web" ? window.location.search : "");
   const courseTitle = params.get("course") || "React Native & Expo Ecosystem";
+  const normalizedTitle = normalizeCourseTitle(courseTitle);
 
-  const videoUrl = COURSE_VIDEOS[courseTitle] || "https://www.youtube.com/embed/zjsYHGK6a4Q";
+  const videoUrl = COURSE_VIDEOS[normalizedTitle] || "https://www.youtube.com/embed/Dp3c7G1Qhgo";
 
   // Timeline and Quiz States
   const [activeStartSec, setActiveStartSec] = useState<number>(0);
@@ -792,7 +843,7 @@ export default function CourseLearnScreen() {
     }
   ];
 
-  const sections = COURSE_SECTIONS[courseTitle] || defaultSections;
+  const sections = COURSE_SECTIONS[normalizedTitle] || defaultSections;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={true}>
@@ -928,6 +979,30 @@ export default function CourseLearnScreen() {
                       >
                         <Text style={styles.quizSubmitText}>Submit Answer</Text>
                       </TouchableOpacity>
+                    ) : quizFeedback.type === "incorrect" ? (
+                      <View style={{ flexDirection: "row", gap: 8 }}>
+                        <TouchableOpacity
+                          style={[styles.quizSubmitBtn, { backgroundColor: "#ef4444", flex: 1 }]}
+                          onPress={() => {
+                            setQuizFeedback(null);
+                            setSelectedQuizOption(null);
+                          }}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={styles.quizSubmitText}>🔄 Try Again</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[styles.quizSubmitBtn, { backgroundColor: "#64748b", flex: 1 }]}
+                          onPress={() => {
+                            setShowQuizSectionIdx(null);
+                            setSelectedQuizOption(null);
+                            setQuizFeedback(null);
+                          }}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={styles.quizSubmitText}>Close</Text>
+                        </TouchableOpacity>
+                      </View>
                     ) : (
                       <TouchableOpacity
                         style={[styles.quizSubmitBtn, { backgroundColor: "#475569" }]}
@@ -936,6 +1011,7 @@ export default function CourseLearnScreen() {
                           setSelectedQuizOption(null);
                           setQuizFeedback(null);
                         }}
+                        activeOpacity={0.7}
                       >
                         <Text style={styles.quizSubmitText}>Close Quiz</Text>
                       </TouchableOpacity>
@@ -1024,7 +1100,7 @@ export default function CourseLearnScreen() {
               <View style={styles.materialsList}>
                 {/* 1. Official Course Materials */}
                 <Text style={styles.materialsSubHeader}>Official Reference Guides</Text>
-                {(COURSE_MATERIALS[courseTitle] || [
+                {(COURSE_MATERIALS[normalizedTitle] || [
                   { label: "EduSync Course Study Manual (PDF)", url: "https://developer.mozilla.org/en-US/docs/Learn", type: "doc" },
                   { label: "Topic Reference Guides & Examples", url: "https://dev.to", type: "article" },
                   { label: "Interactive Coding Sandbox Practice", url: "https://www.freecodecamp.org/learn", type: "tutorial" }

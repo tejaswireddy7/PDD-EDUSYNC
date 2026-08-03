@@ -91,7 +91,17 @@ export default function ChatScreen() {
       // Simulate AI Mentor reply
       setTimeout(async () => {
         try {
-          const replyText = "Got it — let me check and reply in a bit 👍";
+          const { generateAICoachResponse } = await import("../lib/ai-coach");
+          const historyPlain = messages.map(m => ({ from: m.from, text: m.text }));
+          historyPlain.push({ from: "me", text });
+
+          const replyText = generateAICoachResponse(
+            text,
+            historyPlain,
+            active?.role || "Mentor",
+            focusDomain
+          );
+
           const replyMsg = await saveDBReply(user.id, activeId, replyText);
           setMessages((prev) => [...prev, replyMsg]);
         } catch (err) {
@@ -99,7 +109,7 @@ export default function ChatScreen() {
         } finally {
           setTyping(false);
         }
-      }, 1600);
+      }, 1000);
     } catch (err) {
       console.warn("Failed to send message:", err);
       setTyping(false);

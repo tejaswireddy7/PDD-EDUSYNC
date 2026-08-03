@@ -225,7 +225,11 @@ const COURSE_SECTIONS: Record<string, Section[]> = {
 export function ContinueLearning() {
   const store = useDashboardStore();
   const navigate = useNavigate();
-  const courses = store.recommendations?.courses || [];
+  
+  const allCourses = store.recommendations?.courses || [];
+  const activeCourses = allCourses.filter((c) => c.progress > 0 && c.progress < 100);
+  const courses = activeCourses.length > 0 ? activeCourses : (allCourses.length > 0 ? [allCourses[0]] : []);
+
   const [videoUrl, setVideoUrl] = React.useState<string | null>(null);
   const [videoTitle, setVideoTitle] = React.useState<string>("");
 
@@ -336,22 +340,11 @@ export function ContinueLearning() {
   };
 
   const [showAllCoursesModal, setShowAllCoursesModal] = React.useState(false);
-  const [allCourses, setAllCourses] = React.useState<any[]>([]);
-  const [loadingAllCourses, setLoadingAllCourses] = React.useState(false);
+  const [modalTab, setModalTab] = React.useState<"my" | "all">("my");
 
-  const handleOpenAllCourses = async () => {
+  const handleOpenAllCourses = () => {
     setShowAllCoursesModal(true);
-    setLoadingAllCourses(true);
-    try {
-      const domain = store.surveyAnswers?.focusDomain || "Mobile";
-      const prof = store.surveyAnswers?.proficiency || "Beginner";
-      const list = await fetchDBCourses(domain, prof);
-      setAllCourses(list);
-    } catch (e) {
-      console.warn("Failed to fetch all courses for modal:", e);
-    } finally {
-      setLoadingAllCourses(false);
-    }
+    setModalTab("my");
   };
 
   return (
@@ -430,19 +423,45 @@ export function ContinueLearning() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>All {store.surveyAnswers?.focusDomain || "Mobile"} Courses</Text>
+              <Text style={styles.modalTitle}>{store.surveyAnswers?.focusDomain || "Mobile"} Pathway Courses</Text>
               <TouchableOpacity onPress={() => setShowAllCoursesModal(false)} style={styles.closeButton}>
                 <Feather name="x" size={20} color="#64748b" />
               </TouchableOpacity>
             </View>
 
-            {loadingAllCourses ? (
-              <View style={styles.modalLoading}>
-                <ActivityIndicator size="large" color="#6366f1" />
-              </View>
-            ) : (
-              <ScrollView contentContainerStyle={styles.modalList} showsVerticalScrollIndicator={false}>
-                {allCourses.map((c) => (
+            {/* Modal Tabs Toggles */}
+            <View style={styles.modalTabs}>
+              <TouchableOpacity 
+                style={[styles.modalTabBtn, modalTab === "my" && styles.modalTabBtnActive]} 
+                onPress={() => setModalTab("my")}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.modalTabBtnText, modalTab === "my" && styles.modalTabBtnTextActive]}>
+                  My Courses ({modalCourses.filter((c) => c.progress > 0).length})
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.modalTabBtn, modalTab === "all" && styles.modalTabBtnActive]} 
+                onPress={() => setModalTab("all")}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.modalTabBtnText, modalTab === "all" && styles.modalTabBtnTextActive]}>
+                  Explore All ({modalCourses.length})
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView contentContainerStyle={styles.modalList} showsVerticalScrollIndicator={false}>
+              {listToRender.length === 0 ? (
+                <View style={styles.modalEmptyState}>
+                  <Feather name="book-open" size={40} color="#94a3b8" style={{ marginBottom: 12 }} />
+                  <Text style={styles.modalEmptyText}>No active courses yet</Text>
+                  <Text style={styles.modalEmptySubText}>
+                    You haven't started any lessons. Switch to "Explore All" to begin your pathway!
+                  </Text>
+                </View>
+              ) : (
+                listToRender.map((c) => (
                   <TouchableOpacity
                     key={c.title}
                     style={styles.modalCard}
@@ -454,6 +473,7 @@ export function ContinueLearning() {
                         navigate({ to: "/course-learn", search: { course: c.title } });
                       }
                     }}
+                    activeOpacity={0.9}
                   >
                     <LinearGradient
                       colors={c.colors || ["#6366f1", "#4f46e5"]}
@@ -466,18 +486,25 @@ export function ContinueLearning() {
                           <Text style={styles.badgeText}>{c.difficulty || "Beginner"}</Text>
                         </View>
                         <Text style={styles.modalCardTitle}>{c.title}</Text>
-                        <Text style={styles.modalCardDuration}>
-                          <Feather name="clock" size={12} color="#ffffffaa" /> {c.time || "10 hrs"}
-                        </Text>
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: 12, marginTop: 4 }}>
+                          <Text style={styles.modalCardDuration}>
+                            <Feather name="clock" size={12} color="#ffffffaa" /> {c.time || "10 hrs"}
+                          </Text>
+                          {c.progress > 0 && (
+                            <Text style={[styles.modalCardDuration, { fontWeight: "700", color: "#2dd4bf" }]}>
+                              Progress: {c.progress}%
+                            </Text>
+                          )}
+                        </View>
                       </View>
                       <View style={styles.modalCardRight}>
                         <Feather name="play-circle" size={32} color="#ffffff" />
                       </View>
                     </LinearGradient>
                   </TouchableOpacity>
-                ))}
-              </ScrollView>
-            )}
+                ))
+              )}
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -1014,5 +1041,54 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontWeight: "600",
     textTransform: "uppercase",
+  },
+  modalTabs: {
+    flexDirection: "row",
+    backgroundColor: "#f1f5f9",
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 16,
+    gap: 4,
+  },
+  modalTabBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalTabBtnActive: {
+    backgroundColor: "#ffffff",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  modalTabBtnText: {
+    fontSize: 12,
+    color: "#64748b",
+    fontWeight: "600",
+  },
+  modalTabBtnTextActive: {
+    color: "#6366f1",
+  },
+  modalEmptyState: {
+    paddingVertical: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalEmptyText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#0f172a",
+    marginBottom: 4,
+  },
+  modalEmptySubText: {
+    fontSize: 12,
+    color: "#64748b",
+    textAlign: "center",
+    paddingHorizontal: 24,
+    lineHeight: 16,
   },
 });

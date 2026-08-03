@@ -476,6 +476,12 @@ export function useDashboardStore() {
         recommendations: null,
         isLoadingRecommendations: false
       });
+    },
+
+    triggerManualSurvey: () => {
+      updateState({
+        surveyCompleted: false
+      });
     }
   };
 }
@@ -593,7 +599,7 @@ supabase.auth.onAuthStateChange((event: any, session: any) => {
           careerFitScore: dbProfile?.career_fit_score ?? 0,
           xp: dbProfile?.xp ?? 0
         },
-        surveyCompleted: dbProfile ? !!dbProfile.last_survey_date : false,
+        surveyCompleted: dbProfile ? (!!dbProfile.last_survey_date || !!dbProfile.focus_domain) : false,
         surveyAnswers: dbProfile ? {
           focusDomain: dbProfile.focus_domain || "Mobile",
           proficiency: dbProfile.proficiency || "Beginner",

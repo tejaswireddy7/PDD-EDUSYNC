@@ -44,9 +44,19 @@ export function Header() {
             {new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}
           </Text>
         </View>
-        <Text style={styles.welcomeText}>
-          Welcome back, {userName} <Text style={styles.waveEmoji}>👋</Text>
-        </Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          <Text style={styles.welcomeText}>
+            Welcome back, {userName} <Text style={styles.waveEmoji}>👋</Text>
+          </Text>
+          <TouchableOpacity 
+            onPress={store.triggerManualSurvey}
+            style={styles.takeSurveyPill}
+            activeOpacity={0.8}
+          >
+            <Feather name="clipboard" size={11} color="#6366f1" />
+            <Text style={styles.takeSurveyText}>Take Survey</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.actionsContainer}>
@@ -259,6 +269,23 @@ const styles = StyleSheet.create({
     fontSize: 9,
     color: "#94a3b8",
     marginTop: 2,
+  },
+  takeSurveyPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "rgba(99, 102, 241, 0.08)",
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(99, 102, 241, 0.2)",
+    alignSelf: "center",
+  },
+  takeSurveyText: {
+    fontSize: 10,
+    color: "#6366f1",
+    fontWeight: "700",
   },
 });
 

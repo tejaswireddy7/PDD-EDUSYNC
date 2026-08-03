@@ -542,6 +542,21 @@ export default function CourseLearnScreen() {
   const [peerMaterials, setPeerMaterials] = useState<any[]>([]);
   const [viewingResource, setViewingResource] = useState<any | null>(null);
 
+  // Track completed section quizzes inside local state & localStorage
+  const [completedQuizzes, setCompletedQuizzes] = useState<Record<number, { selected: number; correct: boolean }>>({});
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.localStorage) {
+      const cacheKey = `completed_quizzes_${courseTitle}_${store.user?.email || "guest"}`;
+      const saved = window.localStorage.getItem(cacheKey);
+      if (saved) {
+        try {
+          setCompletedQuizzes(JSON.parse(saved));
+        } catch (e) {}
+      }
+    }
+  }, [courseTitle, store.user?.email]);
+
   // New: Watch time threshold tracking states
   const [watchedTime, setWatchedTime] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -684,7 +699,7 @@ export default function CourseLearnScreen() {
   };
 
   const handleQuizSubmit = (sectionIdx: number) => {
-    const sectList = COURSE_SECTIONS[courseTitle];
+    const sectList = COURSE_SECTIONS[courseTitle] || defaultSections;
     if (!sectList || showQuizSectionIdx === null) return;
     const sect = sectList[sectionIdx];
     if (selectedQuizOption === null) {
@@ -692,16 +707,29 @@ export default function CourseLearnScreen() {
       return;
     }
 
-    if (selectedQuizOption === sect.quiz.correctAnswer) {
+    const isCorrect = selectedQuizOption === sect.quiz.correctAnswer;
+    
+    const updated = {
+      ...completedQuizzes,
+      [sectionIdx]: { selected: selectedQuizOption, correct: isCorrect }
+    };
+    setCompletedQuizzes(updated);
+
+    if (typeof window !== "undefined" && window.localStorage) {
+      const cacheKey = `completed_quizzes_${courseTitle}_${store.user?.email || "guest"}`;
+      window.localStorage.setItem(cacheKey, JSON.stringify(updated));
+    }
+
+    if (isCorrect) {
       setQuizFeedback({
         type: "correct",
-        msg: "Correct! You have earned +50 XP!"
+        msg: "Correct! Score: 1/1. You have earned +50 XP!"
       });
       store.addXp(50);
     } else {
       setQuizFeedback({
         type: "incorrect",
-        msg: "Incorrect. Re-watch the video section and try again!"
+        msg: "Incorrect. Score: 0/1. Re-watch the video section and try again!"
       });
     }
   };
@@ -908,18 +936,48 @@ export default function CourseLearnScreen() {
                       </View>
                     </TouchableOpacity>
                     
-                    <TouchableOpacity
-                      onPress={() => {
-                        setShowQuizSectionIdx(sIdx);
-                        setSelectedQuizOption(null);
-                        setQuizFeedback(null);
-                      }}
-                      style={styles.sectionQuizBtn}
-                      activeOpacity={0.7}
-                    >
-                      <MaterialCommunityIcons name="award" size={12} color="#ffffff" style={{ marginRight: 4 }} />
-                      <Text style={styles.sectionQuizBtnText}>Quiz</Text>
-                    </TouchableOpacity>
+                    {completedQuizzes[sIdx] ? (
+                      <TouchableOpacity
+                        onPress={() => {
+                          setShowQuizSectionIdx(sIdx);
+                          setSelectedQuizOption(completedQuizzes[sIdx].selected);
+                          setQuizFeedback({
+                            type: completedQuizzes[sIdx].correct ? "correct" : "incorrect",
+                            msg: completedQuizzes[sIdx].correct 
+                              ? "Correct! Score: 1/1. You have earned +50 XP!"
+                              : "Incorrect. Score: 0/1. Re-watch the video section and try again!"
+                          });
+                        }}
+                        style={[
+                          styles.sectionQuizBtn, 
+                          completedQuizzes[sIdx].correct ? { backgroundColor: "#10b981" } : { backgroundColor: "#ef4444" }
+                        ]}
+                        activeOpacity={0.7}
+                      >
+                        <MaterialCommunityIcons 
+                          name={completedQuizzes[sIdx].correct ? "check-circle" : "close-circle"} 
+                          size={12} 
+                          color="#ffffff" 
+                          style={{ marginRight: 4 }} 
+                        />
+                        <Text style={styles.sectionQuizBtnText}>
+                          {completedQuizzes[sIdx].correct ? "Score: 1/1" : "Score: 0/1"}
+                        </Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <TouchableOpacity
+                        onPress={() => {
+                          setShowQuizSectionIdx(sIdx);
+                          setSelectedQuizOption(null);
+                          setQuizFeedback(null);
+                        }}
+                        style={styles.sectionQuizBtn}
+                        activeOpacity={0.7}
+                      >
+                        <MaterialCommunityIcons name="award" size={12} color="#ffffff" style={{ marginRight: 4 }} />
+                        <Text style={styles.sectionQuizBtnText}>Quiz</Text>
+                      </TouchableOpacity>
+                    )}
                   </View>
                 ))}
               </View>

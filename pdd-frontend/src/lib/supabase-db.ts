@@ -682,6 +682,130 @@ export async function saveDBReply(userId: string, contactId: string, replyText: 
   return replyMsg;
 }
 
+// Helper to generate dynamic rubric criteria, answers, and comments based on seeded random hash
+function getThemedEvaluation(
+  assessmentId: string,
+  assessmentTitle: string,
+  focusDomain: string,
+  proficiency: string,
+  userId: string
+): DBEvaluation {
+  // Simple deterministic RNG seed
+  const seedString = assessmentId + userId + assessmentTitle;
+  let hash = 0;
+  for (let i = 0; i < seedString.length; i++) {
+    hash = seedString.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const rng = Math.abs(Math.sin(hash));
+
+  // Determine scores (8-10, 7-10, 6-9, etc.)
+  const score1 = Math.floor(rng * 3) + 8; // 8 to 10
+  const score2 = Math.floor(rng * 4) + 6; // 6 to 9
+  const score3 = Math.floor(rng * 3) + 7; // 7 to 9
+  const score4 = Math.floor(rng * 4) + 6; // 6 to 9
+
+  const title = assessmentTitle.toLowerCase();
+  let criteria: Array<{ criterion: string; max: number; note: string }> = [];
+  let aiFeedback = "";
+
+  if (title.includes("react") || title.includes("styling") || title.includes("component") || title.includes("frontend")) {
+    criteria = [
+      { criterion: "JSX Structuring & Markup", max: 10, note: "Clean nested nodes, correct React elements lifecycle rendering." },
+      { criterion: "State Hook Integrity", max: 10, note: "Separated local states, avoided unnecessary component rerender loops." },
+      { criterion: "Responsive Styles Layout", max: 10, note: "Flexbox structure scales cleanly on smaller screen containers." },
+      { criterion: "Virtual DOM Diffing Speed", max: 10, note: "Used memoized key props cleanly in list iterations." }
+    ];
+    aiFeedback = `Solid React implementation for "${assessmentTitle}". The component state handles user inputs fluidly. Consider optimization profiles in rendering loops.`;
+  } else if (title.includes("docker") || title.includes("server") || title.includes("api") || title.includes("backend") || title.includes("node")) {
+    criteria = [
+      { criterion: "REST Request Routing", max: 10, note: "Routes correctly configured matching standard HTTP verbs." },
+      { criterion: "Container Port Mappings", max: 10, note: "Proper dockerfile exposure configuration with non-root security." },
+      { criterion: "Database Connection Pool", max: 10, note: "Connections are reused properly, preventing socket exhaustion." },
+      { criterion: "Error Logging & Middleware", max: 10, note: "Custom middleware logs actions and handles errors cleanly." }
+    ];
+    aiFeedback = `The backend API structure for "${assessmentTitle}" scales cleanly. Middleware authentication is properly config-mapped. Consider pooled database sockets for high concurrency.`;
+  } else if (title.includes("pytorch") || title.includes("neural") || title.includes("model") || title.includes("data") || title.includes("python") || title.includes("pandas")) {
+    criteria = [
+      { criterion: "Tensor Shape Alignment", max: 10, note: "Dimension shapes map cleanly for linear algebra matrix structures." },
+      { criterion: "Optimizer Learning Rate", max: 10, note: "Optimizer learning schedule avoids early gradient collapse." },
+      { criterion: "Data Loader Prefetching", max: 10, note: "NumPy array calculations are vectorized, avoiding slow sequential parsing." },
+      { criterion: "Validation Accuracy Splits", max: 10, note: "Correct dataset isolation, avoiding data leakage." }
+    ];
+    aiFeedback = `Excellent modeling execution in "${assessmentTitle}". Backpropagation flows cleanly without gradient explosion. Consider adding early-stopping controls to mitigate validation overfitting.`;
+  } else {
+    criteria = [
+      { criterion: "Core Logic Correctness", max: 10, note: `Algorithm behaves as expected for ${focusDomain} workflows.` },
+      { criterion: "Architectural Cleanliness", max: 10, note: "Proper code grouping and modular script separation." },
+      { criterion: "Execution Speed", max: 10, note: "High performance rendering execution; zero memory leaks detected." },
+      { criterion: "Inline Explanations", max: 10, note: "Clear inline comments explaining complex processing blocks." }
+    ];
+    aiFeedback = `Strong overall implementation for "${assessmentTitle}". All core objectives have been verified. Consider expanding negative assertions in your test suite to secure release builds.`;
+  }
+
+  // Inject scores
+  const rubric = criteria.map((c, idx) => {
+    const s = idx === 0 ? score1 : idx === 1 ? score2 : idx === 2 ? score3 : score4;
+    return { ...c, score: s };
+  });
+
+  const totalScore = rubric.reduce((s, r) => s + r.score, 0);
+  const maxScore = rubric.reduce((s, r) => s + r.max, 0);
+
+  const focusSubjectsMap: Record<string, string[]> = {
+    Frontend: ["React Native / React", "CSS & Flexbox Layouts", "JS ES6+ Async Features", "Web Performance Optimization", "State Hydration"],
+    Backend: ["RESTful API Protocols", "NodeJS Event Loops", "SQL / Database Queries", "Docker Deployment", "System Architecture"],
+    Mobile: ["React Native Core Views", "Platform UI Guidelines", "Expo CLI / Bundle Sizes", "State Management Hooks", "Native Device Bridges"],
+    AI: ["Python Core Scripting", "ML Regression Analysis", "Neural Networks & PyTorch", "NLP Data Processing", "Linear Algebra Foundations"],
+  };
+  const subjects = focusSubjectsMap[focusDomain] || focusSubjectsMap["Mobile"];
+
+  const subjectsList = subjects.map((sub, idx) => ({
+    name: sub,
+    score: 80 + Math.floor(rng * 15) + (idx * 2) > 100 ? 98 : 80 + Math.floor(rng * 15) + (idx * 2),
+    trend: `+${Math.floor(rng * 5) + idx + 1}`,
+  }));
+
+  const isCorrect1 = rng > 0.3;
+  const isCorrect2 = rng < 0.7;
+  const isCorrect3 = rng > 0.5;
+
+  const answersList = [
+    {
+      q: `Q1. Detail the component architecture implemented in ${assessmentTitle}.`,
+      student: `We structured the project according to ${focusDomain} modular guidelines, splitting features into clear, reusable, and isolated nodes...`,
+      verdict: isCorrect1 ? ("correct" as const) : ("partial" as const),
+      marks: isCorrect1 ? "4/4" : "2/4",
+      feedback: isCorrect1 ? "Well isolated components." : "Review dependency bounds."
+    },
+    {
+      q: "Q2. Explain key performance optimization techniques.",
+      student: "Bottlenecks are prevented using deferred loading hooks, index lookup caches, and event pooling...",
+      verdict: isCorrect2 ? ("correct" as const) : ("wrong" as const),
+      marks: isCorrect2 ? "6/6" : "0/6",
+      feedback: isCorrect2 ? "Correctly identified." : "Review standard profiling reports."
+    },
+    {
+      q: "Q3. Describe error handling strategies.",
+      student: "All exceptions propagate to boundary handlers which map details to user-friendly messages...",
+      verdict: isCorrect3 ? ("correct" as const) : ("partial" as const),
+      marks: isCorrect3 ? "4/4" : "2/4"
+    }
+  ];
+
+  return {
+    assessment_id: assessmentId,
+    assessment_title: assessmentTitle,
+    score: totalScore,
+    max_score: maxScore,
+    mentor: "Verified by Mentor Priya M.",
+    ai_feedback: aiFeedback,
+    rubric,
+    answers: answersList,
+    subjects: subjectsList,
+    percentile_rank: `Top ${Math.max(4, 15 - Math.floor(rng * 10))}%`
+  };
+}
+
 // 12. Fetch Evaluation
 export async function fetchDBEvaluation(
   userId: string, 
@@ -792,11 +916,12 @@ export async function fetchDBEvaluation(
         };
       } else {
         // Project evaluation
+        const themed = getThemedEvaluation(assessmentId, assessmentTitle, focusDomain, proficiency, userId);
         const githubUrl = responses.githubUrl || "https://github.com/user/project";
         const selectedTemplate = responses.selectedTemplate || "Source Code Submission";
         const filesList = Array.isArray(responses.files) ? responses.files : [];
 
-        const dynamicAnswers = filesList.map((f: any) => ({
+        const repoAnswers = filesList.map((f: any) => ({
           q: `File Integrity check: ${f.name}`,
           student: `File size: ${(f.size / 1024).toFixed(1)} KB`,
           verdict: "correct" as const,
@@ -804,8 +929,8 @@ export async function fetchDBEvaluation(
           feedback: `Verified file configuration for ${f.name}.`
         }));
 
-        if (dynamicAnswers.length === 0) {
-          dynamicAnswers.push({
+        if (repoAnswers.length === 0) {
+          repoAnswers.push({
             q: "Repository Check",
             student: `Connected repository: ${githubUrl}`,
             verdict: "correct" as const,
@@ -814,78 +939,17 @@ export async function fetchDBEvaluation(
           });
         }
 
-        const dynamicRubric = [
-          { criterion: "Structure & Setup", score: 9, max: 10, note: `Project template "${selectedTemplate}" is correctly configured.` },
-          { criterion: "Repository Integration", score: 10, max: 10, note: `GitHub repository at ${githubUrl} is accessible.` },
-          { criterion: "Separation of concerns", score: 8, max: 10, note: `Appropriate componentization of ${focusDomain} logic.` },
-          { criterion: "Code Quality", score: 8, max: 10, note: `Clean files layout with clear code separation.` }
-        ];
-
-        const score = dynamicRubric.reduce((s, r) => s + r.score, 0);
-        const maxScore = dynamicRubric.reduce((s, r) => s + r.max, 0);
-
-        const subjectsList = subjects.map((sub, idx) => ({
-          name: sub,
-          score: 85 + (idx * 3) > 100 ? 98 : 85 + (idx * 3),
-          trend: `+${4 + idx}`,
-        }));
-
         dynamicEval = {
-          assessment_id: assessmentId,
-          assessment_title: assessmentTitle,
-          score,
-          max_score: maxScore,
-          mentor: "Verified by Mentor Priya M.",
-          ai_feedback: `Successfully processed project "${selectedTemplate}" submitted from GitHub repository ${githubUrl}. The files (${filesList.map((f: any) => f.name).join(", ") || "none"}) show correct integration of ${focusDomain} architecture, proper styling guidelines, and modular component separation.`,
-          rubric: dynamicRubric,
-          answers: dynamicAnswers,
-          subjects: subjectsList,
-          percentile_rank: "Top 7%"
+          ...themed,
+          answers: [...repoAnswers, ...themed.answers],
+          ai_feedback: `Successfully processed project "${selectedTemplate}" submitted from GitHub repository ${githubUrl}. ${themed.ai_feedback}`
         };
       }
     }
 
     // 3. Fallback if assessment couldn't be loaded
     if (!dynamicEval) {
-      const fallbackRubric = [
-        { criterion: "Correctness", score: 9, max: 10, note: `All test cases pass; ${focusDomain} logic is solid.` },
-        { criterion: "Code Quality", score: 8, max: 10, note: "Good structure; consider extracting reusable helpers." },
-        { criterion: "Efficiency", score: 7, max: 10, note: "Highly optimized execution times; zero responsive bottlenecks." },
-        { criterion: "Documentation", score: 8, max: 10, note: "Clear comments; add appropriate module declarations." },
-      ];
-
-      const focusSubjectsMap: Record<string, string[]> = {
-        Frontend: ["React Native / React", "CSS & Flexbox Layouts", "JS ES6+ Async Features", "Web Performance Optimization", "State Hydration"],
-        Backend: ["RESTful API Protocols", "NodeJS Event Loops", "SQL / Database Queries", "Docker Deployment", "System Architecture"],
-        Mobile: ["React Native Core Views", "Platform UI Guidelines", "Expo CLI / Bundle Sizes", "State Management Hooks", "Native Device Bridges"],
-        AI: ["Python Core Scripting", "ML Regression Analysis", "Neural Networks & PyTorch", "NLP Data Processing", "Linear Algebra Foundations"],
-      };
-      
-      const subjectsList = (focusSubjectsMap[focusDomain] || focusSubjectsMap["Mobile"]).map((sub, idx) => ({
-        name: sub,
-        score: 78 + (idx * 4) > 100 ? 98 : 78 + (idx * 4),
-        trend: idx % 2 === 0 ? `+${3 + idx}` : `+${1 + idx}`,
-      }));
-
-      const fallbackAnswers = [
-        { q: `Q1. Explain the main component architecture of ${focusDomain}.`, student: `In ${focusDomain}, modular designs partition components into clear, isolated, and scalable nodes...`, verdict: "correct" as const, marks: "4/4" },
-        { q: `Q2. Describe the standard flow of data in a typical ${focusDomain} lifecycle.`, student: "Data flows uni-directionally from parents to downstream nodes...", verdict: "partial" as const, marks: "2/3", feedback: "Review lifecycle hooks and state updates." },
-        { q: `Q3. What is the time complexity of compiling native bundles for ${focusDomain}?`, student: "O(n²)", verdict: "wrong" as const, marks: "0/2", feedback: "Linear compilation complexity O(n). Check tree-shaking details." },
-        { q: `Q4. Explain state management strategies best suited for ${focusDomain}.`, student: "Use React Hooks or localized pub/sub listeners to synchronize states...", verdict: "correct" as const, marks: "6/6" },
-      ];
-
-      dynamicEval = {
-        assessment_id: assessmentId,
-        assessment_title: assessmentTitle,
-        score: fallbackRubric.reduce((s, r) => s + r.score, 0),
-        max_score: fallbackRubric.reduce((s, r) => s + r.max, 0),
-        mentor: "Verified by Mentor Priya M.",
-        ai_feedback: `Strong overall implementation with clean separation of concerns in the ${focusDomain} structure. Eviction logic is correct, but consider optimized cache/memoization maps for true O(1) rendering times.`,
-        rubric: fallbackRubric,
-        answers: fallbackAnswers,
-        subjects: subjectsList,
-        percentile_rank: "Top 8%"
-      };
+      dynamicEval = getThemedEvaluation(assessmentId, assessmentTitle, focusDomain, proficiency, userId);
     }
 
     // Cache it locally first
@@ -975,45 +1039,7 @@ export async function fetchDBEvaluation(
   }
 
   // Generate fallback structure if completely failed
-  const fallbackRubric = [
-    { criterion: "Correctness", score: 9, max: 10, note: `All test cases pass; ${focusDomain} logic is solid.` },
-    { criterion: "Code Quality", score: 8, max: 10, note: "Good structure; consider extracting reusable helpers." },
-    { criterion: "Efficiency", score: 7, max: 10, note: "Highly optimized execution times; zero responsive bottlenecks." },
-    { criterion: "Documentation", score: 8, max: 10, note: "Clear comments; add appropriate module declarations." },
-  ];
-
-  const focusSubjectsMap: Record<string, string[]> = {
-    Frontend: ["React Native / React", "CSS & Flexbox Layouts", "JS ES6+ Async Features", "Web Performance Optimization", "State Hydration"],
-    Backend: ["RESTful API Protocols", "NodeJS Event Loops", "SQL / Database Queries", "Docker Deployment", "System Architecture"],
-    Mobile: ["React Native Core Views", "Platform UI Guidelines", "Expo CLI / Bundle Sizes", "State Management Hooks", "Native Device Bridges"],
-    AI: ["Python Core Scripting", "ML Regression Analysis", "Neural Networks & PyTorch", "NLP Data Processing", "Linear Algebra Foundations"],
-  };
-  
-  const subjectsList = (focusSubjectsMap[focusDomain] || focusSubjectsMap["Mobile"]).map((sub, idx) => ({
-    name: sub,
-    score: 78 + (idx * 4) > 100 ? 98 : 78 + (idx * 4),
-    trend: idx % 2 === 0 ? `+${3 + idx}` : `+${1 + idx}`,
-  }));
-
-  const fallbackAnswers = [
-    { q: `Q1. Explain the main component architecture of ${focusDomain}.`, student: `In ${focusDomain}, modular designs partition components into clear, isolated, and scalable nodes...`, verdict: "correct" as const, marks: "4/4" },
-    { q: `Q2. Describe the standard flow of data in a typical ${focusDomain} lifecycle.`, student: "Data flows uni-directionally from parents to downstream nodes...", verdict: "partial" as const, marks: "2/3", feedback: "Review lifecycle hooks and state updates." },
-    { q: `Q3. What is the time complexity of compiling native bundles for ${focusDomain}?`, student: "O(n²)", verdict: "wrong" as const, marks: "0/2", feedback: "Linear compilation complexity O(n). Check tree-shaking details." },
-    { q: `Q4. Explain state management strategies best suited for ${focusDomain}.`, student: "Use React Hooks or localized pub/sub listeners to synchronize states...", verdict: "correct" as const, marks: "6/6" },
-  ];
-
-  return {
-    assessment_id: assessmentId,
-    assessment_title: assessmentTitle,
-    score: fallbackRubric.reduce((s, r) => s + r.score, 0),
-    max_score: fallbackRubric.reduce((s, r) => s + r.max, 0),
-    mentor: "Verified by Mentor Priya M.",
-    ai_feedback: `Strong overall implementation with clean separation of concerns in the ${focusDomain} structure. Eviction logic is correct, but consider optimized cache/memoization maps for true O(1) rendering times.`,
-    rubric: fallbackRubric,
-    answers: fallbackAnswers,
-    subjects: subjectsList,
-    percentile_rank: "Top 8%"
-  };
+  return getThemedEvaluation(assessmentId, assessmentTitle, focusDomain, proficiency, userId);
 }
 
 // 13. Submit Grievance

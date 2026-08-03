@@ -21,22 +21,35 @@ export default function EvaluationScreen() {
 
   const [submittedId, setSubmittedId] = useState<string | null>(store.submittedAssessmentId);
   const [submittedTitle, setSubmittedTitle] = useState<string>(assessmentTitle);
+  const [submissionNumber, setSubmissionNumber] = useState<number>(1);
 
   useEffect(() => {
     async function checkSubmissions() {
-      if (store.submittedAssessmentId) {
-        setSubmittedId(store.submittedAssessmentId);
-        return;
-      }
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           const { fetchDBAssessments } = await import("../lib/supabase-db");
           const dbAssessments = await fetchDBAssessments(user.id, focusDomain, userProficiency);
-          const submitted = dbAssessments.find((a) => a.status === "submitted");
-          if (submitted) {
-            setSubmittedId(submitted.id);
-            setSubmittedTitle(submitted.title);
+          
+          // Compute the submission number based on the order of assessments sorted by ID
+          const sorted = [...dbAssessments].sort((a, b) => a.id.localeCompare(b.id));
+
+          if (store.submittedAssessmentId) {
+            setSubmittedId(store.submittedAssessmentId);
+            const currentAsset = dbAssessments.find(a => a.id === store.submittedAssessmentId);
+            if (currentAsset) {
+              setSubmittedTitle(currentAsset.title);
+            }
+            const idx = sorted.findIndex(a => a.id === store.submittedAssessmentId);
+            setSubmissionNumber(idx !== -1 ? idx + 1 : 1);
+          } else {
+            const submitted = dbAssessments.find((a) => a.status === "submitted");
+            if (submitted) {
+              setSubmittedId(submitted.id);
+              setSubmittedTitle(submitted.title);
+              const idx = sorted.findIndex(a => a.id === submitted.id);
+              setSubmissionNumber(idx !== -1 ? idx + 1 : 1);
+            }
           }
         }
       } catch (err) {
@@ -138,9 +151,9 @@ export default function EvaluationScreen() {
       <View style={styles.scoreCard}>
         <View style={styles.scoreHeader}>
           <View style={styles.scoreMeta}>
-            <Text style={styles.scoreMetaText}>Evaluated · Submission #248</Text>
+            <Text style={styles.scoreMetaText}>Evaluated · Submission #{submissionNumber}</Text>
             <Text style={styles.scoreTitle}>{submittedTitle}</Text>
-            <Text style={styles.scoreMentor}>Reviewed by AI · Verified by Mentor Priya M.</Text>
+            <Text style={styles.scoreMentor}>Reviewed by AI · {evaluation.mentor}</Text>
           </View>
           <LinearGradient
             colors={["#0d9488", "#14b8a6"]}
@@ -152,14 +165,14 @@ export default function EvaluationScreen() {
             <Text style={styles.scoreBadgeLabel}>Score</Text>
           </LinearGradient>
         </View>
-
+        
         {/* AI generated feedback banner */}
         <View style={styles.feedbackBanner}>
           <MaterialCommunityIcons name="creation" size={16} color="#6366f1" style={styles.feedbackIcon} />
           <View style={styles.feedbackDetails}>
             <Text style={styles.feedbackTitle}>AI-generated feedback</Text>
             <Text style={styles.feedbackText}>
-              Strong overall implementation with clean separation of concerns in the {focusDomain} structure. Eviction logic is correct, but consider optimized cache/memoization maps for true O(1) rendering times.
+              {evaluation.ai_feedback}
             </Text>
           </View>
         </View>

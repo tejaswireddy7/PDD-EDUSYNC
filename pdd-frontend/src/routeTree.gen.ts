@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as EvaluationRouteImport } from './routes/evaluation'
+import { Route as CourseLearnRouteImport } from './routes/course-learn'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as AssessmentsRouteImport } from './routes/assessments'
 import { Route as IndexRouteImport } from './routes/index'
@@ -23,6 +24,11 @@ const ResourcesRoute = ResourcesRouteImport.update({
 const EvaluationRoute = EvaluationRouteImport.update({
   id: '/evaluation',
   path: '/evaluation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CourseLearnRoute = CourseLearnRouteImport.update({
+  id: '/course-learn',
+  path: '/course-learn',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ChatRoute = ChatRouteImport.update({
@@ -45,6 +51,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/assessments': typeof AssessmentsRoute
   '/chat': typeof ChatRoute
+  '/course-learn': typeof CourseLearnRoute
   '/evaluation': typeof EvaluationRoute
   '/resources': typeof ResourcesRoute
 }
@@ -52,6 +59,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/assessments': typeof AssessmentsRoute
   '/chat': typeof ChatRoute
+  '/course-learn': typeof CourseLearnRoute
   '/evaluation': typeof EvaluationRoute
   '/resources': typeof ResourcesRoute
 }
@@ -60,21 +68,42 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/assessments': typeof AssessmentsRoute
   '/chat': typeof ChatRoute
+  '/course-learn': typeof CourseLearnRoute
   '/evaluation': typeof EvaluationRoute
   '/resources': typeof ResourcesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/assessments' | '/chat' | '/evaluation' | '/resources'
+  fullPaths:
+    | '/'
+    | '/assessments'
+    | '/chat'
+    | '/course-learn'
+    | '/evaluation'
+    | '/resources'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/assessments' | '/chat' | '/evaluation' | '/resources'
-  id: '__root__' | '/' | '/assessments' | '/chat' | '/evaluation' | '/resources'
+  to:
+    | '/'
+    | '/assessments'
+    | '/chat'
+    | '/course-learn'
+    | '/evaluation'
+    | '/resources'
+  id:
+    | '__root__'
+    | '/'
+    | '/assessments'
+    | '/chat'
+    | '/course-learn'
+    | '/evaluation'
+    | '/resources'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AssessmentsRoute: typeof AssessmentsRoute
   ChatRoute: typeof ChatRoute
+  CourseLearnRoute: typeof CourseLearnRoute
   EvaluationRoute: typeof EvaluationRoute
   ResourcesRoute: typeof ResourcesRoute
 }
@@ -93,6 +122,13 @@ declare module '@tanstack/react-router' {
       path: '/evaluation'
       fullPath: '/evaluation'
       preLoaderRoute: typeof EvaluationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/course-learn': {
+      id: '/course-learn'
+      path: '/course-learn'
+      fullPath: '/course-learn'
+      preLoaderRoute: typeof CourseLearnRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/chat': {
@@ -123,19 +159,10 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AssessmentsRoute: AssessmentsRoute,
   ChatRoute: ChatRoute,
+  CourseLearnRoute: CourseLearnRoute,
   EvaluationRoute: EvaluationRoute,
   ResourcesRoute: ResourcesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

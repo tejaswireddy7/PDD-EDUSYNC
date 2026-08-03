@@ -7,8 +7,25 @@ import {
   saveDBProfile, 
   fetchDBCourses, 
   fetchDBResources, 
-  fetchDBMilestones 
+  fetchDBMilestones,
+  fetchDBAssessments
 } from "./supabase-db";
+
+async function getNextAssessmentTitle(userId: string, focusDomain: string, proficiency: string): Promise<string> {
+  try {
+    const assessments = await fetchDBAssessments(userId, focusDomain, proficiency);
+    const nextAss = assessments.find((a) => a.status !== "submitted");
+    if (nextAss) {
+      return nextAss.title;
+    }
+  } catch (err) {
+    console.warn("Failed to get dynamic next assessment title:", err);
+  }
+  return focusDomain === "Frontend" ? "React State & Styling Quiz"
+    : focusDomain === "Backend" ? "Dockerized Server Setup Challenge"
+      : focusDomain === "Mobile" ? "App Navigation & Screen Mapping"
+        : "PyTorch Data Loading & Gradient descent";
+}
 
 export interface DashboardState {
   user: UserProfile | null;
@@ -112,10 +129,21 @@ export function useDashboardStore() {
       if (answers) {
         updateState({ isLoadingRecommendations: true });
         try {
-          const [courses, resources, milestones] = await Promise.all([
+          const sessionData = await supabase.auth.getSession();
+          const session = sessionData.data.session;
+          
+          const [courses, resources, milestones, nextAssessment] = await Promise.all([
             fetchDBCourses(answers.focusDomain, answers.proficiency),
             fetchDBResources(answers.focusDomain, answers.proficiency),
-            fetchDBMilestones(answers.focusDomain, answers.proficiency)
+            fetchDBMilestones(answers.focusDomain, answers.proficiency),
+            session?.user
+              ? getNextAssessmentTitle(session.user.id, answers.focusDomain, answers.proficiency)
+              : Promise.resolve(
+                  answers.focusDomain === "Frontend" ? "React State & Styling Quiz"
+                    : answers.focusDomain === "Backend" ? "Dockerized Server Setup Challenge"
+                      : answers.focusDomain === "Mobile" ? "App Navigation & Screen Mapping"
+                        : "PyTorch Data Loading & Gradient descent"
+                )
           ]);
           
           updateState({
@@ -124,10 +152,7 @@ export function useDashboardStore() {
               resources: resources.map(r => ({ title: r.title, type: r.type, duration: "15 min" })),
               milestones,
               weeklyHoursTarget: answers.learningHours,
-              nextAssessment: answers.focusDomain === "Frontend" ? "React State & Styling Quiz"
-                : answers.focusDomain === "Backend" ? "Dockerized Server Setup Challenge"
-                  : answers.focusDomain === "Mobile" ? "App Navigation & Screen Mapping"
-                    : "PyTorch Data Loading & Gradient descent"
+              nextAssessment
             },
             isLoadingRecommendations: false
           });
@@ -199,10 +224,21 @@ export function useDashboardStore() {
       // Attempt to load recommendations dynamically from database
       updateState({ isLoadingRecommendations: true });
       try {
-        const [courses, resources, milestones] = await Promise.all([
+        const sessionData = await supabase.auth.getSession();
+        const session = sessionData.data.session;
+
+        const [courses, resources, milestones, nextAssessment] = await Promise.all([
           fetchDBCourses(answers.focusDomain, answers.proficiency),
           fetchDBResources(answers.focusDomain, answers.proficiency),
-          fetchDBMilestones(answers.focusDomain, answers.proficiency)
+          fetchDBMilestones(answers.focusDomain, answers.proficiency),
+          session?.user
+            ? getNextAssessmentTitle(session.user.id, answers.focusDomain, answers.proficiency)
+            : Promise.resolve(
+                answers.focusDomain === "Frontend" ? "React State & Styling Quiz"
+                  : answers.focusDomain === "Backend" ? "Dockerized Server Setup Challenge"
+                    : answers.focusDomain === "Mobile" ? "App Navigation & Screen Mapping"
+                      : "PyTorch Data Loading & Gradient descent"
+              )
         ]);
         
         updateState({
@@ -211,10 +247,7 @@ export function useDashboardStore() {
             resources: resources.map(r => ({ title: r.title, type: r.type, duration: "15 min" })),
             milestones,
             weeklyHoursTarget: answers.learningHours,
-            nextAssessment: answers.focusDomain === "Frontend" ? "React State & Styling Quiz"
-              : answers.focusDomain === "Backend" ? "Dockerized Server Setup Challenge"
-                : answers.focusDomain === "Mobile" ? "App Navigation & Screen Mapping"
-                  : "PyTorch Data Loading & Gradient descent"
+            nextAssessment
           },
           isLoadingRecommendations: false
         });
@@ -302,6 +335,19 @@ export function useDashboardStore() {
               careerFitScore: nextUser.careerFitScore,
               xp: nextUser.xp
             });
+
+            // Update next assessment in store recommendations directly
+            const focusDomain = state.surveyAnswers?.focusDomain || "Mobile";
+            const proficiency = state.surveyAnswers?.proficiency || "Beginner";
+            const nextAssessmentTitle = await getNextAssessmentTitle(session.user.id, focusDomain, proficiency);
+            if (state.recommendations) {
+              updateState({
+                recommendations: {
+                  ...state.recommendations,
+                  nextAssessment: nextAssessmentTitle
+                }
+              });
+            }
           }
         } catch (e) {
           console.warn("Failed to save profile progress on assessment submission:", e);

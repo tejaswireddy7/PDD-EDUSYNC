@@ -411,7 +411,15 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
         if (p >= 100) {
           clearInterval(interval);
           setUploading(false);
-          onUpdate({ status: "submitted", progress: 100 });
+          onUpdate({
+            status: "submitted",
+            progress: 100,
+            responses: {
+              githubUrl,
+              selectedTemplate,
+              files
+            }
+          });
           return 100;
         }
         return p + 10;

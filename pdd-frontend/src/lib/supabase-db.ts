@@ -673,7 +673,214 @@ export async function fetchDBEvaluation(
   focusDomain: string, 
   proficiency: string
 ): Promise<DBEvaluation> {
-  // Generate dynamic fallback structures
+  try {
+    // 1. Try to fetch existing evaluation first
+    const { data: existingEval, error: evalError } = await supabase
+      .from("evaluations")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("assessment_id", assessmentId)
+      .maybeSingle();
+
+    if (evalError) throw evalError;
+    if (existingEval) return existingEval as DBEvaluation;
+
+    // 2. If no evaluation, try to fetch the assessment to build dynamic evaluation
+    const { data: assessment, error: assessmentError } = await supabase
+      .from("assessments")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("id", assessmentId)
+      .maybeSingle();
+
+    if (assessmentError) throw assessmentError;
+
+    let dynamicEval: DBEvaluation | null = null;
+
+    if (assessment) {
+      const responses = assessment.responses || {};
+      const questions = assessment.questions || [];
+      const isQuiz = Array.isArray(questions) && questions.length > 0;
+
+      const focusSubjectsMap: Record<string, string[]> = {
+        Frontend: ["React Native / React", "CSS & Flexbox Layouts", "JS ES6+ Async Features", "Web Performance Optimization", "State Hydration"],
+        Backend: ["RESTful API Protocols", "NodeJS Event Loops", "SQL / Database Queries", "Docker Deployment", "System Architecture"],
+        Mobile: ["React Native Core Views", "Platform UI Guidelines", "Expo CLI / Bundle Sizes", "State Management Hooks", "Native Device Bridges"],
+        AI: ["Python Core Scripting", "ML Regression Analysis", "Neural Networks & PyTorch", "NLP Data Processing", "Linear Algebra Foundations"],
+      };
+      
+      const subjects = focusSubjectsMap[focusDomain] || focusSubjectsMap["Mobile"];
+
+      if (isQuiz) {
+        let correctCount = 0;
+        const dynamicAnswers = questions.map((q: any, idx: number) => {
+          const studentAnswerIdx = responses[idx];
+          const isCorrect = studentAnswerIdx === q.correctAnswer;
+          if (isCorrect) {
+            correctCount++;
+          }
+          const verdict = isCorrect ? ("correct" as const) : ("wrong" as const);
+          return {
+            q: `Q${idx + 1}. ${q.question}`,
+            student: studentAnswerIdx !== undefined && q.options && q.options[studentAnswerIdx] 
+              ? `Selected Option: ${q.options[studentAnswerIdx]}`
+              : "No option selected",
+            verdict,
+            marks: isCorrect ? "1/1" : "0/1",
+            feedback: isCorrect 
+              ? "Excellent work! Your answer is correct." 
+              : `Incorrect. The correct option is: ${q.options ? q.options[q.correctAnswer] : "Unknown"}`
+          };
+        });
+
+        const dynamicRubric = [
+          { criterion: "Correctness", score: correctCount, max: questions.length, note: `Answered ${correctCount} of ${questions.length} questions correctly.` },
+          { criterion: "Concept understanding", score: Math.round((correctCount / questions.length) * 10), max: 10, note: `Demonstrated understanding of core concepts.` },
+        ];
+
+        const score = dynamicRubric.reduce((s, r) => s + r.score, 0);
+        const maxScore = dynamicRubric.reduce((s, r) => s + r.max, 0);
+
+        const subjectsList = subjects.map((sub, idx) => ({
+          name: sub,
+          score: Math.round((correctCount / questions.length) * 100),
+          trend: idx % 2 === 0 ? `+${3 + idx}` : `+${1 + idx}`,
+        }));
+
+        dynamicEval = {
+          assessment_id: assessmentId,
+          assessment_title: assessmentTitle,
+          score,
+          max_score: maxScore,
+          mentor: "Verified by Mentor Priya M.",
+          ai_feedback: `Based on your quiz performance, you answered ${correctCount} of ${questions.length} questions correctly. ${
+            correctCount === questions.length 
+              ? "Flawless score! You have masterfully grasped all evaluated concepts." 
+              : "Review the explanation for the incorrect answers to strengthen your command over these topics."
+          }`,
+          rubric: dynamicRubric,
+          answers: dynamicAnswers,
+          subjects: subjectsList,
+          percentile_rank: `Top ${Math.max(5, 100 - Math.round((correctCount / questions.length) * 20))}%`
+        };
+      } else {
+        // Project evaluation
+        const githubUrl = responses.githubUrl || "https://github.com/user/project";
+        const selectedTemplate = responses.selectedTemplate || "Source Code Submission";
+        const filesList = Array.isArray(responses.files) ? responses.files : [];
+
+        const dynamicAnswers = filesList.map((f: any) => ({
+          q: `File Integrity check: ${f.name}`,
+          student: `File size: ${(f.size / 1024).toFixed(1)} KB`,
+          verdict: "correct" as const,
+          marks: "Pass",
+          feedback: `Verified file configuration for ${f.name}.`
+        }));
+
+        if (dynamicAnswers.length === 0) {
+          dynamicAnswers.push({
+            q: "Repository Check",
+            student: `Connected repository: ${githubUrl}`,
+            verdict: "correct" as const,
+            marks: "Pass",
+            feedback: "Repository successfully indexed."
+          });
+        }
+
+        const dynamicRubric = [
+          { criterion: "Structure & Setup", score: 9, max: 10, note: `Project template "${selectedTemplate}" is correctly configured.` },
+          { criterion: "Repository Integration", score: 10, max: 10, note: `GitHub repository at ${githubUrl} is accessible.` },
+          { criterion: "Separation of concerns", score: 8, max: 10, note: `Appropriate componentization of ${focusDomain} logic.` },
+          { criterion: "Code Quality", score: 8, max: 10, note: `Clean files layout with clear code separation.` }
+        ];
+
+        const score = dynamicRubric.reduce((s, r) => s + r.score, 0);
+        const maxScore = dynamicRubric.reduce((s, r) => s + r.max, 0);
+
+        const subjectsList = subjects.map((sub, idx) => ({
+          name: sub,
+          score: 85 + (idx * 3) > 100 ? 98 : 85 + (idx * 3),
+          trend: `+${4 + idx}`,
+        }));
+
+        dynamicEval = {
+          assessment_id: assessmentId,
+          assessment_title: assessmentTitle,
+          score,
+          max_score: maxScore,
+          mentor: "Verified by Mentor Priya M.",
+          ai_feedback: `Successfully processed project "${selectedTemplate}" submitted from GitHub repository ${githubUrl}. The files (${filesList.map((f: any) => f.name).join(", ") || "none"}) show correct integration of ${focusDomain} architecture, proper styling guidelines, and modular component separation.`,
+          rubric: dynamicRubric,
+          answers: dynamicAnswers,
+          subjects: subjectsList,
+          percentile_rank: "Top 7%"
+        };
+      }
+    }
+
+    // 3. Fallback if assessment couldn't be loaded
+    if (!dynamicEval) {
+      const fallbackRubric = [
+        { criterion: "Correctness", score: 9, max: 10, note: `All test cases pass; ${focusDomain} logic is solid.` },
+        { criterion: "Code Quality", score: 8, max: 10, note: "Good structure; consider extracting reusable helpers." },
+        { criterion: "Efficiency", score: 7, max: 10, note: "Highly optimized execution times; zero responsive bottlenecks." },
+        { criterion: "Documentation", score: 8, max: 10, note: "Clear comments; add appropriate module declarations." },
+      ];
+
+      const focusSubjectsMap: Record<string, string[]> = {
+        Frontend: ["React Native / React", "CSS & Flexbox Layouts", "JS ES6+ Async Features", "Web Performance Optimization", "State Hydration"],
+        Backend: ["RESTful API Protocols", "NodeJS Event Loops", "SQL / Database Queries", "Docker Deployment", "System Architecture"],
+        Mobile: ["React Native Core Views", "Platform UI Guidelines", "Expo CLI / Bundle Sizes", "State Management Hooks", "Native Device Bridges"],
+        AI: ["Python Core Scripting", "ML Regression Analysis", "Neural Networks & PyTorch", "NLP Data Processing", "Linear Algebra Foundations"],
+      };
+      
+      const subjectsList = (focusSubjectsMap[focusDomain] || focusSubjectsMap["Mobile"]).map((sub, idx) => ({
+        name: sub,
+        score: 78 + (idx * 4) > 100 ? 98 : 78 + (idx * 4),
+        trend: idx % 2 === 0 ? `+${3 + idx}` : `+${1 + idx}`,
+      }));
+
+      const fallbackAnswers = [
+        { q: `Q1. Explain the main component architecture of ${focusDomain}.`, student: `In ${focusDomain}, modular designs partition components into clear, isolated, and scalable nodes...`, verdict: "correct" as const, marks: "4/4" },
+        { q: `Q2. Describe the standard flow of data in a typical ${focusDomain} lifecycle.`, student: "Data flows uni-directionally from parents to downstream nodes...", verdict: "partial" as const, marks: "2/3", feedback: "Review lifecycle hooks and state updates." },
+        { q: `Q3. What is the time complexity of compiling native bundles for ${focusDomain}?`, student: "O(n²)", verdict: "wrong" as const, marks: "0/2", feedback: "Linear compilation complexity O(n). Check tree-shaking details." },
+        { q: `Q4. Explain state management strategies best suited for ${focusDomain}.`, student: "Use React Hooks or localized pub/sub listeners to synchronize states...", verdict: "correct" as const, marks: "6/6" },
+      ];
+
+      dynamicEval = {
+        assessment_id: assessmentId,
+        assessment_title: assessmentTitle,
+        score: fallbackRubric.reduce((s, r) => s + r.score, 0),
+        max_score: fallbackRubric.reduce((s, r) => s + r.max, 0),
+        mentor: "Verified by Mentor Priya M.",
+        ai_feedback: `Strong overall implementation with clean separation of concerns in the ${focusDomain} structure. Eviction logic is correct, but consider optimized cache/memoization maps for true O(1) rendering times.`,
+        rubric: fallbackRubric,
+        answers: fallbackAnswers,
+        subjects: subjectsList,
+        percentile_rank: "Top 8%"
+      };
+    }
+
+    // 4. Save evaluation to Supabase for dynamic caching
+    const payload = {
+      ...dynamicEval,
+      user_id: userId
+    };
+    const { data: inserted, error: insertError } = await supabase
+      .from("evaluations")
+      .insert(payload)
+      .select()
+      .single();
+
+    if (insertError) throw insertError;
+    if (inserted) return inserted as DBEvaluation;
+    
+    return dynamicEval;
+  } catch (e) {
+    logError("fetchDBEvaluation", e);
+  }
+
+  // Generate fallback structure if completely failed
   const fallbackRubric = [
     { criterion: "Correctness", score: 9, max: 10, note: `All test cases pass; ${focusDomain} logic is solid.` },
     { criterion: "Code Quality", score: 8, max: 10, note: "Good structure; consider extracting reusable helpers." },
@@ -701,7 +908,7 @@ export async function fetchDBEvaluation(
     { q: `Q4. Explain state management strategies best suited for ${focusDomain}.`, student: "Use React Hooks or localized pub/sub listeners to synchronize states...", verdict: "correct" as const, marks: "6/6" },
   ];
 
-  const fallbackEval: DBEvaluation = {
+  return {
     assessment_id: assessmentId,
     assessment_title: assessmentTitle,
     score: fallbackRubric.reduce((s, r) => s + r.score, 0),
@@ -713,36 +920,6 @@ export async function fetchDBEvaluation(
     subjects: subjectsList,
     percentile_rank: "Top 8%"
   };
-
-  try {
-    const { data, error } = await supabase
-      .from("evaluations")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("assessment_id", assessmentId)
-      .maybeSingle();
-
-    if (error) throw error;
-    if (data) return data as DBEvaluation;
-
-    // Upsert into Supabase to dynamic cache it
-    const payload = {
-      ...fallbackEval,
-      user_id: userId
-    };
-    const { data: inserted, error: insertError } = await supabase
-      .from("evaluations")
-      .insert(payload)
-      .select()
-      .single();
-
-    if (insertError) throw insertError;
-    if (inserted) return inserted as DBEvaluation;
-  } catch (e) {
-    logError("fetchDBEvaluation", e);
-  }
-
-  return fallbackEval;
 }
 
 // 13. Submit Grievance

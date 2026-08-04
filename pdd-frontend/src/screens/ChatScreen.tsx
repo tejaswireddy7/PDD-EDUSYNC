@@ -272,16 +272,6 @@ export default function ChatScreen() {
     try {
       const newMsg = await sendDBPeerMessage(user.id, activePeerId, filteredText);
       setMessages((prev) => [...prev, newMsg]);
-
-      // Simulate a smart auto-reply response from the peer for a premium feel
-      setTimeout(async () => {
-        try {
-          const replyText = `Hey! Thanks for connecting. I'm currently studying ${activePeer?.currentCourse || "our lessons"}. Let's collaborate!`;
-          const replyMsg = await sendDBPeerMessage(activePeerId, user.id, replyText);
-          setMessages((prev) => [...prev, replyMsg]);
-        } catch (e) {}
-      }, 2000);
-
     } catch (err) {
       console.warn("Failed to send peer message:", err);
     }

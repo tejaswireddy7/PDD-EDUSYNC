@@ -387,8 +387,48 @@ create table if not exists public.peer_connections (
   unique(sender_id, receiver_id)
 );
 
-alter table public.peer_connections enable row level security;
+-- ==========================================
+-- 14. PEER CONVERSATIONS Table
+-- ==========================================
+create table if not exists public.peer_conversations (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamp with time zone default now()
+);
 
+-- ==========================================
+-- 15. PEER CONVERSATION PARTICIPANTS Table
+-- ==========================================
+create table if not exists public.peer_conversation_participants (
+  conversation_id uuid references public.peer_conversations(id) on delete cascade not null,
+  user_id uuid references auth.users on delete cascade not null,
+  primary key (conversation_id, user_id)
+);
+
+-- ==========================================
+-- 16. PEER MESSAGES Table
+-- ==========================================
+create table if not exists public.peer_messages (
+  id uuid primary key default gen_random_uuid(),
+  conversation_id uuid references public.peer_conversations(id) on delete cascade not null,
+  sender_id uuid references auth.users on delete cascade not null,
+  message text not null,
+  created_at timestamp with time zone default now(),
+  is_read boolean default false
+);
+
+-- ==========================================
+-- ENABLE ROW LEVEL SECURITY (RLS)
+-- ==========================================
+alter table public.peer_connections enable row level security;
+alter table public.peer_conversations enable row level security;
+alter table public.peer_conversation_participants enable row level security;
+alter table public.peer_messages enable row level security;
+
+-- ==========================================
+-- ROW LEVEL SECURITY POLICIES
+-- ==========================================
+
+-- Peer Connections Policies
 drop policy if exists "Users can view connections they are involved in" on public.peer_connections;
 create policy "Users can view connections they are involved in" on public.peer_connections
   for select using (auth.uid() = sender_id or auth.uid() = receiver_id);
@@ -401,16 +441,7 @@ drop policy if exists "Users can update connection requests they received" on pu
 create policy "Users can update connection requests they received" on public.peer_connections
   for update using (auth.uid() = receiver_id);
 
--- ==========================================
--- 14. PEER CONVERSATIONS Table
--- ==========================================
-create table if not exists public.peer_conversations (
-  id uuid primary key default gen_random_uuid(),
-  created_at timestamp with time zone default now()
-);
-
-alter table public.peer_conversations enable row level security;
-
+-- Peer Conversations Policies
 drop policy if exists "Users can view conversations they participate in" on public.peer_conversations;
 create policy "Users can view conversations they participate in" on public.peer_conversations
   for select using (
@@ -421,17 +452,7 @@ create policy "Users can view conversations they participate in" on public.peer_
     )
   );
 
--- ==========================================
--- 15. PEER CONVERSATION PARTICIPANTS Table
--- ==========================================
-create table if not exists public.peer_conversation_participants (
-  conversation_id uuid references public.peer_conversations(id) on delete cascade not null,
-  user_id uuid references auth.users on delete cascade not null,
-  primary key (conversation_id, user_id)
-);
-
-alter table public.peer_conversation_participants enable row level security;
-
+-- Peer Conversation Participants Policies
 drop policy if exists "Users can view participants in their conversations" on public.peer_conversation_participants;
 create policy "Users can view participants in their conversations" on public.peer_conversation_participants
   for select using (
@@ -446,20 +467,7 @@ drop policy if exists "Allow inserting participants" on public.peer_conversation
 create policy "Allow inserting participants" on public.peer_conversation_participants
   for insert with check (true);
 
--- ==========================================
--- 16. PEER MESSAGES Table
--- ==========================================
-create table if not exists public.peer_messages (
-  id uuid primary key default gen_random_uuid(),
-  conversation_id uuid references public.peer_conversations(id) on delete cascade not null,
-  sender_id uuid references auth.users on delete cascade not null,
-  message text not null,
-  created_at timestamp with time zone default now(),
-  is_read boolean default false
-);
-
-alter table public.peer_messages enable row level security;
-
+-- Peer Messages Policies
 drop policy if exists "Users can view messages in their conversations" on public.peer_messages;
 create policy "Users can view messages in their conversations" on public.peer_messages
   for select using (

@@ -1288,8 +1288,20 @@ export default function CourseLearnScreen() {
           <View style={styles.fifteenModal}>
             <ScrollView showsVerticalScrollIndicator={true} style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 10 }}>
               <View style={styles.fifteenHeader}>
-                <MaterialCommunityIcons name="timer-sand" size={24} color="#6366f1" />
-                <Text style={styles.fifteenTitle}>15-Minute Lesson Checkpoint Quiz</Text>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flex: 1 }}>
+                  <MaterialCommunityIcons name="timer-sand" size={24} color="#6366f1" />
+                  <Text style={styles.fifteenTitle}>15-Minute Checkpoint Quiz</Text>
+                </View>
+                <TouchableOpacity 
+                  onPress={() => {
+                    setShowFifteenMinQuiz(false);
+                    setIsPlaying(false);
+                  }}
+                  style={{ padding: 4 }}
+                  activeOpacity={0.7}
+                >
+                  <MaterialCommunityIcons name="close" size={22} color="#94a3b8" />
+                </TouchableOpacity>
               </View>
               
               <Text style={styles.fifteenIntro}>
@@ -1361,13 +1373,25 @@ export default function CourseLearnScreen() {
 
               <View style={styles.fifteenFooter}>
                 {fifteenMinScore === null ? (
-                  <TouchableOpacity
-                    style={styles.fifteenSubmitBtn}
-                    onPress={handleFifteenMinQuizSubmit}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.fifteenSubmitText}>Submit Lesson Checkpoint</Text>
-                  </TouchableOpacity>
+                  <View style={{ flexDirection: "row", gap: 12 }}>
+                    <TouchableOpacity
+                      style={[styles.fifteenSubmitBtn, { backgroundColor: "#475569", flex: 1 }]}
+                      onPress={() => {
+                        setShowFifteenMinQuiz(false);
+                        setIsPlaying(false);
+                      }}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={styles.fifteenSubmitText}>Go Back</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.fifteenSubmitBtn, { flex: 2 }]}
+                      onPress={handleFifteenMinQuizSubmit}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={styles.fifteenSubmitText}>Submit Checkpoint</Text>
+                    </TouchableOpacity>
+                  </View>
                 ) : (
                   <View style={{ flexDirection: "column", gap: 10 }}>
                     {fifteenMinScore < 2 && (

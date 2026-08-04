@@ -252,7 +252,7 @@ export default function ChatScreen() {
       .channel(`conversation_messages_${activeConv.id}`)
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${activeConv.id}` },
+        { event: "INSERT", schema: "public", table: "peer_messages", filter: `conversation_id=eq.${activeConv.id}` },
         (payload) => {
           const newMsg = payload.new as Message;
           if (active) {

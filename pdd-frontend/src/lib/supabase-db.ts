@@ -1331,7 +1331,7 @@ export async function fetchDBAllRecommendations(): Promise<any[]> {
 export async function fetchDBConnections(userId: string): Promise<any[]> {
   try {
     const { data, error } = await supabase
-      .from("connections")
+      .from("peer_connections")
       .select("*")
       .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`);
     if (error) throw error;
@@ -1346,7 +1346,7 @@ export async function fetchDBConnections(userId: string): Promise<any[]> {
 export async function sendDBConnectionRequest(senderId: string, receiverId: string): Promise<any> {
   try {
     const { data, error } = await supabase
-      .from("connections")
+      .from("peer_connections")
       .insert({ sender_id: senderId, receiver_id: receiverId, status: "pending" })
       .select()
       .single();
@@ -1368,7 +1368,7 @@ export async function updateDBConnectionStatus(
   try {
     // Update connection status
     const { error } = await supabase
-      .from("connections")
+      .from("peer_connections")
       .update({ status })
       .eq("id", connectionId);
     if (error) throw error;
@@ -1376,7 +1376,7 @@ export async function updateDBConnectionStatus(
     if (status === "accepted") {
       // Create conversation
       const { data: conv, error: convError } = await supabase
-        .from("conversations")
+        .from("peer_conversations")
         .insert({})
         .select()
         .single();
@@ -1384,7 +1384,7 @@ export async function updateDBConnectionStatus(
 
       // Insert participants
       const { error: partError } = await supabase
-        .from("conversation_participants")
+        .from("peer_conversation_participants")
         .insert([
           { conversation_id: conv.id, user_id: senderId },
           { conversation_id: conv.id, user_id: receiverId }
@@ -1401,7 +1401,7 @@ export async function updateDBConnectionStatus(
 export async function fetchDBConversations(userId: string): Promise<any[]> {
   try {
     const { data: myPart, error: partErr } = await supabase
-      .from("conversation_participants")
+      .from("peer_conversation_participants")
       .select("conversation_id")
       .eq("user_id", userId);
     if (partErr) throw partErr;
@@ -1410,7 +1410,7 @@ export async function fetchDBConversations(userId: string): Promise<any[]> {
     const convIds = myPart.map(cp => cp.conversation_id);
 
     const { data: allPart, error: allErr } = await supabase
-      .from("conversation_participants")
+      .from("peer_conversation_participants")
       .select("conversation_id, user_id")
       .in("conversation_id", convIds);
     if (allErr) throw allErr;
@@ -1426,7 +1426,7 @@ export async function fetchDBConversations(userId: string): Promise<any[]> {
 export async function fetchDBMessagesPaged(conversationId: string, limit: number = 30, offset: number = 0): Promise<any[]> {
   try {
     const { data, error } = await supabase
-      .from("messages")
+      .from("peer_messages")
       .select("*")
       .eq("conversation_id", conversationId)
       .order("created_at", { ascending: false })
@@ -1443,7 +1443,7 @@ export async function fetchDBMessagesPaged(conversationId: string, limit: number
 export async function sendDBMessage(conversationId: string, senderId: string, message: string): Promise<any> {
   try {
     const { data, error } = await supabase
-      .from("messages")
+      .from("peer_messages")
       .insert({ conversation_id: conversationId, sender_id: senderId, message })
       .select()
       .single();
@@ -1459,7 +1459,7 @@ export async function sendDBMessage(conversationId: string, senderId: string, me
 export async function markMessagesAsRead(conversationId: string, currentUserId: string): Promise<void> {
   try {
     const { error } = await supabase
-      .from("messages")
+      .from("peer_messages")
       .update({ is_read: true })
       .eq("conversation_id", conversationId)
       .neq("sender_id", currentUserId)
@@ -1474,7 +1474,7 @@ export async function markMessagesAsRead(conversationId: string, currentUserId: 
 export async function fetchDBAllIncomingUnreadCount(currentUserId: string): Promise<number> {
   try {
     const { data: myPart, error: partErr } = await supabase
-      .from("conversation_participants")
+      .from("peer_conversation_participants")
       .select("conversation_id")
       .eq("user_id", currentUserId);
     if (partErr) throw partErr;
@@ -1483,7 +1483,7 @@ export async function fetchDBAllIncomingUnreadCount(currentUserId: string): Prom
     const convIds = myPart.map(cp => cp.conversation_id);
 
     const { count, error } = await supabase
-      .from("messages")
+      .from("peer_messages")
       .select("*", { count: "exact", head: true })
       .in("conversation_id", convIds)
       .neq("sender_id", currentUserId)

@@ -376,9 +376,9 @@ insert into public.weak_areas (focus_domain, topic, score) values
 on conflict do nothing;
 
 -- ==========================================
--- 13. CONNECTIONS Table
+-- 13. PEER CONNECTIONS Table
 -- ==========================================
-create table if not exists public.connections (
+create table if not exists public.peer_connections (
   id uuid primary key default gen_random_uuid(),
   sender_id uuid references auth.users on delete cascade not null,
   receiver_id uuid references auth.users on delete cascade not null,
@@ -387,106 +387,106 @@ create table if not exists public.connections (
   unique(sender_id, receiver_id)
 );
 
-alter table public.connections enable row level security;
+alter table public.peer_connections enable row level security;
 
-drop policy if exists "Users can view connections they are involved in" on public.connections;
-create policy "Users can view connections they are involved in" on public.connections
+drop policy if exists "Users can view connections they are involved in" on public.peer_connections;
+create policy "Users can view connections they are involved in" on public.peer_connections
   for select using (auth.uid() = sender_id or auth.uid() = receiver_id);
 
-drop policy if exists "Users can insert connection requests" on public.connections;
-create policy "Users can insert connection requests" on public.connections
+drop policy if exists "Users can insert connection requests" on public.peer_connections;
+create policy "Users can insert connection requests" on public.peer_connections
   for insert with check (auth.uid() = sender_id);
 
-drop policy if exists "Users can update connection requests they received" on public.connections;
-create policy "Users can update connection requests they received" on public.connections
+drop policy if exists "Users can update connection requests they received" on public.peer_connections;
+create policy "Users can update connection requests they received" on public.peer_connections
   for update using (auth.uid() = receiver_id);
 
 -- ==========================================
--- 14. CONVERSATIONS Table
+-- 14. PEER CONVERSATIONS Table
 -- ==========================================
-create table if not exists public.conversations (
+create table if not exists public.peer_conversations (
   id uuid primary key default gen_random_uuid(),
   created_at timestamp with time zone default now()
 );
 
-alter table public.conversations enable row level security;
+alter table public.peer_conversations enable row level security;
 
-drop policy if exists "Users can view conversations they participate in" on public.conversations;
-create policy "Users can view conversations they participate in" on public.conversations
+drop policy if exists "Users can view conversations they participate in" on public.peer_conversations;
+create policy "Users can view conversations they participate in" on public.peer_conversations
   for select using (
     exists (
-      select 1 from public.conversation_participants
-      where conversation_participants.conversation_id = id
-      and conversation_participants.user_id = auth.uid()
+      select 1 from public.peer_conversation_participants
+      where peer_conversation_participants.conversation_id = id
+      and peer_conversation_participants.user_id = auth.uid()
     )
   );
 
 -- ==========================================
--- 15. CONVERSATION PARTICIPANTS Table
+-- 15. PEER CONVERSATION PARTICIPANTS Table
 -- ==========================================
-create table if not exists public.conversation_participants (
-  conversation_id uuid references public.conversations(id) on delete cascade not null,
+create table if not exists public.peer_conversation_participants (
+  conversation_id uuid references public.peer_conversations(id) on delete cascade not null,
   user_id uuid references auth.users on delete cascade not null,
   primary key (conversation_id, user_id)
 );
 
-alter table public.conversation_participants enable row level security;
+alter table public.peer_conversation_participants enable row level security;
 
-drop policy if exists "Users can view participants in their conversations" on public.conversation_participants;
-create policy "Users can view participants in their conversations" on public.conversation_participants
+drop policy if exists "Users can view participants in their conversations" on public.peer_conversation_participants;
+create policy "Users can view participants in their conversations" on public.peer_conversation_participants
   for select using (
     exists (
-      select 1 from public.conversation_participants cp
+      select 1 from public.peer_conversation_participants cp
       where cp.conversation_id = conversation_id
       and cp.user_id = auth.uid()
     )
   );
 
-drop policy if exists "Allow inserting participants" on public.conversation_participants;
-create policy "Allow inserting participants" on public.conversation_participants
+drop policy if exists "Allow inserting participants" on public.peer_conversation_participants;
+create policy "Allow inserting participants" on public.peer_conversation_participants
   for insert with check (true);
 
 -- ==========================================
--- 16. MESSAGES Table
+-- 16. PEER MESSAGES Table
 -- ==========================================
-create table if not exists public.messages (
+create table if not exists public.peer_messages (
   id uuid primary key default gen_random_uuid(),
-  conversation_id uuid references public.conversations(id) on delete cascade not null,
+  conversation_id uuid references public.peer_conversations(id) on delete cascade not null,
   sender_id uuid references auth.users on delete cascade not null,
   message text not null,
   created_at timestamp with time zone default now(),
   is_read boolean default false
 );
 
-alter table public.messages enable row level security;
+alter table public.peer_messages enable row level security;
 
-drop policy if exists "Users can view messages in their conversations" on public.messages;
-create policy "Users can view messages in their conversations" on public.messages
+drop policy if exists "Users can view messages in their conversations" on public.peer_messages;
+create policy "Users can view messages in their conversations" on public.peer_messages
   for select using (
     exists (
-      select 1 from public.conversation_participants
-      where conversation_participants.conversation_id = conversation_id
-      and conversation_participants.user_id = auth.uid()
+      select 1 from public.peer_conversation_participants
+      where peer_conversation_participants.conversation_id = conversation_id
+      and peer_conversation_participants.user_id = auth.uid()
     )
   );
 
-drop policy if exists "Users can insert messages into their conversations" on public.messages;
-create policy "Users can insert messages into their conversations" on public.messages
+drop policy if exists "Users can insert messages into their conversations" on public.peer_messages;
+create policy "Users can insert messages into their conversations" on public.peer_messages
   for insert with check (
     auth.uid() = sender_id and
     exists (
-      select 1 from public.conversation_participants
-      where conversation_participants.conversation_id = conversation_id
-      and conversation_participants.user_id = auth.uid()
+      select 1 from public.peer_conversation_participants
+      where peer_conversation_participants.conversation_id = conversation_id
+      and peer_conversation_participants.user_id = auth.uid()
     )
   );
 
-drop policy if exists "Users can update message read status" on public.messages;
-create policy "Users can update message read status" on public.messages
+drop policy if exists "Users can update message read status" on public.peer_messages;
+create policy "Users can update message read status" on public.peer_messages
   for update using (
     exists (
-      select 1 from public.conversation_participants
-      where conversation_participants.conversation_id = conversation_id
-      and conversation_participants.user_id = auth.uid()
+      select 1 from public.peer_conversation_participants
+      where peer_conversation_participants.conversation_id = conversation_id
+      and peer_conversation_participants.user_id = auth.uid()
     )
   );

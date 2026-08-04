@@ -653,7 +653,7 @@ export default function CourseLearnScreen() {
 
   // Watch timer: increments watched seconds if playing
   useEffect(() => {
-    if (!isPlaying || quizTriggered) return;
+    if (!isPlaying) return;
 
     const interval = setInterval(() => {
       setWatchedTime((prev) => {
@@ -665,8 +665,10 @@ export default function CourseLearnScreen() {
           window.localStorage.setItem(cacheKey, next.toString());
         }
 
-        if (next >= 900) {
-          clearInterval(interval);
+        const progressPercent = Math.min(99, Math.round((next / 900) * 100));
+        store.updateCourseProgress(courseTitle, progressPercent);
+
+        if (next >= 900 && !quizTriggered) {
           setQuizTriggered(true);
           setShowFifteenMinQuiz(true);
 
@@ -893,6 +895,8 @@ export default function CourseLearnScreen() {
                   const cacheKey = `video_progress_${courseTitle}_${store.user?.email || "guest"}`;
                   window.localStorage.setItem(cacheKey, "895");
                 }
+                const progressPercent = Math.min(99, Math.round((895 / 900) * 100));
+                store.updateCourseProgress(courseTitle, progressPercent);
               }}
               style={styles.simulateBtn}
               activeOpacity={0.7}

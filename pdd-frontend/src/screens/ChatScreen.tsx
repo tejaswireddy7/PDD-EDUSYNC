@@ -129,11 +129,24 @@ export default function ChatScreen() {
               }
             }
           } else {
-            // Provide dynamic course based on focus domain
-            currentCourse = p.focus_domain === "Frontend" ? "React State & Styling (12%)"
-              : p.focus_domain === "Backend" ? "Dockerized Server Setup (40%)"
-              : p.focus_domain === "Mobile" ? "App Navigation & Screen Mapping (60%)"
-              : "PyTorch Data Loading (15%)";
+            // Dynamically assign realistic courses based on their track and name hash
+            const hash = index + (p.name?.charCodeAt(0) || 7);
+            const progress = 15 + (hash * 13) % 70; // dynamic progress
+            const track = p.focus_domain || "Mobile";
+
+            if (track === "Frontend") {
+              const list = ["HTML5, CSS3, & Modern Grid", "JavaScript Fundamentals & DOM", "Intro to React & Component States"];
+              currentCourse = `${list[hash % list.length]} (${progress}%)`;
+            } else if (track === "Backend") {
+              const list = ["Intro to Node.js & REST API", "SQL Fundamentals & Relational DBs", "PostgreSQL Queries & Optimization"];
+              currentCourse = `${list[hash % list.length]} (${progress}%)`;
+            } else if (track === "Mobile") {
+              const list = ["React Native & Expo Ecosystem", "Flexbox Layouts in Mobile Screens", "Navigation Containers & Tabs"];
+              currentCourse = `${list[hash % list.length]} (${progress}%)`;
+            } else {
+              const list = ["Python Fundamentals & Packages", "Pandas & Numpy Data Wrangling", "Neural Networks with PyTorch"];
+              currentCourse = `${list[hash % list.length]} (${progress}%)`;
+            }
           }
 
           let name = p.name || p.email?.split("@")[0] || "Peer Student";

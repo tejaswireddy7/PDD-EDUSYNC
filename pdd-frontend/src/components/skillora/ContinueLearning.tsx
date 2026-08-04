@@ -13,7 +13,7 @@ const COURSE_VIDEOS: Record<string, string> = {
   "Intro to React & Component States": "https://www.youtube.com/embed/Ke90Tje7VS0",
   "Intro to Node.js & REST API": "https://www.youtube.com/embed/Oe421EPjeBE",
   "SQL Fundamentals & Relational DBs": "https://www.youtube.com/embed/HXTt1AjbTtc",
-  "React Native & Expo Ecosystem": "https://www.youtube.com/embed/gvkqT_qiVxM",
+  "React Native & Expo Ecosystem": "https://www.youtube.com/embed/0-S5a0eXPoc",
   "Python Fundamentals & Packages": "https://www.youtube.com/embed/_uQrJ0TkZlc",
   "Neural Networks with PyTorch": "https://www.youtube.com/embed/V_xro1bcAuA",
   "React Router & Global Context": "https://www.youtube.com/embed/59IXY5IDYbA",
@@ -26,6 +26,27 @@ const COURSE_VIDEOS: Record<string, string> = {
   "Pandas & Numpy Data Wrangling": "https://www.youtube.com/embed/F6kmIpWWEdU",
   "Basics of Routing & HTTP Methods": "https://www.youtube.com/embed/yQleTeoUskc",
 };
+
+const COURSE_IMAGES: Record<string, string> = {
+  "Frontend": "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=400&auto=format&fit=crop",
+  "Backend": "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&auto=format&fit=crop",
+  "Mobile": "https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=400&auto=format&fit=crop",
+  "AI": "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=400&auto=format&fit=crop",
+  "Web Basics": "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=400&auto=format&fit=crop",
+  "JS Core": "https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?w=400&auto=format&fit=crop",
+  "React Framework": "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400&auto=format&fit=crop",
+  "Cross-Platform": "https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=400&auto=format&fit=crop",
+  "Python Dev": "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&auto=format&fit=crop",
+  "Databases": "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?w=400&auto=format&fit=crop",
+};
+
+function getCourseImage(subject: string, title: string): string {
+  if (COURSE_IMAGES[subject]) return COURSE_IMAGES[subject];
+  if (title.toLowerCase().includes("react")) return COURSE_IMAGES["React Framework"];
+  if (title.toLowerCase().includes("python") || title.toLowerCase().includes("numpy")) return COURSE_IMAGES["Python Dev"];
+  if (title.toLowerCase().includes("db") || title.toLowerCase().includes("sql") || title.toLowerCase().includes("postgres")) return COURSE_IMAGES["Databases"];
+  return "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=400&auto=format&fit=crop";
+}
 
 const COURSE_MATERIALS: Record<string, Array<{ label: string; url: string; type: "doc" | "tutorial" | "article" }>> = {
   "HTML5, CSS3, & Modern Grid": [
@@ -378,12 +399,16 @@ export function ContinueLearning() {
               }
             }}
           >
-            <LinearGradient
-              colors={c.colors as any}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.cardHeader}
-            >
+            <View style={styles.cardHeader}>
+              <Image
+                source={{ uri: getCourseImage(c.subject, c.title) }}
+                style={StyleSheet.absoluteFillObject}
+                resizeMode="cover"
+              />
+              <LinearGradient
+                colors={["rgba(15, 23, 42, 0.45)", "rgba(15, 23, 42, 0.1)"]}
+                style={StyleSheet.absoluteFillObject}
+              />
               <View style={styles.badgeRow}>
                 <View style={styles.subjectBadge}>
                   <Text style={styles.subjectText}>{c.subject}</Text>
@@ -398,7 +423,7 @@ export function ContinueLearning() {
               <View style={styles.playButton}>
                 <Feather name="play" size={16} color="#6366f1" style={styles.playIcon} />
               </View>
-            </LinearGradient>
+            </View>
             <View style={styles.cardBody}>
               <View style={styles.metaRow}>
                 <Feather name="clock" size={12} color="#64748b" />
@@ -480,12 +505,16 @@ export function ContinueLearning() {
                     }}
                     activeOpacity={0.9}
                   >
-                    <LinearGradient
-                      colors={c.colors || ["#6366f1", "#4f46e5"]}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      style={styles.modalCardGradient}
-                    >
+                    <View style={styles.modalCardGradient}>
+                      <Image
+                        source={{ uri: getCourseImage(c.subject, c.title) }}
+                        style={StyleSheet.absoluteFillObject}
+                        resizeMode="cover"
+                      />
+                      <LinearGradient
+                        colors={["rgba(15, 23, 42, 0.5)", "rgba(15, 23, 42, 0.1)"]}
+                        style={StyleSheet.absoluteFillObject}
+                      />
                       <View style={styles.modalCardLeft}>
                         <View style={styles.badge}>
                           <Text style={styles.badgeText}>{c.difficulty || "Beginner"}</Text>
@@ -505,7 +534,7 @@ export function ContinueLearning() {
                       <View style={styles.modalCardRight}>
                         <Feather name="play-circle" size={32} color="#ffffff" />
                       </View>
-                    </LinearGradient>
+                    </View>
                   </TouchableOpacity>
                 ))
               )}
@@ -562,6 +591,8 @@ const styles = StyleSheet.create({
     height: 100,
     padding: 12,
     justifyContent: "space-between",
+    position: "relative",
+    overflow: "hidden",
   },
   badgeRow: {
     flexDirection: "row",
@@ -1015,6 +1046,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     padding: 20,
+    position: "relative",
+    overflow: "hidden",
   },
   modalCardLeft: {
     flex: 1,

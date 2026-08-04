@@ -84,9 +84,49 @@ export function useDashboardStore() {
     if (typeof window !== "undefined" && window.localStorage) {
       const cached = window.localStorage.getItem("cached_materials");
       const mode = window.localStorage.getItem("low_data_mode");
+      
+      let hydratedUser = null;
+      let hydratedToken = null;
+      let hydratedSurveyCompleted = false;
+      let hydratedSurveyAnswers = null;
+      
+      const lastUserId = window.localStorage.getItem("last_logged_in_user_id");
+      const savedToken = window.localStorage.getItem("supabase_session_token");
+      if (lastUserId && savedToken) {
+        const savedProfile = window.localStorage.getItem(`user_profile_${lastUserId}`);
+        if (savedProfile) {
+          try {
+            const parsedProfile = JSON.parse(savedProfile);
+            hydratedUser = {
+              name: parsedProfile.name || "Student",
+              email: parsedProfile.email || "",
+              registeredAt: parsedProfile.created_at ? new Date(parsedProfile.created_at).getTime() : Date.now(),
+              streak: parsedProfile.streak ?? 1,
+              coursesCompleted: parsedProfile.courses_completed ?? 0,
+              careerFitScore: parsedProfile.career_fit_score ?? 0,
+              xp: parsedProfile.xp ?? 0
+            };
+            hydratedToken = savedToken;
+            hydratedSurveyCompleted = window.localStorage.getItem(`survey_completed_${parsedProfile.email}`) === "true";
+            
+            const savedAnswers = window.localStorage.getItem(`survey_answers_${parsedProfile.email}`);
+            if (savedAnswers) {
+              hydratedSurveyAnswers = JSON.parse(savedAnswers);
+            }
+          } catch (e) {}
+        }
+      }
+
       updateState({
         lowDataMode: mode === "true",
-        cachedMaterials: cached ? JSON.parse(cached) : []
+        cachedMaterials: cached ? JSON.parse(cached) : [],
+        ...(hydratedUser ? {
+          user: hydratedUser,
+          token: hydratedToken,
+          surveyCompleted: hydratedSurveyCompleted,
+          surveyAnswers: hydratedSurveyAnswers,
+          isLoadingProfile: false
+        } : {})
       });
     }
 
@@ -665,6 +705,10 @@ export function useDashboardStore() {
 // Keep store session synced with Supabase Auth state changes
 supabase.auth.onAuthStateChange((event: any, session: any) => {
   if (!session || !session.user) {
+    if (typeof window !== "undefined" && window.localStorage) {
+      window.localStorage.removeItem("last_logged_in_user_id");
+      window.localStorage.removeItem("supabase_session_token");
+    }
     updateState({
       user: null,
       surveyCompleted: false,
@@ -686,6 +730,15 @@ supabase.auth.onAuthStateChange((event: any, session: any) => {
   const userName = session.user.user_metadata?.full_name || userEmail.split("@")[0] || "Student";
   const userCreatedAt = new Date(session.user.created_at || Date.now()).getTime();
 
+  if (typeof window !== "undefined" && window.localStorage) {
+    window.localStorage.setItem("last_logged_in_user_id", userId);
+    window.localStorage.setItem("supabase_session_token", session.access_token);
+  }
+
+  const cachedSurveyCompleted = typeof window !== "undefined" && window.localStorage 
+    ? window.localStorage.getItem(`survey_completed_${userEmail}`) === "true"
+    : false;
+
   // Set user state immediately so login completes instantly
   updateState({
     isLoadingProfile: true,
@@ -698,7 +751,7 @@ supabase.auth.onAuthStateChange((event: any, session: any) => {
       careerFitScore: 0,
       xp: 0
     },
-    surveyCompleted: false,
+    surveyCompleted: cachedSurveyCompleted,
     surveyAnswers: null,
     token: session.access_token
   });

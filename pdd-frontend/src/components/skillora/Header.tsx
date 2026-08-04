@@ -65,7 +65,6 @@ export function Header() {
           style={styles.iconButton} 
           onPress={store.triggerInstantResurvey}
           activeOpacity={0.75}
-          title="Update learning path preferences"
         >
           <Feather name="sliders" size={18} color="#475569" />
         </TouchableOpacity>
@@ -119,6 +118,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 20,
     marginTop: 10,
+    zIndex: 100,
+    position: "relative",
   },
   greetingContainer: {
     flex: 1,
@@ -177,10 +178,10 @@ const styles = StyleSheet.create({
   streakPill: {
     flexDirection: "row",
     alignItems: "center",
-    height: 40,
-    paddingHorizontal: 12,
-    borderRadius: 14,
-    gap: 4,
+    height: 32,
+    paddingHorizontal: 8,
+    borderRadius: 10,
+    gap: 2,
   },
   streakText: {
     color: "#ffffff",

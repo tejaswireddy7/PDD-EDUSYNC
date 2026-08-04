@@ -1407,3 +1407,17 @@ export async function fetchBlockedUsers(userId: string): Promise<string[]> {
   }
 }
 
+// 27. Fetch Incoming Messages for background polling
+export async function fetchDBIncomingMessages(currentUserId: string): Promise<any[]> {
+  try {
+    const { data, error } = await supabase
+      .from("peer_messages")
+      .select("*")
+      .eq("receiver_id", currentUserId);
+    if (error) throw error;
+    return data || [];
+  } catch (e) {
+    return [];
+  }
+}
+

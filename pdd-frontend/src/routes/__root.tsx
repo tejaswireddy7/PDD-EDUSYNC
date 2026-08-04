@@ -4,6 +4,7 @@ import { Home, BookOpen, MessageSquare, BarChart2, FolderOpen, LogOut } from "lu
 import AuthScreen from "../screens/AuthScreen";
 import { useDashboardStore } from "../lib/store";
 import { supabase } from "../lib/supabase";
+import { fetchDBIncomingMessages } from "../lib/supabase-db";
 
 export const Route = createRootRoute({
   component: RootLayout,
@@ -13,6 +14,7 @@ function RootLayout() {
   const store = useDashboardStore();
   const isAuthenticated = store.user !== null;
   const [openAssessmentsCount, setOpenAssessmentsCount] = useState(3);
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
 
   useEffect(() => {
     if (!store.user) return;
@@ -38,10 +40,46 @@ function RootLayout() {
     loadCounts();
   }, [store.user, store.submittedAssessmentId, store.surveyAnswers?.focusDomain]);
 
+  useEffect(() => {
+    if (!store.user) return;
+
+    let active = true;
+    async function pollUnreadMessages() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const incoming = await fetchDBIncomingMessages(user.id);
+        if (!active) return;
+
+        // Count messages received that are newer than local storage read timestamps
+        let count = 0;
+        const senders = Array.from(new Set(incoming.map(m => m.sender_id)));
+        senders.forEach(senderId => {
+          const lastReadTime = localStorage.getItem(`last_read_time_${senderId}`) || "1970-01-01T00:00:00.000Z";
+          const unreadForSender = incoming.filter(m => m.sender_id === senderId && m.created_at > lastReadTime);
+          count += unreadForSender.length;
+        });
+
+        setUnreadMessagesCount(count);
+      } catch (err) {
+        // Safe catch
+      }
+    }
+
+    pollUnreadMessages();
+    const interval = setInterval(pollUnreadMessages, 1000);
+
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, [store.user]);
+
   const navItems = [
     { to: "/", label: "Dashboard", icon: Home },
     { to: "/assessments", label: "Assessments", icon: BookOpen, badge: openAssessmentsCount > 0 ? String(openAssessmentsCount) : undefined },
-    { to: "/chat", label: "Messenger", icon: MessageSquare, badge: "1" },
+    { to: "/chat", label: "Messenger", icon: MessageSquare, badge: unreadMessagesCount > 0 ? String(unreadMessagesCount) : undefined },
     { to: "/evaluation", label: "Analytics", icon: BarChart2 },
     { to: "/resources", label: "Resource Hub", icon: FolderOpen, badge: "3" },
   ];

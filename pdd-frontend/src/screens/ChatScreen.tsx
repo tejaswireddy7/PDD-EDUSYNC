@@ -167,22 +167,42 @@ export default function ChatScreen() {
     }
     loadMessengerData();
   }, [currentUserId]);
-
-  // Load Peer Messages
+  // Load Peer Messages & Background Polling
   useEffect(() => {
     if (!activePeerId) return;
+
+    let active = true;
+
     async function loadMessages() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           const dbMsgs = await fetchDBPeerMessages(user.id, activePeerId!);
-          setMessages(dbMsgs);
+          if (!active) return;
+          
+          setMessages((prev) => {
+            // Keep local mock messages if they are not yet in the DB
+            const merged = [...dbMsgs];
+            prev.forEach((localMsg) => {
+              if (!merged.find(m => m.id === localMsg.id || (m.text === localMsg.text && Math.abs(new Date(m.created_at).getTime() - new Date(localMsg.created_at).getTime()) < 5000))) {
+                merged.push(localMsg);
+              }
+            });
+            return merged.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+          });
+
+          // Mark messages as read by updating last_read_time
+          localStorage.setItem(`last_read_time_${activePeerId}`, new Date().toISOString());
         }
       } catch (err) {
         console.warn("Failed to load peer messages:", err);
       }
     }
+
     loadMessages();
+
+    // Set up 1-second polling interval
+    const interval = setInterval(loadMessages, 1000);
 
     // Subscribe to real-time message inserts
     const channel = supabase
@@ -192,16 +212,19 @@ export default function ChatScreen() {
         { event: "INSERT", schema: "public", table: "peer_messages" },
         (payload) => {
           const newMsg = payload.new as PeerMessage;
-          // Verify message belongs to active thread
           setMessages((prev) => {
             if (prev.find(m => m.id === newMsg.id)) return prev;
             return [...prev, newMsg];
           });
+          // Update read timestamp since user is actively viewing
+          localStorage.setItem(`last_read_time_${activePeerId}`, new Date().toISOString());
         }
       )
       .subscribe();
 
     return () => {
+      active = false;
+      clearInterval(interval);
       supabase.removeChannel(channel);
     };
   }, [activePeerId]);

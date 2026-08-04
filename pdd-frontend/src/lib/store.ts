@@ -129,15 +129,34 @@ export function useDashboardStore() {
     fetchRecommendations: async () => {
       const answers = state.surveyAnswers;
       updateState({ isLoadingRecommendations: true });
+
+      const overlayProgress = (coursesList: any[]) => {
+        if (typeof window !== "undefined" && window.localStorage) {
+          const email = state.user?.email || "guest";
+          const savedProgress = window.localStorage.getItem(`courses_progress_${email}`);
+          if (savedProgress) {
+            try {
+              const progressMap = JSON.parse(savedProgress);
+              return coursesList.map(c => ({
+                ...c,
+                progress: progressMap[c.title] !== undefined ? progressMap[c.title] : c.progress
+              }));
+            } catch (e) {}
+          }
+        }
+        return coursesList;
+      };
+
       try {
         const sessionData = await supabase.auth.getSession();
         const session = sessionData.data.session;
         if (session && session.user) {
           const dbRec = await fetchDBRecommendations(session.user.id);
           if (dbRec && dbRec.courses && dbRec.courses.length > 0) {
+            const coursesWithProgress = overlayProgress(dbRec.courses);
             updateState({
               recommendations: {
-                courses: dbRec.courses,
+                courses: coursesWithProgress,
                 resources: dbRec.resources,
                 milestones: dbRec.milestones,
                 weeklyHoursTarget: dbRec.weeklyHoursTarget || (answers ? answers.learningHours : 5),
@@ -172,9 +191,10 @@ export function useDashboardStore() {
                 )
           ]);
           
+          const coursesWithProgress = overlayProgress(courses);
           updateState({
             recommendations: {
-              courses,
+              courses: coursesWithProgress,
               resources: resources.map(r => ({ title: r.title, type: r.type, duration: "15 min" })),
               milestones,
               weeklyHoursTarget: answers.learningHours,
@@ -199,6 +219,9 @@ export function useDashboardStore() {
         }
 
         if (recData && !error) {
+          if (recData.courses) {
+            recData.courses = overlayProgress(recData.courses);
+          }
           updateState({ recommendations: recData, isLoadingRecommendations: false });
           return;
         }
@@ -215,6 +238,7 @@ export function useDashboardStore() {
           [],
           state.surveyAnswers.targetLearningGoal
         );
+        localRecs.courses = overlayProgress(localRecs.courses);
         updateState({ recommendations: localRecs, isLoadingRecommendations: false });
       } else {
         updateState({ recommendations: null, isLoadingRecommendations: false });
@@ -251,6 +275,22 @@ export function useDashboardStore() {
           xp: state.user?.xp ?? 0,
           lastSurveyDate: Date.now()
         });
+
+        // Save local cache backup as well
+        if (typeof window !== "undefined" && window.localStorage) {
+          const profileKey = `user_profile_${session.user.id}`;
+          const saved = window.localStorage.getItem(profileKey);
+          const cached = saved ? JSON.parse(saved) : {};
+          window.localStorage.setItem(profileKey, JSON.stringify({
+            ...cached,
+            name: state.user?.name || session.user.email?.split("@")[0],
+            email: session.user.email || "",
+            focus_domain: answers.focusDomain,
+            proficiency: answers.proficiency,
+            learning_hours: answers.learningHours,
+            last_survey_date: new Date(Date.now()).toISOString()
+          }));
+        }
       }
 
       // Attempt to load recommendations dynamically from database
@@ -273,9 +313,27 @@ export function useDashboardStore() {
               )
         ]);
         
+        const overlayProgress = (coursesList: any[]) => {
+          if (typeof window !== "undefined" && window.localStorage) {
+            const email = state.user?.email || "guest";
+            const savedProgress = window.localStorage.getItem(`courses_progress_${email}`);
+            if (savedProgress) {
+              try {
+                const progressMap = JSON.parse(savedProgress);
+                return coursesList.map(c => ({
+                  ...c,
+                  progress: progressMap[c.title] !== undefined ? progressMap[c.title] : c.progress
+                }));
+              } catch (e) {}
+            }
+          }
+          return coursesList;
+        };
+
+        const coursesWithProgress = overlayProgress(courses);
         updateState({
           recommendations: {
-            courses,
+            courses: coursesWithProgress,
             resources: resources.map(r => ({ title: r.title, type: r.type, duration: "15 min" })),
             milestones,
             weeklyHoursTarget: answers.learningHours,
@@ -290,6 +348,19 @@ export function useDashboardStore() {
           answers.proficiency,
           answers.learningHours
         );
+        if (typeof window !== "undefined" && window.localStorage) {
+          const email = state.user?.email || "guest";
+          const savedProgress = window.localStorage.getItem(`courses_progress_${email}`);
+          if (savedProgress) {
+            try {
+              const progressMap = JSON.parse(savedProgress);
+              localRecs.courses = localRecs.courses.map(c => ({
+                ...c,
+                progress: progressMap[c.title] !== undefined ? progressMap[c.title] : c.progress
+              }));
+            } catch (e) {}
+          }
+        }
         updateState({ recommendations: localRecs, isLoadingRecommendations: false });
       }
     },
@@ -319,6 +390,14 @@ export function useDashboardStore() {
         const sessionData = await supabase.auth.getSession();
         const session = sessionData.data.session;
         if (session && session.user) {
+          const userId = session.user.id;
+          if (typeof window !== "undefined" && window.localStorage) {
+            const saved = window.localStorage.getItem(`user_profile_${userId}`);
+            const profile = saved ? JSON.parse(saved) : {};
+            profile.xp = nextUser.xp;
+            window.localStorage.setItem(`user_profile_${userId}`, JSON.stringify(profile));
+          }
+
           await saveDBProfile(session.user.id, {
             name: nextUser.name,
             email: nextUser.email,
@@ -360,10 +439,27 @@ export function useDashboardStore() {
         recommendations: nextRecs
       });
 
+      if (typeof window !== "undefined" && window.localStorage) {
+        const email = state.user?.email || "guest";
+        const savedProgress = window.localStorage.getItem(`courses_progress_${email}`);
+        const progressMap = savedProgress ? JSON.parse(savedProgress) : {};
+        progressMap[courseTitle] = 100;
+        window.localStorage.setItem(`courses_progress_${email}`, JSON.stringify(progressMap));
+      }
+
       try {
         const sessionData = await supabase.auth.getSession();
         const session = sessionData.data.session;
         if (session && session.user) {
+          const userId = session.user.id;
+          if (typeof window !== "undefined" && window.localStorage) {
+            const saved = window.localStorage.getItem(`user_profile_${userId}`);
+            const profile = saved ? JSON.parse(saved) : {};
+            profile.courses_completed = nextUser.coursesCompleted;
+            profile.xp = nextUser.xp;
+            window.localStorage.setItem(`user_profile_${userId}`, JSON.stringify(profile));
+          }
+
           await saveDBProfile(session.user.id, {
             name: nextUser.name,
             email: nextUser.email,
@@ -397,6 +493,14 @@ export function useDashboardStore() {
       }
       updateState({ recommendations: nextRecs });
 
+      if (typeof window !== "undefined" && window.localStorage) {
+        const email = state.user?.email || "guest";
+        const savedProgress = window.localStorage.getItem(`courses_progress_${email}`);
+        const progressMap = savedProgress ? JSON.parse(savedProgress) : {};
+        progressMap[courseTitle] = Math.max(progressMap[courseTitle] || 0, progress);
+        window.localStorage.setItem(`courses_progress_${email}`, JSON.stringify(progressMap));
+      }
+
       try {
         const sessionData = await supabase.auth.getSession();
         const session = sessionData.data.session;
@@ -428,6 +532,16 @@ export function useDashboardStore() {
           const sessionData = await supabase.auth.getSession();
           const session = sessionData.data.session;
           if (session && session.user) {
+            const userId = session.user.id;
+            if (typeof window !== "undefined" && window.localStorage) {
+              const saved = window.localStorage.getItem(`user_profile_${userId}`);
+              const profile = saved ? JSON.parse(saved) : {};
+              profile.courses_completed = nextUser.coursesCompleted;
+              profile.career_fit_score = nextUser.careerFitScore;
+              profile.xp = nextUser.xp;
+              window.localStorage.setItem(`user_profile_${userId}`, JSON.stringify(profile));
+            }
+
             await saveDBProfile(session.user.id, {
               name: nextUser.name,
               email: nextUser.email,
@@ -589,101 +703,147 @@ supabase.auth.onAuthStateChange((event: any, session: any) => {
     token: session.access_token
   });
 
-    // Fetch DB Profile asynchronously in the background
-    fetchDBProfile(userId).then(async (dbProfile) => {
-      // Confirm the user is still logged in with the same session token before updating state
-      if (state.token !== session.access_token) return;
+  // Fetch DB Profile asynchronously in the background
+  fetchDBProfile(userId).then(async (dbProfile) => {
+    // Confirm the user is still logged in with the same session token before updating state
+    if (state.token !== session.access_token) return;
 
-      const now = new Date();
-      const todayStr = now.toDateString();
-      const registrationDateObj = new Date(session.user.created_at || now);
+    const now = new Date();
+    const todayStr = now.toDateString();
+    const registrationDateObj = new Date(session.user.created_at || now);
 
-      let finalStreak = 1;
-      let finalLastActive = now.toISOString();
+    // Read cached profile from localStorage if dbProfile is null/missing
+    let cachedProfile: any = null;
+    if (typeof window !== "undefined" && window.localStorage) {
+      const saved = window.localStorage.getItem(`user_profile_${userId}`);
+      if (saved) {
+        try {
+          cachedProfile = JSON.parse(saved);
+        } catch (e) {}
+      }
+    }
 
-      if (!dbProfile) {
-        // Create new user profile in database immediately upon registration
-        await saveDBProfile(userId, {
+    const profile = dbProfile || cachedProfile;
+
+    let finalStreak = 1;
+    let finalLastActive = now.toISOString();
+    let finalCoursesCompleted = 0;
+    let finalCareerFitScore = 0;
+    let finalXp = 0;
+
+    if (!profile) {
+      // Create new user profile in database immediately upon registration
+      finalStreak = 1;
+      finalCoursesCompleted = 0;
+      finalCareerFitScore = 0;
+      finalXp = 0;
+
+      await saveDBProfile(userId, {
+        name: userName,
+        email: userEmail,
+        streak: 1,
+        createdAt: registrationDateObj.toISOString(),
+        lastActiveDate: finalLastActive,
+        coursesCompleted: 0,
+        careerFitScore: 0,
+        xp: 0
+      });
+
+      if (typeof window !== "undefined" && window.localStorage) {
+        window.localStorage.setItem(`user_profile_${userId}`, JSON.stringify({
           name: userName,
           email: userEmail,
           streak: 1,
-          createdAt: registrationDateObj.toISOString(),
-          lastActiveDate: finalLastActive,
-          coursesCompleted: 0,
-          careerFitScore: 0,
+          created_at: registrationDateObj.toISOString(),
+          last_active_date: finalLastActive,
+          courses_completed: 0,
+          career_fit_score: 0,
           xp: 0
-        });
+        }));
+      }
+    } else {
+      const lastActiveStr = profile.last_active_date || profile.lastActiveDate ? new Date(profile.last_active_date || profile.lastActiveDate).toDateString() : "";
+      finalCoursesCompleted = profile.courses_completed ?? profile.coursesCompleted ?? 0;
+      finalCareerFitScore = profile.career_fit_score ?? profile.careerFitScore ?? 0;
+      finalXp = profile.xp ?? 0;
+
+      if (!lastActiveStr) {
+        // If no last active date, initialize streak to 1
+        finalStreak = 1;
+      } else if (lastActiveStr === todayStr) {
+        // Already logged in today, keep the same streak
+        finalStreak = profile.streak ?? 1;
       } else {
-        const lastActiveStr = dbProfile.last_active_date ? new Date(dbProfile.last_active_date).toDateString() : "";
+        // Calculate calendar difference
+        const localToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const lastActiveDateObj = new Date(profile.last_active_date || profile.lastActiveDate);
+        const localLastActive = new Date(lastActiveDateObj.getFullYear(), lastActiveDateObj.getMonth(), lastActiveDateObj.getDate());
         
-        if (!lastActiveStr) {
-          // If no last active date, initialize streak to 1
-          finalStreak = 1;
-          await saveDBProfile(userId, {
-            streak: 1,
-            lastActiveDate: finalLastActive
-          });
-        } else if (lastActiveStr === todayStr) {
-          // Already logged in today, keep the same streak
-          finalStreak = dbProfile.streak ?? 1;
+        const diffTime = Math.abs(localToday.getTime() - localLastActive.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 1) {
+          // Consecutive day: increment streak
+          finalStreak = (profile.streak || 0) + 1;
         } else {
-          // Calculate calendar difference
-          const localToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-          const lastActiveDateObj = new Date(dbProfile.last_active_date);
-          const localLastActive = new Date(lastActiveDateObj.getFullYear(), lastActiveDateObj.getMonth(), lastActiveDateObj.getDate());
-          
-          const diffTime = Math.abs(localToday.getTime() - localLastActive.getTime());
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-          if (diffDays === 1) {
-            // Consecutive day: increment streak
-            finalStreak = (dbProfile.streak || 0) + 1;
-          } else {
-            // Missed a day: reset streak to 1 for today's activity
-            finalStreak = 1;
-          }
-
-          await saveDBProfile(userId, {
-            streak: finalStreak,
-            lastActiveDate: finalLastActive
-          });
+          // Missed a day: reset streak to 1 for today's activity
+          finalStreak = 1;
         }
       }
 
-      let localSurveyDone = false;
-      let localAnswers = null;
-      if (typeof window !== "undefined" && window.localStorage) {
-        localSurveyDone = window.localStorage.getItem(`survey_completed_${userEmail}`) === "true";
-        const saved = window.localStorage.getItem(`survey_answers_${userEmail}`);
-        if (saved) {
-          try {
-            localAnswers = JSON.parse(saved);
-          } catch (e) {}
-        }
-      }
-
-      updateState({
-        isLoadingProfile: false,
-        user: {
-          name: dbProfile?.name || userName,
-          email: userEmail,
-          registeredAt: new Date(dbProfile?.created_at || registrationDateObj).getTime(),
-          streak: finalStreak,
-          coursesCompleted: dbProfile?.courses_completed ?? 0,
-          careerFitScore: dbProfile?.career_fit_score ?? 0,
-          xp: dbProfile?.xp ?? 0
-        },
-        surveyCompleted: localSurveyDone || (dbProfile ? (!!dbProfile.last_survey_date || !!dbProfile.focus_domain) : false),
-        surveyAnswers: dbProfile && dbProfile.focus_domain ? {
-          focusDomain: dbProfile.focus_domain,
-          proficiency: dbProfile.proficiency || "Beginner",
-          learningHours: dbProfile.learning_hours || 5
-        } : (localAnswers || null)
+      await saveDBProfile(userId, {
+        streak: finalStreak,
+        lastActiveDate: finalLastActive
       });
-    }).catch(err => {
-      console.warn("Background fetch profile failed:", err);
-      updateState({ isLoadingProfile: false });
+
+      if (typeof window !== "undefined" && window.localStorage) {
+        window.localStorage.setItem(`user_profile_${userId}`, JSON.stringify({
+          name: profile.name || userName,
+          email: userEmail,
+          streak: finalStreak,
+          created_at: profile.created_at || profile.createdAt || registrationDateObj.toISOString(),
+          last_active_date: finalLastActive,
+          courses_completed: finalCoursesCompleted,
+          career_fit_score: finalCareerFitScore,
+          xp: finalXp
+        }));
+      }
+    }
+
+    let localSurveyDone = false;
+    let localAnswers = null;
+    if (typeof window !== "undefined" && window.localStorage) {
+      localSurveyDone = window.localStorage.getItem(`survey_completed_${userEmail}`) === "true";
+      const saved = window.localStorage.getItem(`survey_answers_${userEmail}`);
+      if (saved) {
+        try {
+          localAnswers = JSON.parse(saved);
+        } catch (e) {}
+      }
+    }
+
+    updateState({
+      isLoadingProfile: false,
+      user: {
+        name: profile?.name || userName,
+        email: userEmail,
+        registeredAt: new Date(profile?.created_at || profile?.createdAt || registrationDateObj).getTime(),
+        streak: finalStreak,
+        coursesCompleted: finalCoursesCompleted,
+        careerFitScore: finalCareerFitScore,
+        xp: finalXp
+      },
+      surveyCompleted: localSurveyDone || (profile ? (!!profile.last_survey_date || !!profile.lastSurveyDate || !!profile.focus_domain || !!profile.focusDomain) : false),
+      surveyAnswers: profile && (profile.focus_domain || profile.focusDomain) ? {
+        focusDomain: profile.focus_domain || profile.focusDomain,
+        proficiency: profile.proficiency || "Beginner",
+        learningHours: profile.learning_hours || profile.learningHours || 5
+      } : (localAnswers || null)
     });
+  }).catch(err => {
+    console.warn("Background fetch profile failed:", err);
+    updateState({ isLoadingProfile: false });
+  });
 });
 
 export type { SurveyAnswers, UserProfile };

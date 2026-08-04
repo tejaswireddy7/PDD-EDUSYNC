@@ -4,6 +4,13 @@ import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useDashboardStore } from "../../lib/store";
 
+function BootstrapIcon({ name, size, color }: { name: string; size: number; color: string }) {
+  if (Platform.OS === "web") {
+    return <i className={`bi bi-${name}`} style={{ fontSize: size, color: color, display: "inline-block", lineHeight: 1 }} />;
+  }
+  return <Feather name="help-circle" size={size} color={color} />;
+}
+
 export function StatCards() {
   const store = useDashboardStore();
   const targetHours = store.recommendations?.weeklyHoursTarget || 5;
@@ -13,10 +20,10 @@ export function StatCards() {
   const fitScore = `${store.user?.careerFitScore ?? 0}%`;
 
   const stats = [
-    { icon: "clock", iconType: "Feather", label: "Weekly Goal", value: `${targetHours} hrs`, delta: "+2 hrs", up: true, tint: "primary" },
-    { icon: "book-check", iconType: "MaterialCommunityIcons", label: "Courses Completed", value: coursesCompleted, delta: coursesCompleted !== "0" ? "+1" : "0", up: true, tint: "mint" },
-    { icon: "trending-up", iconType: "Feather", label: "Level Target", value: userProficiency, delta: "Active", up: true, tint: "primary" },
-    { icon: "target", iconType: "Feather", label: "Career Fit Score", value: fitScore, delta: fitScore !== "0%" ? "+3%" : "0%", up: true, tint: "mint" },
+    { bootstrapIcon: "clock-history", label: "Weekly Goal", value: `${targetHours} hrs`, delta: "+2 hrs", up: true, tint: "primary" },
+    { bootstrapIcon: "journal-check", label: "Courses Completed", value: coursesCompleted, delta: coursesCompleted !== "0" ? "+1" : "0", up: true, tint: "mint" },
+    { bootstrapIcon: "bullseye", label: "Level Target", value: userProficiency, delta: "Active", up: true, tint: "primary" },
+    { bootstrapIcon: "speedometer2", label: "Career Fit Score", value: fitScore, delta: fitScore !== "0%" ? "+3%" : "0%", up: true, tint: "mint" },
   ];
 
   // XP Calculations
@@ -65,11 +72,7 @@ export function StatCards() {
             <View key={s.label} style={styles.card}>
               <View style={styles.header}>
                 <View style={[styles.iconContainer, isPrimary ? styles.bgPrimary : styles.bgMint]}>
-                  {s.iconType === "MaterialCommunityIcons" ? (
-                    <MaterialCommunityIcons name={s.icon as any} size={14} color={isPrimary ? "#6366f1" : "#0d9488"} />
-                  ) : (
-                    <Feather name={s.icon as any} size={13} color={isPrimary ? "#6366f1" : "#0d9488"} />
-                  )}
+                  <BootstrapIcon name={s.bootstrapIcon} size={15} color={isPrimary ? "#6366f1" : "#0d9488"} />
                 </View>
                 <View style={styles.deltaContainer}>
                   <Feather

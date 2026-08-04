@@ -10,7 +10,7 @@ const COURSE_VIDEOS: Record<string, string> = {
   "Intro to React & Component States": "https://www.youtube.com/embed/Ke90Tje7VS0",
   "Intro to Node.js & REST API": "https://www.youtube.com/embed/Oe421EPjeBE",
   "SQL Fundamentals & Relational DBs": "https://www.youtube.com/embed/HXTt1AjbTtc",
-  "React Native & Expo Ecosystem": "https://www.youtube.com/embed/gvkqT_qiVxM",
+  "React Native & Expo Ecosystem": "https://www.youtube.com/embed/0-S5a0eXPoc",
   "Python Fundamentals & Packages": "https://www.youtube.com/embed/_uQrJ0TkZlc",
   "Neural Networks with PyTorch": "https://www.youtube.com/embed/V_xro1bcAuA",
   "React Router & Global Context": "https://www.youtube.com/embed/59IXY5IDYbA",
@@ -1083,7 +1083,7 @@ export default function CourseLearnScreen() {
                         style={styles.sectionQuizBtn}
                         activeOpacity={0.7}
                       >
-                        <MaterialCommunityIcons name="award" size={12} color="#ffffff" style={{ marginRight: 4 }} />
+                        <MaterialCommunityIcons name="trophy-outline" size={12} color="#ffffff" style={{ marginRight: 4 }} />
                         <Text style={styles.sectionQuizBtnText}>Quiz</Text>
                       </TouchableOpacity>
                     )}
@@ -1618,7 +1618,7 @@ const styles = StyleSheet.create({
   quizCloseText: {
     color: "#ef4444",
     fontSize: 14,
-    fontWeight: "850",
+    fontWeight: "800",
   },
   quizPanelBody: {
     marginTop: 4,

@@ -1327,96 +1327,171 @@ export async function fetchDBAllRecommendations(): Promise<any[]> {
   }
 }
 
-// 22. Fetch Messages between two peers
-export async function fetchDBPeerMessages(userId1: string, userId2: string): Promise<any[]> {
+// 22. Fetch Connections involving active user
+export async function fetchDBConnections(userId: string): Promise<any[]> {
   try {
     const { data, error } = await supabase
-      .from("peer_messages")
+      .from("connections")
       .select("*")
-      .or(`and(sender_id.eq.${userId1},receiver_id.eq.${userId2}),and(sender_id.eq.${userId2},receiver_id.eq.${userId1})`)
-      .order("created_at", { ascending: true });
+      .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`);
     if (error) throw error;
     return data || [];
   } catch (e) {
-    console.warn("fetchDBPeerMessages failed:", e);
+    console.warn("fetchDBConnections failed:", e);
     return [];
   }
 }
 
-// 23. Send Message to peer
-export async function sendDBPeerMessage(senderId: string, receiverId: string, text: string): Promise<any> {
+// 23. Send Connection Request
+export async function sendDBConnectionRequest(senderId: string, receiverId: string): Promise<any> {
   try {
     const { data, error } = await supabase
-      .from("peer_messages")
-      .insert({ sender_id: senderId, receiver_id: receiverId, text })
+      .from("connections")
+      .insert({ sender_id: senderId, receiver_id: receiverId, status: "pending" })
       .select()
       .single();
     if (error) throw error;
     return data;
   } catch (e) {
-    console.warn("sendDBPeerMessage failed, returning mock:", e);
-    return {
-      id: Math.random().toString(),
-      sender_id: senderId,
-      receiver_id: receiverId,
-      text,
-      created_at: new Date().toISOString()
-    };
+    console.warn("sendDBConnectionRequest failed:", e);
+    throw e;
   }
 }
 
-// 24. Block a user
-export async function blockUser(userId: string, blockedUserId: string): Promise<void> {
+// 24. Update Connection Status (Accept/Reject)
+export async function updateDBConnectionStatus(
+  connectionId: string, 
+  status: "accepted" | "rejected",
+  senderId: string,
+  receiverId: string
+): Promise<void> {
   try {
+    // Update connection status
     const { error } = await supabase
-      .from("blocked_users")
-      .insert({ user_id: userId, blocked_user_id: blockedUserId });
+      .from("connections")
+      .update({ status })
+      .eq("id", connectionId);
     if (error) throw error;
+
+    if (status === "accepted") {
+      // Create conversation
+      const { data: conv, error: convError } = await supabase
+        .from("conversations")
+        .insert({})
+        .select()
+        .single();
+      if (convError) throw convError;
+
+      // Insert participants
+      const { error: partError } = await supabase
+        .from("conversation_participants")
+        .insert([
+          { conversation_id: conv.id, user_id: senderId },
+          { conversation_id: conv.id, user_id: receiverId }
+        ]);
+      if (partError) throw partError;
+    }
   } catch (e) {
-    console.warn("blockUser failed:", e);
+    console.warn("updateDBConnectionStatus failed:", e);
+    throw e;
   }
 }
 
-// 25. Unblock a user
-export async function unblockUser(userId: string, blockedUserId: string): Promise<void> {
+// 25. Fetch Conversations user is involved in
+export async function fetchDBConversations(userId: string): Promise<any[]> {
   try {
-    const { error } = await supabase
-      .from("blocked_users")
-      .delete()
-      .eq("user_id", userId)
-      .eq("blocked_user_id", blockedUserId);
-    if (error) throw error;
-  } catch (e) {
-    console.warn("unblockUser failed:", e);
-  }
-}
-
-// 26. Fetch Blocked User IDs list
-export async function fetchBlockedUsers(userId: string): Promise<string[]> {
-  try {
-    const { data, error } = await supabase
-      .from("blocked_users")
-      .select("blocked_user_id")
+    const { data: myPart, error: partErr } = await supabase
+      .from("conversation_participants")
+      .select("conversation_id")
       .eq("user_id", userId);
-    if (error) throw error;
-    return (data || []).map((x: any) => x.blocked_user_id);
+    if (partErr) throw partErr;
+
+    if (!myPart || myPart.length === 0) return [];
+    const convIds = myPart.map(cp => cp.conversation_id);
+
+    const { data: allPart, error: allErr } = await supabase
+      .from("conversation_participants")
+      .select("conversation_id, user_id")
+      .in("conversation_id", convIds);
+    if (allErr) throw allErr;
+
+    return allPart || [];
   } catch (e) {
-    console.warn("fetchBlockedUsers failed:", e);
+    console.warn("fetchDBConversations failed:", e);
     return [];
   }
 }
 
-// 27. Fetch Incoming Messages for background polling
-export async function fetchDBIncomingMessages(currentUserId: string): Promise<any[]> {
+// 26. Fetch Messages in conversation with pagination (limit and offset)
+export async function fetchDBMessagesPaged(conversationId: string, limit: number = 30, offset: number = 0): Promise<any[]> {
   try {
     const { data, error } = await supabase
-      .from("peer_messages")
+      .from("messages")
       .select("*")
-      .eq("receiver_id", currentUserId);
+      .eq("conversation_id", conversationId)
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1);
     if (error) throw error;
-    return data || [];
+    return (data || []).reverse();
   } catch (e) {
+    console.warn("fetchDBMessagesPaged failed:", e);
     return [];
+  }
+}
+
+// 27. Send Message in a conversation
+export async function sendDBMessage(conversationId: string, senderId: string, message: string): Promise<any> {
+  try {
+    const { data, error } = await supabase
+      .from("messages")
+      .insert({ conversation_id: conversationId, sender_id: senderId, message })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  } catch (e) {
+    console.warn("sendDBMessage failed:", e);
+    throw e;
+  }
+}
+
+// 28. Mark Messages as read
+export async function markMessagesAsRead(conversationId: string, currentUserId: string): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from("messages")
+      .update({ is_read: true })
+      .eq("conversation_id", conversationId)
+      .neq("sender_id", currentUserId)
+      .eq("is_read", false);
+    if (error) throw error;
+  } catch (e) {
+    console.warn("markMessagesAsRead failed:", e);
+  }
+}
+
+// 29. Fetch total unread count for all conversations
+export async function fetchDBAllIncomingUnreadCount(currentUserId: string): Promise<number> {
+  try {
+    const { data: myPart, error: partErr } = await supabase
+      .from("conversation_participants")
+      .select("conversation_id")
+      .eq("user_id", currentUserId);
+    if (partErr) throw partErr;
+
+    if (!myPart || myPart.length === 0) return 0;
+    const convIds = myPart.map(cp => cp.conversation_id);
+
+    const { count, error } = await supabase
+      .from("messages")
+      .select("*", { count: "exact", head: true })
+      .in("conversation_id", convIds)
+      .neq("sender_id", currentUserId)
+      .eq("is_read", false);
+    if (error) throw error;
+    return count || 0;
+  } catch (e) {
+    return 0;
   }
 }
 

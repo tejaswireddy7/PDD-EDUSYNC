@@ -452,6 +452,10 @@ create policy "Users can view conversations they participate in" on public.peer_
     )
   );
 
+drop policy if exists "Users can insert conversations" on public.peer_conversations;
+create policy "Users can insert conversations" on public.peer_conversations
+  for insert with check (true);
+
 -- Peer Conversation Participants Policies
 drop policy if exists "Users can view participants in their conversations" on public.peer_conversation_participants;
 create policy "Users can view participants in their conversations" on public.peer_conversation_participants

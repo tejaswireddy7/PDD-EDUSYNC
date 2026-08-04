@@ -1290,13 +1290,12 @@ export async function saveDBCourseProgress(userId: string, courses: DBCourse[]):
   }
 }
 
-// 20. Fetch All Profiles except current user
-export async function fetchDBAllProfiles(currentUserId: string): Promise<any[]> {
+// 20. Fetch All Profiles
+export async function fetchDBAllProfiles(): Promise<any[]> {
   try {
     const { data, error } = await supabase
       .from("profiles")
-      .select("*")
-      .neq("id", currentUserId);
+      .select("*");
     if (error) throw error;
     return data || [];
   } catch (e) {

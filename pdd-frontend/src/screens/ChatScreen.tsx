@@ -79,7 +79,7 @@ export default function ChatScreen() {
 
         if (user) {
           try {
-            dbProfiles = await fetchDBAllProfiles(user.id);
+            dbProfiles = await fetchDBAllProfiles();
           } catch (e) {
             console.warn("fetchDBAllProfiles failed, using fallbacks:", e);
           }
@@ -136,8 +136,11 @@ export default function ChatScreen() {
               : "PyTorch Data Loading (15%)";
           }
 
-          const name = p.name || p.email?.split("@")[0] || "Peer Student";
-          const initials = name.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase() || "PS";
+          let name = p.name || p.email?.split("@")[0] || "Peer Student";
+          if (p.id === user.id) {
+            name = `${name} (You)`;
+          }
+          const initials = name.replace(" (You)", "").split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase() || "PS";
 
           return {
             id: p.id,

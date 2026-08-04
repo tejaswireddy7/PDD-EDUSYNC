@@ -29,7 +29,36 @@ alter table public.profiles enable row level security;
 drop policy if exists "Users can view their own profile" on public.profiles;
 create policy "Users can view their own profile" 
   on public.profiles for select 
-  using (auth.uid() = id);
+  using (auth.role() = 'authenticated');
+
+-- Trigger to sync auth users to public profiles table automatically on signup
+create or replace function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.profiles (id, name, email, focus_domain, proficiency, learning_hours, streak, courses_completed, career_fit_score, xp)
+  values (
+    new.id,
+    coalesce(new.raw_user_meta_data->>'name', split_part(new.email, '@', 1)),
+    new.email,
+    'Mobile',
+    'Beginner',
+    5,
+    1,
+    0,
+    0,
+    100
+  )
+  on conflict (id) do update
+  set email = excluded.email,
+      name = coalesce(excluded.name, public.profiles.name);
+  return new;
+end;
+$$ language plpgsql security definer;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
 
 drop policy if exists "Users can update their own profile" on public.profiles;
 create policy "Users can update their own profile" 

@@ -41,7 +41,7 @@ function RootLayout() {
   const navItems = [
     { to: "/", label: "Dashboard", icon: Home },
     { to: "/assessments", label: "Assessments", icon: BookOpen, badge: openAssessmentsCount > 0 ? String(openAssessmentsCount) : undefined },
-    { to: "/chat", label: "AI Coach", icon: MessageSquare, badge: "1" },
+    { to: "/chat", label: "Messenger", icon: MessageSquare, badge: "1" },
     { to: "/evaluation", label: "Analytics", icon: BarChart2 },
     { to: "/resources", label: "Resource Hub", icon: FolderOpen, badge: "3" },
   ];

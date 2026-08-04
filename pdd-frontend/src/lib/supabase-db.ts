@@ -1289,3 +1289,106 @@ export async function saveDBCourseProgress(userId: string, courses: DBCourse[]):
     logError("saveDBCourseProgress", e);
   }
 }
+
+// 20. Fetch All Profiles except current user
+export async function fetchDBAllProfiles(currentUserId: string): Promise<any[]> {
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .neq("id", currentUserId);
+    if (error) throw error;
+    return data || [];
+  } catch (e) {
+    console.warn("fetchDBAllProfiles failed:", e);
+    return [];
+  }
+}
+
+// 21. Fetch All Recommendations for extracting current courses
+export async function fetchDBAllRecommendations(): Promise<any[]> {
+  try {
+    const { data, error } = await supabase
+      .from("recommendations")
+      .select("userId, user_id, courses");
+    if (error) throw error;
+    return data || [];
+  } catch (e) {
+    console.warn("fetchDBAllRecommendations failed:", e);
+    return [];
+  }
+}
+
+// 22. Fetch Messages between two peers
+export async function fetchDBPeerMessages(userId1: string, userId2: string): Promise<any[]> {
+  try {
+    const { data, error } = await supabase
+      .from("peer_messages")
+      .select("*")
+      .or(`and(sender_id.eq.${userId1},receiver_id.eq.${userId2}),and(sender_id.eq.${userId2},receiver_id.eq.${userId1})`)
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+    return data || [];
+  } catch (e) {
+    console.warn("fetchDBPeerMessages failed:", e);
+    return [];
+  }
+}
+
+// 23. Send Message to peer
+export async function sendDBPeerMessage(senderId: string, receiverId: string, text: string): Promise<any> {
+  try {
+    const { data, error } = await supabase
+      .from("peer_messages")
+      .insert({ sender_id: senderId, receiver_id: receiverId, text })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  } catch (e) {
+    console.warn("sendDBPeerMessage failed:", e);
+    throw e;
+  }
+}
+
+// 24. Block a user
+export async function blockUser(userId: string, blockedUserId: string): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from("blocked_users")
+      .insert({ user_id: userId, blocked_user_id: blockedUserId });
+    if (error) throw error;
+  } catch (e) {
+    console.warn("blockUser failed:", e);
+  }
+}
+
+// 25. Unblock a user
+export async function unblockUser(userId: string, blockedUserId: string): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from("blocked_users")
+      .delete()
+      .eq("user_id", userId)
+      .eq("blocked_user_id", blockedUserId);
+    if (error) throw error;
+  } catch (e) {
+    console.warn("unblockUser failed:", e);
+  }
+}
+
+// 26. Fetch Blocked User IDs list
+export async function fetchBlockedUsers(userId: string): Promise<string[]> {
+  try {
+    const { data, error } = await supabase
+      .from("blocked_users")
+      .select("blocked_user_id")
+      .eq("user_id", userId);
+    if (error) throw error;
+    return (data || []).map((x: any) => x.blocked_user_id);
+  } catch (e) {
+    console.warn("fetchBlockedUsers failed:", e);
+    return [];
+  }
+}
+

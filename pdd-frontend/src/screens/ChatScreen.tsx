@@ -1,130 +1,251 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, FlatList, ActivityIndicator } from "react-native";
+import React, { useState, useRef, useEffect } from "react";
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator, Modal, Alert } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Header } from "../components/skillora/Header";
 import { LinearGradient } from "expo-linear-gradient";
 import { useDashboardStore } from "../lib/store";
 import { supabase } from "../lib/supabase";
-import { fetchDBContacts, fetchDBMessages, sendDBMessage, saveDBReply } from "../lib/supabase-db";
+import { 
+  fetchDBAllProfiles, 
+  fetchDBAllRecommendations, 
+  fetchDBPeerMessages, 
+  sendDBPeerMessage,
+  blockUser,
+  unblockUser,
+  fetchBlockedUsers
+} from "../lib/supabase-db";
 
-type Contact = {
-  id: string; name: string; role: string; initials: string; online: boolean; last: string; unread: number; colors: string[];
+type PeerUser = {
+  id: string;
+  name: string;
+  email: string;
+  focusDomain: string;
+  proficiency: string;
+  streak: number;
+  coursesCompleted: number;
+  careerFitScore: number;
+  xp: number;
+  currentCourse: string;
+  initials: string;
+  colors: string[];
 };
 
-type Msg = { id: string; from: "me" | "them"; text: string; time: string; read?: boolean };
+type PeerMessage = {
+  id: string;
+  sender_id: string;
+  receiver_id: string;
+  text: string;
+  created_at: string;
+};
+
+// Profanity list for filtering offensive words
+const OFFENSIVE_WORDS = ["badword1", "badword2", "offensive", "abuse", "hate", "fuck", "shit", "bitch", "asshole"];
+
+function filterOffensiveWords(text: string): string {
+  let cleaned = text;
+  OFFENSIVE_WORDS.forEach(word => {
+    const regex = new RegExp(`\\b${word}\\b`, "gi");
+    cleaned = cleaned.replace(regex, "***");
+  });
+  return cleaned;
+}
 
 export default function ChatScreen() {
   const store = useDashboardStore();
-  const focusDomain = store.surveyAnswers?.focusDomain || "Mobile";
+  const currentUserId = store.user ? store.user.email : "guest"; // fallback to mock identifier
 
-  const [contacts, setContacts] = useState<Contact[]>([]);
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [peers, setPeers] = useState<PeerUser[]>([]);
+  const [activePeerId, setActivePeerId] = useState<string | null>(null);
   const [viewState, setViewState] = useState<"list" | "chat">("list");
-  const [messages, setMessages] = useState<Msg[]>([]);
+  const [messages, setMessages] = useState<PeerMessage[]>([]);
   const [draft, setDraft] = useState("");
   const [search, setSearch] = useState("");
-  const [typing, setTyping] = useState(false);
-  const [showInfo, setShowInfo] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [blockedUserIds, setBlockedUserIds] = useState<string[]>([]);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
 
   const scrollViewRef = useRef<ScrollView>(null);
 
+  // Load registered users & matching recommendations
   useEffect(() => {
-    async function loadContacts() {
+    async function loadMessengerData() {
       setLoading(true);
       try {
-        const dbContacts = await fetchDBContacts(focusDomain);
-        setContacts(dbContacts as any);
-        if (dbContacts.length > 0) {
-          setActiveId((prev) => dbContacts.find((c) => c.id === prev) ? prev : dbContacts[0].id);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setLoading(false);
+          return;
+        }
+
+        const [profiles, recs, blocks] = await Promise.all([
+          fetchDBAllProfiles(user.id),
+          fetchDBAllRecommendations(),
+          fetchBlockedUsers(user.id)
+        ]);
+
+        setBlockedUserIds(blocks);
+
+        // Map profiles to peers with their current active courses
+        const colorsList = [
+          ["#6366f1", "#818cf8"],
+          ["#0ea5e9", "#38bdf8"],
+          ["#0d9488", "#2dd4bf"],
+          ["#f59e0b", "#fbbf24"],
+          ["#a855f7", "#c084fc"]
+        ];
+
+        const mapped: PeerUser[] = profiles.map((p, index) => {
+          const userRec = recs.find(r => r.userId === p.id || r.user_id === p.id);
+          let currentCourse = "No active course";
+          if (userRec && userRec.courses) {
+            const courseList = typeof userRec.courses === "string" ? JSON.parse(userRec.courses) : userRec.courses;
+            if (Array.isArray(courseList) && courseList.length > 0) {
+              const active = courseList.find((c: any) => c.progress > 0 && c.progress < 100) || courseList[0];
+              if (active) {
+                currentCourse = `${active.title} (${active.progress ?? 0}%)`;
+              }
+            }
+          }
+
+          const name = p.name || p.email?.split("@")[0] || "Peer Student";
+          const initials = name.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase() || "PS";
+
+          return {
+            id: p.id,
+            name,
+            email: p.email,
+            focusDomain: p.focus_domain || "Frontend",
+            proficiency: p.proficiency || "Beginner",
+            streak: p.streak || 0,
+            coursesCompleted: p.courses_completed || 0,
+            careerFitScore: p.career_fit_score || 0,
+            xp: p.xp || 0,
+            currentCourse,
+            initials,
+            colors: colorsList[index % colorsList.length]
+          };
+        });
+
+        setPeers(mapped);
+        if (mapped.length > 0) {
+          setActivePeerId(mapped[0].id);
         }
       } catch (err) {
-        console.warn("Failed to load contacts from Supabase:", err);
+        console.warn("Failed to load messenger details:", err);
       } finally {
         setLoading(false);
       }
     }
-    loadContacts();
-  }, [focusDomain]);
+    loadMessengerData();
+  }, [currentUserId]);
 
+  // Load Peer Messages
   useEffect(() => {
-    if (!activeId || contacts.length === 0) return;
+    if (!activePeerId) return;
     async function loadMessages() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          const activeContact = contacts.find((c) => c.id === activeId);
-          const welcomeMsg = activeContact?.last || "Hello!";
-          const dbMsgs = await fetchDBMessages(user.id, activeId!, welcomeMsg);
+          const dbMsgs = await fetchDBPeerMessages(user.id, activePeerId!);
           setMessages(dbMsgs);
         }
       } catch (err) {
-        console.warn("Failed to load messages from Supabase:", err);
+        console.warn("Failed to load peer messages:", err);
       }
     }
     loadMessages();
-  }, [activeId, contacts]);
 
-  const active = contacts.find((c) => c.id === activeId) || contacts[0] || null;
-  const filtered = contacts.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()));
+    // Subscribe to real-time message inserts
+    const channel = supabase
+      .channel(`peer_messages_channel_${activePeerId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "peer_messages" },
+        (payload) => {
+          const newMsg = payload.new as PeerMessage;
+          // Verify message belongs to active thread
+          setMessages((prev) => {
+            if (prev.find(m => m.id === newMsg.id)) return prev;
+            return [...prev, newMsg];
+          });
+        }
+      )
+      .subscribe();
 
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [activePeerId]);
+
+  // Auto Scroll to bottom when messages update
   useEffect(() => {
-    // Auto Scroll to bottom when keyboard opens or a new message arrives
     setTimeout(() => {
       scrollViewRef.current?.scrollToEnd({ animated: true });
     }, 150);
-  }, [messages, typing, activeId, viewState]);
+  }, [messages, viewState]);
 
-  const send = async () => {
-    if (!draft.trim() || !activeId) return;
+  const activePeer = peers.find((p) => p.id === activePeerId) || peers[0] || null;
+  const filteredPeers = peers.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
+  const isActiveBlocked = activePeer ? blockedUserIds.includes(activePeer.id) : false;
+
+  const handleSend = async () => {
+    if (!draft.trim() || !activePeerId) return;
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const text = draft.trim();
+    if (isActiveBlocked) {
+      Alert.alert("Blocked Connection", "You cannot send messages to blocked peers. Unblock them first.");
+      return;
+    }
+
+    const filteredText = filterOffensiveWords(draft.trim());
     setDraft("");
-    setTyping(true);
 
     try {
-      const newMsg = await sendDBMessage(user.id, activeId, text);
+      const newMsg = await sendDBPeerMessage(user.id, activePeerId, filteredText);
       setMessages((prev) => [...prev, newMsg]);
 
-      // Simulate AI Mentor reply
+      // Simulate a smart auto-reply response from the peer for a premium feel
       setTimeout(async () => {
         try {
-          const { generateAICoachResponse } = await import("../lib/ai-coach");
-          const historyPlain = messages.map(m => ({ from: m.from, text: m.text }));
-          historyPlain.push({ from: "me", text });
-
-          const replyText = generateAICoachResponse(
-            text,
-            historyPlain,
-            active?.role || "Mentor",
-            focusDomain
-          );
-
-          const replyMsg = await saveDBReply(user.id, activeId, replyText);
+          const replyText = `Hey! Thanks for connecting. I'm currently studying ${activePeer?.currentCourse || "our lessons"}. Let's collaborate!`;
+          const replyMsg = await sendDBPeerMessage(activePeerId, user.id, replyText);
           setMessages((prev) => [...prev, replyMsg]);
-        } catch (err) {
-          console.warn("Failed to save AI reply to Supabase:", err);
-        } finally {
-          setTyping(false);
-        }
-      }, 1000);
+        } catch (e) {}
+      }, 2000);
+
     } catch (err) {
-      console.warn("Failed to send message:", err);
-      setTyping(false);
+      console.warn("Failed to send peer message:", err);
     }
   };
 
-  const handleContactPress = (id: string) => {
-    setActiveId(id);
-    setViewState("chat");
+  const handleBlockAction = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user || !activePeer) return;
+
+    try {
+      if (isActiveBlocked) {
+        await unblockUser(user.id, activePeer.id);
+        setBlockedUserIds(prev => prev.filter(id => id !== activePeer.id));
+        Alert.alert("Unblocked", `You have successfully unblocked ${activePeer.name}.`);
+      } else {
+        await blockUser(user.id, activePeer.id);
+        setBlockedUserIds(prev => [...prev, activePeer.id]);
+        Alert.alert("Blocked", `${activePeer.name} has been blocked.`);
+      }
+    } catch (e) {
+      console.warn(e);
+    } finally {
+      setShowMenu(false);
+    }
   };
 
-  if (loading || !active) {
+  if (loading || !activePeer) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#f8fafc" }}>
+      <View style={styles.loadingWrapper}>
         <ActivityIndicator size="large" color="#6366f1" />
+        <Text style={styles.loadingText}>Loading Messenger...</Text>
       </View>
     );
   }
@@ -136,11 +257,11 @@ export default function ChatScreen() {
       style={styles.container}
     >
       {viewState === "list" ? (
-        // 1. Contacts List Pane
+        // 1. Messenger Connections Directory
         <View style={styles.pane}>
           <ScrollView style={styles.scrollWrapper} showsVerticalScrollIndicator={false}>
             <Header />
-            <Text style={styles.paneTitle}>Messages</Text>
+            <Text style={styles.paneTitle}>Student Messenger</Text>
             
             {/* Search Bar */}
             <View style={styles.searchBar}>
@@ -148,52 +269,62 @@ export default function ChatScreen() {
               <TextInput
                 value={search}
                 onChangeText={setSearch}
-                placeholder="Search connections"
+                placeholder="Search peers by name"
                 placeholderTextColor="#94a3b8"
                 style={styles.searchInput}
               />
             </View>
 
-            {/* Contacts Grid */}
+            {/* Peer List */}
             <View style={styles.contactsList}>
-              {filtered.map((c) => (
-                <TouchableOpacity
-                  key={c.id}
-                  onPress={() => handleContactPress(c.id)}
-                  style={[styles.contactItem, c.id === activeId && styles.activeContactItem]}
-                >
-                  <View style={styles.avatarContainer}>
-                    <LinearGradient
-                      colors={c.colors as any}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      style={styles.chatAvatar}
-                    >
-                      <Text style={styles.chatAvatarText}>{c.initials}</Text>
-                    </LinearGradient>
-                    {c.online && <View style={styles.onlineBadge} />}
-                  </View>
-
-                  <View style={styles.contactDetails}>
-                    <View style={styles.contactHeaderRow}>
-                      <Text style={styles.contactName} numberOfLines={1}>{c.name}</Text>
-                      {c.unread > 0 && (
-                        <View style={styles.unreadBadge}>
-                          <Text style={styles.unreadText}>{c.unread}</Text>
-                        </View>
-                      )}
+              {filteredPeers.map((p) => {
+                const isPeerBlocked = blockedUserIds.includes(p.id);
+                return (
+                  <TouchableOpacity
+                    key={p.id}
+                    onPress={() => {
+                      setActivePeerId(p.id);
+                      setViewState("chat");
+                    }}
+                    style={[styles.contactItem, p.id === activePeerId && styles.activeContactItem]}
+                  >
+                    <View style={styles.avatarContainer}>
+                      <LinearGradient
+                        colors={p.colors as any}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={styles.chatAvatar}
+                      >
+                        <Text style={styles.chatAvatarText}>{p.initials}</Text>
+                      </LinearGradient>
+                      <View style={[styles.onlineBadge, { backgroundColor: isPeerBlocked ? "#ef4444" : "#10b981" }]} />
                     </View>
-                    <Text style={styles.contactLastMsg} numberOfLines={1}>{c.last}</Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
+
+                    <View style={styles.contactDetails}>
+                      <View style={styles.contactHeaderRow}>
+                        <Text style={styles.contactName} numberOfLines={1}>{p.name}</Text>
+                        {isPeerBlocked && (
+                          <View style={styles.blockedBadge}>
+                            <Text style={styles.blockedBadgeText}>Blocked</Text>
+                          </View>
+                        )}
+                      </View>
+                      <Text style={styles.contactLastMsg} numberOfLines={1}>
+                        Active Track: {p.focusDomain} ({p.proficiency})
+                      </Text>
+                      <Text style={styles.contactCourse} numberOfLines={1}>
+                        📖 {p.currentCourse}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </ScrollView>
         </View>
       ) : (
-        // 2. Active Chat Detail Pane
+        // 2. Active Chat & Details
         <View style={styles.chatPane}>
-          {/* Header */}
           <View style={styles.chatHeader}>
             <TouchableOpacity onPress={() => setViewState("list")} style={styles.backButton}>
               <Feather name="arrow-left" size={18} color="#0f172a" />
@@ -201,242 +332,294 @@ export default function ChatScreen() {
 
             <View style={styles.chatHeaderAvatarWrapper}>
               <LinearGradient
-                colors={active.colors as any}
+                colors={activePeer.colors as any}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.chatHeaderAvatar}
               >
-                <Text style={styles.chatHeaderAvatarText}>{active.initials}</Text>
+                <Text style={styles.chatHeaderAvatarText}>{activePeer.initials}</Text>
               </LinearGradient>
-              {active.online && <View style={styles.headerOnlineBadge} />}
+              <View style={[styles.headerOnlineBadge, { backgroundColor: isActiveBlocked ? "#ef4444" : "#10b981" }]} />
             </View>
 
             <View style={styles.chatHeaderMeta}>
-              <Text style={styles.headerName} numberOfLines={1}>{active.name}</Text>
+              <Text style={styles.headerName} numberOfLines={1}>{activePeer.name}</Text>
               <Text style={styles.headerSubtitle} numberOfLines={1}>
-                {active.online ? "Active now" : "Offline"} · {active.role}
+                {isActiveBlocked ? "Blocked" : `Track: ${activePeer.focusDomain}`} · {activePeer.currentCourse}
               </Text>
             </View>
 
-            <TouchableOpacity onPress={() => setShowInfo(!showInfo)} style={styles.moreButton}>
-              <Feather name="more-vertical" size={18} color="#64748b" />
+            <TouchableOpacity onPress={() => setShowMenu(!showMenu)} style={styles.moreButton}>
+              <Feather name="more-vertical" size={20} color="#64748b" />
             </TouchableOpacity>
-          </View>
 
-          <View style={styles.warningStrip}>
-            <Text style={styles.warningText}>
-              Connection approved · Contact details hidden to protect privacy
-            </Text>
-          </View>
-
-          {showInfo ? (
-            // Auxiliary Contact Info Panel inside the messaging thread on mobile
-            <View style={styles.infoOverlay}>
-              <LinearGradient
-                colors={active.colors as any}
-                style={styles.infoOverlayAvatar}
-              >
-                <Text style={styles.infoOverlayAvatarText}>{active.initials}</Text>
-              </LinearGradient>
-              <Text style={styles.infoOverlayName}>{active.name}</Text>
-              <Text style={styles.infoOverlayRole}>{active.role}</Text>
-
-              <View style={styles.infoBox}>
-                <Text style={styles.infoBoxTitle}>Connection Status</Text>
-                <Text style={styles.infoBoxValue}>Approved · Mar 12, 2026</Text>
+            {/* Dropdown Menu (Three dots) */}
+            {showMenu && (
+              <View style={styles.dropdownMenu}>
+                <TouchableOpacity 
+                  onPress={handleBlockAction} 
+                  style={styles.menuItem}
+                >
+                  <Feather name="slash" size={14} color="#ef4444" style={styles.menuIcon} />
+                  <Text style={[styles.menuText, { color: "#ef4444" }]}>
+                    {isActiveBlocked ? "Unblock Peer" : "Block Peer"}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  onPress={() => {
+                    setShowMenu(false);
+                    setShowAnalyticsModal(true);
+                  }} 
+                  style={[styles.menuItem, { borderTopWidth: 1, borderTopColor: "#e2e8f0" }]}
+                >
+                  <Feather name="bar-chart-2" size={14} color="#6366f1" style={styles.menuIcon} />
+                  <Text style={styles.menuText}>View Analytics</Text>
+                </TouchableOpacity>
               </View>
+            )}
+          </View>
 
-              <TouchableOpacity style={styles.reportBtn}>
-                <Feather name="alert-circle" size={14} color="#64748b" />
-                <Text style={styles.reportBtnText}>Report User</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.blockBtn}>
-                <Feather name="slash" size={14} color="#ef4444" />
-                <Text style={styles.blockBtnText}>Block Connection</Text>
-              </TouchableOpacity>
+          {/* Messages */}
+          <ScrollView 
+            ref={scrollViewRef} 
+            style={styles.messagesContainer}
+            contentContainerStyle={styles.messagesContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {messages.map((m) => {
+              const isMe = m.sender_id !== activePeer.id;
               
-              <TouchableOpacity onPress={() => setShowInfo(false)} style={styles.closeInfoBtn}>
-                <Text style={styles.closeInfoText}>Close Details</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            // Message List
-            <ScrollView 
-              ref={scrollViewRef} 
-              style={styles.messagesContainer}
-              contentContainerStyle={styles.messagesContent}
-              showsVerticalScrollIndicator={false}
-            >
-              {messages.map((m) => {
-                const isMe = m.from === "me";
-                return (
-                  <View key={m.id} style={[styles.msgRow, isMe ? styles.msgRowMe : styles.msgRowThem]}>
-                    <View style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleThem]}>
-                      <Text style={[styles.bubbleText, isMe ? styles.textWhite : styles.textDark]}>
-                        {m.text}
+              return (
+                <View key={m.id} style={[styles.msgRow, isMe ? styles.msgRowMe : styles.msgRowThem]}>
+                  <View style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleThem]}>
+                    <Text style={[styles.bubbleText, isMe ? styles.textWhite : styles.textDark]}>
+                      {m.text}
+                    </Text>
+                    <View style={styles.msgMeta}>
+                      <Text style={[styles.msgTime, isMe ? styles.timeMe : styles.timeThem]}>
+                        {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </Text>
-                      <View style={styles.msgMeta}>
-                        <Text style={[styles.msgTime, isMe ? styles.timeMe : styles.timeThem]}>
-                          {m.time}
-                        </Text>
-                        {isMe && <Feather name="check" size={10} color="rgba(255,255,255,0.7)" />}
-                      </View>
                     </View>
                   </View>
-                );
-              })}
-
-              {typing && (
-                <View style={styles.typingContainer}>
-                  <View style={styles.typingBubble}>
-                    <View style={styles.typingDot} />
-                    <View style={[styles.typingDot, styles.typingDelay1]} />
-                    <View style={[styles.typingDot, styles.typingDelay2]} />
-                  </View>
                 </View>
-              )}
-            </ScrollView>
-          )}
+              );
+            })}
+          </ScrollView>
 
-          {/* Typing area */}
-          {!showInfo && (
-            <View style={styles.inputBar}>
-              <TouchableOpacity style={styles.attachBtn}>
-                <Feather name="paperclip" size={16} color="#64748b" />
-              </TouchableOpacity>
-              <TextInput
-                value={draft}
-                onChangeText={setDraft}
-                placeholder="Write a message…"
-                placeholderTextColor="#94a3b8"
-                style={styles.messageInput}
-              />
-              <TouchableOpacity 
-                onPress={send} 
-                disabled={!draft.trim()}
-                style={[styles.sendBtn, !draft.trim() && styles.disabledSendBtn]}
-              >
-                <Feather name="send" size={14} color="#ffffff" />
-              </TouchableOpacity>
-            </View>
-          )}
+          {/* Footer Input Bar */}
+          <View style={styles.chatFooter}>
+            <TextInput
+              value={draft}
+              onChangeText={setDraft}
+              placeholder={isActiveBlocked ? "Unblock peer to start messaging..." : "Type your message..."}
+              placeholderTextColor="#94a3b8"
+              editable={!isActiveBlocked}
+              style={[styles.input, isActiveBlocked && styles.disabledInput]}
+            />
+            <TouchableOpacity 
+              onPress={handleSend} 
+              disabled={isActiveBlocked || !draft.trim()}
+              style={[styles.sendButton, (isActiveBlocked || !draft.trim()) && styles.disabledSendButton]}
+            >
+              <Feather name="send" size={16} color="#ffffff" />
+            </TouchableOpacity>
+          </View>
         </View>
       )}
+
+      {/* PUBLIC ANALYTICS MODAL */}
+      <Modal
+        visible={showAnalyticsModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowAnalyticsModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.analyticsCard}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Public Learning Profile</Text>
+              <TouchableOpacity onPress={() => setShowAnalyticsModal(false)}>
+                <Feather name="x" size={20} color="#64748b" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.profileSection}>
+              <LinearGradient
+                colors={activePeer.colors as any}
+                style={styles.largeAvatar}
+              >
+                <Text style={styles.largeAvatarText}>{activePeer.initials}</Text>
+              </LinearGradient>
+              <Text style={styles.profileName}>{activePeer.name}</Text>
+              <Text style={styles.profileEmail}>{activePeer.email}</Text>
+              <Text style={styles.profileTrackBadge}>
+                {activePeer.focusDomain} · {activePeer.proficiency}
+              </Text>
+            </View>
+
+            <View style={styles.statsGrid}>
+              <View style={styles.statBox}>
+                <Feather name="zap" size={18} color="#f59e0b" />
+                <Text style={styles.statVal}>{activePeer.streak} days</Text>
+                <Text style={styles.statLabel}>Active Streak</Text>
+              </View>
+
+              <View style={styles.statBox}>
+                <Feather name="award" size={18} color="#10b981" />
+                <Text style={styles.statVal}>{activePeer.coursesCompleted}</Text>
+                <Text style={styles.statLabel}>Completed Courses</Text>
+              </View>
+
+              <View style={styles.statBox}>
+                <Feather name="star" size={18} color="#6366f1" />
+                <Text style={styles.statVal}>{activePeer.xp}</Text>
+                <Text style={styles.statLabel}>XP Earned</Text>
+              </View>
+
+              <View style={styles.statBox}>
+                <Feather name="trending-up" size={18} color="#a855f7" />
+                <Text style={styles.statVal}>{activePeer.careerFitScore}%</Text>
+                <Text style={styles.statLabel}>Career Readiness</Text>
+              </View>
+            </View>
+
+            <TouchableOpacity 
+              onPress={() => setShowAnalyticsModal(false)}
+              style={styles.closeModalBtn}
+            >
+              <Text style={styles.closeModalText}>Close Profile</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
 
-const styles: any = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f8fafc",
+  },
+  loadingWrapper: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f8fafc",
+    gap: 12
+  },
+  loadingText: {
+    fontSize: 14,
+    color: "#64748b",
+    fontWeight: "600"
   },
   pane: {
     flex: 1,
   },
   scrollWrapper: {
+    flex: 1,
     paddingHorizontal: 16,
     paddingTop: 12,
   },
   paneTitle: {
-    fontSize: 18,
-    fontWeight: "700",
+    fontSize: 22,
+    fontWeight: "800",
     color: "#0f172a",
-    marginBottom: 10,
+    marginVertical: 16,
   },
   searchBar: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#ffffff",
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: "#e2e8f0",
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    gap: 8,
     marginBottom: 16,
+    gap: 8,
   },
   searchInput: {
-    fontSize: 12,
-    color: "#0f172a",
     flex: 1,
-    padding: 0,
+    fontSize: 13,
+    color: "#0f172a",
   },
   contactsList: {
-    gap: 8,
+    gap: 12,
+    paddingBottom: 24,
   },
   contactItem: {
     flexDirection: "row",
-    alignItems: "center",
     backgroundColor: "#ffffff",
-    borderRadius: 20,
+    borderRadius: 16,
+    padding: 14,
     borderWidth: 1,
     borderColor: "#e2e8f0",
-    padding: 12,
     gap: 12,
   },
   activeContactItem: {
     borderColor: "#6366f1",
-    backgroundColor: "rgba(99, 102, 241, 0.03)",
+    backgroundColor: "rgba(99, 102, 241, 0.02)",
   },
   avatarContainer: {
     position: "relative",
   },
   chatAvatar: {
-    height: 42,
-    width: 42,
-    borderRadius: 14,
-    justifyContent: "center",
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: "center",
+    justifyContent: "center",
   },
   chatAvatarText: {
     color: "#ffffff",
+    fontSize: 14,
     fontWeight: "700",
-    fontSize: 13,
   },
   onlineBadge: {
     position: "absolute",
-    bottom: -1,
-    right: -1,
-    height: 10,
+    right: 0,
+    bottom: 0,
     width: 10,
+    height: 10,
     borderRadius: 5,
-    backgroundColor: "#0d9488",
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderColor: "#ffffff",
   },
   contactDetails: {
     flex: 1,
-    minWidth: 0,
+    justifyContent: "center",
   },
   contactHeaderRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    marginBottom: 3,
   },
   contactName: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "700",
     color: "#0f172a",
-    flex: 1,
   },
-  unreadBadge: {
-    height: 18,
-    minWidth: 18,
-    borderRadius: 9,
-    backgroundColor: "#6366f1",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 4,
+  blockedBadge: {
+    backgroundColor: "#fee2e2",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
   },
-  unreadText: {
-    color: "#ffffff",
+  blockedBadgeText: {
+    color: "#ef4444",
     fontSize: 9,
     fontWeight: "700",
   },
   contactLastMsg: {
     fontSize: 11,
     color: "#64748b",
+  },
+  contactCourse: {
+    fontSize: 11,
+    color: "#6366f1",
+    fontWeight: "600",
     marginTop: 2,
   },
   chatPane: {
@@ -446,48 +629,49 @@ const styles: any = StyleSheet.create({
   chatHeader: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    height: 64,
     borderBottomWidth: 1,
     borderBottomColor: "#e2e8f0",
+    paddingHorizontal: 12,
+    backgroundColor: "#ffffff",
+    position: "relative",
+    zIndex: 10,
   },
   backButton: {
-    marginRight: 10,
-    padding: 2,
+    padding: 6,
+    marginRight: 6,
   },
   chatHeaderAvatarWrapper: {
     position: "relative",
   },
   chatHeaderAvatar: {
-    height: 36,
-    width: 36,
-    borderRadius: 12,
-    justifyContent: "center",
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     alignItems: "center",
+    justifyContent: "center",
   },
   chatHeaderAvatarText: {
     color: "#ffffff",
+    fontSize: 13,
     fontWeight: "700",
-    fontSize: 12,
   },
   headerOnlineBadge: {
     position: "absolute",
-    bottom: -1,
-    right: -1,
-    height: 9,
+    right: 0,
+    bottom: 0,
     width: 9,
+    height: 9,
     borderRadius: 4.5,
-    backgroundColor: "#0d9488",
     borderWidth: 1.5,
     borderColor: "#ffffff",
   },
   chatHeaderMeta: {
     flex: 1,
     marginLeft: 10,
-    minWidth: 0,
   },
   headerName: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "700",
     color: "#0f172a",
   },
@@ -496,20 +680,34 @@ const styles: any = StyleSheet.create({
     color: "#64748b",
   },
   moreButton: {
-    padding: 4,
+    padding: 6,
   },
-  warningStrip: {
-    backgroundColor: "#f1f5f9",
+  dropdownMenu: {
+    position: "absolute",
+    right: 12,
+    top: 56,
+    backgroundColor: "#ffffff",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
     paddingVertical: 4,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
+    width: 140,
+    zIndex: 100,
   },
-  warningText: {
-    fontSize: 9,
-    color: "#64748b",
-    textAlign: "center",
-    fontWeight: "500",
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  menuIcon: {
+    marginRight: 8,
+  },
+  menuText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#334155",
   },
   messagesContainer: {
     flex: 1,
@@ -530,24 +728,24 @@ const styles: any = StyleSheet.create({
     justifyContent: "flex-start",
   },
   bubble: {
-    maxWidth: "80%",
+    maxWidth: "75%",
     borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
   },
   bubbleMe: {
     backgroundColor: "#6366f1",
-    borderBottomRightRadius: 2,
+    borderTopRightRadius: 2,
   },
   bubbleThem: {
     backgroundColor: "#ffffff",
-    borderBottomLeftRadius: 2,
     borderWidth: 1,
     borderColor: "#e2e8f0",
+    borderTopLeftRadius: 2,
   },
   bubbleText: {
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: 13,
+    lineHeight: 18,
   },
   textWhite: {
     color: "#ffffff",
@@ -557,177 +755,154 @@ const styles: any = StyleSheet.create({
   },
   msgMeta: {
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "flex-end",
-    gap: 4,
+    alignItems: "center",
     marginTop: 4,
+    gap: 4,
   },
   msgTime: {
-    fontSize: 8,
+    fontSize: 9,
   },
   timeMe: {
-    color: "rgba(255,255,255,0.7)",
+    color: "rgba(255, 255, 255, 0.7)",
   },
   timeThem: {
     color: "#94a3b8",
   },
-  typingContainer: {
-    alignItems: "flex-start",
-  },
-  typingBubble: {
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    borderRadius: 14,
-    borderBottomLeftRadius: 2,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+  chatFooter: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-  },
-  typingDot: {
-    height: 6,
-    width: 6,
-    borderRadius: 3,
-    backgroundColor: "#94a3b8",
-  },
-  typingDelay1: {
-    opacity: 0.6,
-  },
-  typingDelay2: {
-    opacity: 0.3,
-  },
-  inputBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    padding: 12,
     borderTopWidth: 1,
     borderTopColor: "#e2e8f0",
     backgroundColor: "#ffffff",
-    gap: 8,
+    gap: 10,
   },
-  attachBtn: {
-    height: 38,
-    width: 38,
-    borderRadius: 12,
+  input: {
+    flex: 1,
+    height: 40,
     backgroundColor: "#f1f5f9",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  messageInput: {
-    flex: 1,
-    fontSize: 12,
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    fontSize: 13,
     color: "#0f172a",
+  },
+  disabledInput: {
     backgroundColor: "#f8fafc",
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    maxHeight: 72,
+    color: "#94a3b8",
   },
-  sendBtn: {
-    height: 38,
-    width: 38,
-    borderRadius: 12,
+  sendButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: "#6366f1",
-    justifyContent: "center",
     alignItems: "center",
+    justifyContent: "center",
   },
-  disabledSendBtn: {
-    opacity: 0.5,
+  disabledSendButton: {
+    backgroundColor: "#cbd5e1",
   },
-  infoOverlay: {
+  modalOverlay: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: "rgba(15, 23, 42, 0.7)",
+    justifyContent: "center",
     alignItems: "center",
     padding: 24,
   },
-  infoOverlayAvatar: {
-    height: 72,
-    width: 72,
+  analyticsCard: {
+    width: "100%",
+    maxWidth: 440,
+    backgroundColor: "#ffffff",
     borderRadius: 24,
-    justifyContent: "center",
+    padding: 24,
+    boxShadow: "0 20px 25px -5px rgba(0,0,0,0.3)",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
+    paddingBottom: 12,
+    marginBottom: 16,
   },
-  infoOverlayAvatarText: {
-    color: "#ffffff",
-    fontWeight: "800",
-    fontSize: 24,
-  },
-  infoOverlayName: {
+  modalTitle: {
     fontSize: 16,
     fontWeight: "800",
     color: "#0f172a",
   },
-  infoOverlayRole: {
-    fontSize: 11,
-    color: "#64748b",
-    marginTop: 2,
-    marginBottom: 16,
-  },
-  infoBox: {
-    width: "100%",
-    backgroundColor: "#f8fafc",
-    borderRadius: 16,
-    padding: 12,
-    marginBottom: 16,
-  },
-  infoBoxTitle: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: "#64748b",
-    textTransform: "uppercase",
-  },
-  infoBoxValue: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#0f172a",
-    marginTop: 2,
-  },
-  reportBtn: {
-    width: "100%",
-    flexDirection: "row",
+  profileSection: {
     alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "#cbd5e1",
-    borderRadius: 16,
-    paddingVertical: 10,
-    gap: 6,
-    marginBottom: 8,
-  },
-  reportBtnText: {
-    fontSize: 12,
-    color: "#64748b",
-    fontWeight: "600",
-  },
-  blockBtn: {
-    width: "100%",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "rgba(239, 68, 68, 0.2)",
-    borderRadius: 16,
-    paddingVertical: 10,
-    gap: 6,
     marginBottom: 20,
   },
-  blockBtnText: {
-    fontSize: 12,
-    color: "#ef4444",
+  largeAvatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 8,
+  },
+  largeAvatarText: {
+    color: "#ffffff",
+    fontSize: 20,
+    fontWeight: "800",
+  },
+  profileName: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#0f172a",
+  },
+  profileEmail: {
+    fontSize: 11,
+    color: "#64748b",
+    marginBottom: 6,
+  },
+  profileTrackBadge: {
+    fontSize: 11,
     fontWeight: "600",
-  },
-  closeInfoBtn: {
-    padding: 6,
-  },
-  closeInfoText: {
     color: "#6366f1",
-    fontSize: 12,
+    backgroundColor: "#e0e7ff",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  statsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+    marginBottom: 20,
+  },
+  statBox: {
+    flex: 1,
+    minWidth: "45%",
+    backgroundColor: "#f8fafc",
+    borderWidth: 1,
+    borderColor: "#f1f5f9",
+    borderRadius: 14,
+    padding: 12,
+    alignItems: "center",
+  },
+  statVal: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#0f172a",
+    marginTop: 4,
+  },
+  statLabel: {
+    fontSize: 10,
+    color: "#64748b",
+    marginTop: 1,
+  },
+  closeModalBtn: {
+    backgroundColor: "#6366f1",
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  closeModalText: {
+    color: "#ffffff",
+    fontSize: 13,
     fontWeight: "700",
   },
 });

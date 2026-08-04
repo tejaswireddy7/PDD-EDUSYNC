@@ -345,3 +345,49 @@ insert into public.weak_areas (focus_domain, topic, score) values
 ('AI', 'Pandas Data Cleaning', 63),
 ('AI', 'CNN Convolution Matrix', 68)
 on conflict do nothing;
+
+-- ==========================================
+-- 13. PEER MESSAGES Table
+-- ==========================================
+create table if not exists public.peer_messages (
+  id uuid primary key default gen_random_uuid(),
+  sender_id uuid references auth.users on delete cascade not null,
+  receiver_id uuid references auth.users on delete cascade not null,
+  text text not null,
+  created_at timestamp with time zone default now()
+);
+
+alter table public.peer_messages enable row level security;
+
+drop policy if exists "Users can view their own peer messages" on public.peer_messages;
+create policy "Users can view their own peer messages" on public.peer_messages
+  for select using (auth.uid() = sender_id or auth.uid() = receiver_id);
+
+drop policy if exists "Users can send peer messages" on public.peer_messages;
+create policy "Users can send peer messages" on public.peer_messages
+  for insert with check (auth.uid() = sender_id);
+
+-- ==========================================
+-- 14. BLOCKED USERS Table
+-- ==========================================
+create table if not exists public.blocked_users (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users on delete cascade not null,
+  blocked_user_id uuid references auth.users on delete cascade not null,
+  created_at timestamp with time zone default now(),
+  unique(user_id, blocked_user_id)
+);
+
+alter table public.blocked_users enable row level security;
+
+drop policy if exists "Users can view their own blocked list" on public.blocked_users;
+create policy "Users can view their own blocked list" on public.blocked_users
+  for select using (auth.uid() = user_id);
+
+drop policy if exists "Users can block other users" on public.blocked_users;
+create policy "Users can block other users" on public.blocked_users
+  for insert with check (auth.uid() = user_id);
+
+drop policy if exists "Users can unblock other users" on public.blocked_users;
+create policy "Users can unblock other users" on public.blocked_users
+  for delete using (auth.uid() = user_id);

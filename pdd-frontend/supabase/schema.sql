@@ -26,14 +26,17 @@ create table if not exists public.profiles (
 -- Row Level Security (RLS) for Profiles
 alter table public.profiles enable row level security;
 
+drop policy if exists "Users can view their own profile" on public.profiles;
 create policy "Users can view their own profile" 
   on public.profiles for select 
   using (auth.uid() = id);
 
+drop policy if exists "Users can update their own profile" on public.profiles;
 create policy "Users can update their own profile" 
   on public.profiles for update 
   using (auth.uid() = id);
 
+drop policy if exists "Users can insert their own profile" on public.profiles;
 create policy "Users can insert their own profile" 
   on public.profiles for insert 
   with check (auth.uid() = id);
@@ -53,6 +56,7 @@ create table if not exists public.courses (
 );
 
 alter table public.courses enable row level security;
+drop policy if exists "Anyone can view courses" on public.courses;
 create policy "Anyone can view courses" on public.courses for select using (true);
 
 -- 3. RESOURCES Table
@@ -70,6 +74,7 @@ create table if not exists public.resources (
 );
 
 alter table public.resources enable row level security;
+drop policy if exists "Anyone can view resources" on public.resources;
 create policy "Anyone can view resources" on public.resources for select using (true);
 
 -- 4. MILESTONES Table
@@ -82,6 +87,7 @@ create table if not exists public.milestones (
 );
 
 alter table public.milestones enable row level security;
+drop policy if exists "Anyone can view milestones" on public.milestones;
 create policy "Anyone can view milestones" on public.milestones for select using (true);
 
 -- 5. ASSESSMENTS Table (User-specific assessments)
@@ -102,8 +108,11 @@ create table if not exists public.assessments (
 );
 
 alter table public.assessments enable row level security;
+drop policy if exists "Users can query their own assessments" on public.assessments;
 create policy "Users can query their own assessments" on public.assessments for select using (auth.uid() = user_id);
+drop policy if exists "Users can modify their own assessments" on public.assessments;
 create policy "Users can modify their own assessments" on public.assessments for insert with check (auth.uid() = user_id);
+drop policy if exists "Users can update their own assessments" on public.assessments;
 create policy "Users can update their own assessments" on public.assessments for update using (auth.uid() = user_id);
 
 -- 6. CONTACTS Table
@@ -120,6 +129,7 @@ create table if not exists public.contacts (
 );
 
 alter table public.contacts enable row level security;
+drop policy if exists "Anyone can view contacts" on public.contacts;
 create policy "Anyone can view contacts" on public.contacts for select using (true);
 
 -- 7. MESSAGES Table (User messages)
@@ -133,7 +143,9 @@ create table if not exists public.messages (
 );
 
 alter table public.messages enable row level security;
+drop policy if exists "Users can view their own messages" on public.messages;
 create policy "Users can view their own messages" on public.messages for select using (auth.uid() = user_id);
+drop policy if exists "Users can insert their own messages" on public.messages;
 create policy "Users can insert their own messages" on public.messages for insert with check (auth.uid() = user_id);
 
 -- 8. EVALUATIONS Table (Grading sheets)
@@ -153,7 +165,9 @@ create table if not exists public.evaluations (
 );
 
 alter table public.evaluations enable row level security;
+drop policy if exists "Users can view their own evaluations" on public.evaluations;
 create policy "Users can view their own evaluations" on public.evaluations for select using (auth.uid() = user_id);
+drop policy if exists "Users can insert/update their own evaluations" on public.evaluations;
 create policy "Users can insert/update their own evaluations" on public.evaluations for insert with check (auth.uid() = user_id);
 
 -- 9. CAREER SUGGESTIONS Table
@@ -166,6 +180,7 @@ create table if not exists public.career_suggestions (
 );
 
 alter table public.career_suggestions enable row level security;
+drop policy if exists "Anyone can view career suggestions" on public.career_suggestions;
 create policy "Anyone can view career suggestions" on public.career_suggestions for select using (true);
 
 -- 10. PERFORMANCE TRENDS Table
@@ -178,6 +193,7 @@ create table if not exists public.performance_trends (
 );
 
 alter table public.performance_trends enable row level security;
+drop policy if exists "Users can view their own trends" on public.performance_trends;
 create policy "Users can view their own trends" on public.performance_trends for select using (auth.uid() = user_id);
 
 -- 11. WEAK AREAS Table
@@ -189,6 +205,7 @@ create table if not exists public.weak_areas (
 );
 
 alter table public.weak_areas enable row level security;
+drop policy if exists "Anyone can view weak areas" on public.weak_areas;
 create policy "Anyone can view weak areas" on public.weak_areas for select using (true);
 
 -- 12. GRIEVANCES Table
@@ -203,7 +220,9 @@ create table if not exists public.grievances (
 );
 
 alter table public.grievances enable row level security;
+drop policy if exists "Users can view their own grievances" on public.grievances;
 create policy "Users can view their own grievances" on public.grievances for select using (auth.uid() = user_id);
+drop policy if exists "Users can file grievances" on public.grievances;
 create policy "Users can file grievances" on public.grievances for insert with check (auth.uid() = user_id);
 
 

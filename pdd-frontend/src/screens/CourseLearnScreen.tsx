@@ -617,6 +617,7 @@ export default function CourseLearnScreen() {
   const [q2Answer, setQ2Answer] = useState<number | null>(null);
   const [fifteenMinQuizFeedback, setFifteenMinQuizFeedback] = useState<string | null>(null);
   const [fifteenMinScore, setFifteenMinScore] = useState<number | null>(null);
+  const [videoDuration, setVideoDuration] = useState<number>(900); // 15 mins default fallback
 
   // Load saved video progress on mount
   useEffect(() => {
@@ -643,15 +644,27 @@ export default function CourseLearnScreen() {
           if (data.info.playerState !== undefined) {
             setIsPlaying(data.info.playerState === 1);
           }
+          if (data.info.duration !== undefined && data.info.duration > 0) {
+            setVideoDuration(data.info.duration);
+          }
+          if (data.info.currentTime !== undefined) {
+            const current = data.info.currentTime;
+            setWatchedTime(current);
+            
+            if (typeof window !== "undefined" && window.localStorage) {
+              const cacheKey = `video_progress_${courseTitle}_${store.user?.email || "guest"}`;
+              window.localStorage.setItem(cacheKey, Math.round(current).toString());
+            }
+          }
         }
       } catch (e) {}
     };
 
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
-  }, []);
+  }, [courseTitle, store.user?.email]);
 
-  // Watch timer: increments watched seconds if playing
+  // Watch timer: increments watched seconds if playing as fallback/helper
   useEffect(() => {
     if (!isPlaying) return;
 
@@ -659,34 +672,38 @@ export default function CourseLearnScreen() {
       setWatchedTime((prev) => {
         const next = prev + 1;
 
-        // Save watched time progress to local storage
         if (typeof window !== "undefined" && window.localStorage) {
           const cacheKey = `video_progress_${courseTitle}_${store.user?.email || "guest"}`;
           window.localStorage.setItem(cacheKey, next.toString());
         }
 
-        const progressPercent = Math.min(99, Math.round((next / 900) * 100));
-        store.updateCourseProgress(courseTitle, progressPercent);
-
-        if (next >= 900 && !quizTriggered) {
-          setQuizTriggered(true);
-          setShowFifteenMinQuiz(true);
-
-          // Attempt to pause video inside iframe
-          const iframe = document.querySelector("iframe");
-          if (iframe && iframe.contentWindow) {
-            iframe.contentWindow.postMessage(
-              JSON.stringify({ event: "command", func: "pauseVideo", args: [] }),
-              "*"
-            );
-          }
-        }
         return next;
       });
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isPlaying, quizTriggered, courseTitle, store.user?.email]);
+  }, [isPlaying, courseTitle, store.user?.email]);
+
+  // Dynamic progress synchronization based on watchedTime / videoDuration
+  useEffect(() => {
+    if (videoDuration > 0) {
+      const progressPercent = Math.min(99, Math.round((watchedTime / videoDuration) * 99));
+      store.updateCourseProgress(courseTitle, progressPercent);
+
+      if (watchedTime >= videoDuration * 0.99 && !quizTriggered) {
+        setQuizTriggered(true);
+        setShowFifteenMinQuiz(true);
+
+        const iframe = document.querySelector("iframe");
+        if (iframe && iframe.contentWindow) {
+          iframe.contentWindow.postMessage(
+            JSON.stringify({ event: "command", func: "pauseVideo", args: [] }),
+            "*"
+          );
+        }
+      }
+    }
+  }, [watchedTime, videoDuration, courseTitle, quizTriggered]);
 
   const handleFifteenMinQuizSubmit = () => {
     const sectList = COURSE_SECTIONS[courseTitle] || defaultSections;
@@ -885,18 +902,17 @@ export default function CourseLearnScreen() {
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
               <MaterialCommunityIcons name="timer-outline" size={16} color="#6366f1" />
               <Text style={styles.timerText}>
-                Watch Progress: {Math.floor(watchedTime / 60)}m {Math.floor(watchedTime % 60)}s / 15m 00s
+                Watch Progress: {Math.floor(watchedTime / 60)}m {Math.floor(watchedTime % 60)}s / {Math.floor(videoDuration / 60)}m {Math.floor(videoDuration % 60)}s
               </Text>
             </View>
             <TouchableOpacity
               onPress={() => {
-                setWatchedTime(895);
+                const targetTime = Math.max(0, videoDuration - 5);
+                setWatchedTime(targetTime);
                 if (typeof window !== "undefined" && window.localStorage) {
                   const cacheKey = `video_progress_${courseTitle}_${store.user?.email || "guest"}`;
-                  window.localStorage.setItem(cacheKey, "895");
+                  window.localStorage.setItem(cacheKey, targetTime.toString());
                 }
-                const progressPercent = Math.min(99, Math.round((895 / 900) * 100));
-                store.updateCourseProgress(courseTitle, progressPercent);
               }}
               style={styles.simulateBtn}
               activeOpacity={0.7}

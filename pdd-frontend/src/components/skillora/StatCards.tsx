@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform, Image } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useDashboardStore } from "../../lib/store";
@@ -20,10 +20,10 @@ export function StatCards() {
   const fitScore = `${store.user?.careerFitScore ?? 0}%`;
 
   const stats = [
-    { bootstrapIcon: "clock-history", label: "Weekly Goal", value: `${targetHours} hrs`, delta: "+2 hrs", up: true, tint: "primary" },
-    { bootstrapIcon: "journal-check", label: "Courses Completed", value: coursesCompleted, delta: coursesCompleted !== "0" ? "+1" : "0", up: true, tint: "mint" },
-    { bootstrapIcon: "bullseye", label: "Level Target", value: userProficiency, delta: "Active", up: true, tint: "primary" },
-    { bootstrapIcon: "speedometer2", label: "Career Fit Score", value: fitScore, delta: fitScore !== "0%" ? "+3%" : "0%", up: true, tint: "mint" },
+    { bootstrapIcon: "clock-history", label: "Weekly Goal", value: `${targetHours} hrs`, delta: "+2 hrs", up: true, tint: "primary", bgImage: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=150&auto=format&fit=crop" },
+    { bootstrapIcon: "journal-check", label: "Courses Completed", value: coursesCompleted, delta: coursesCompleted !== "0" ? "+1" : "0", up: true, tint: "mint", bgImage: "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=150&auto=format&fit=crop" },
+    { bootstrapIcon: "bullseye", label: "Level Target", value: userProficiency, delta: "Active", up: true, tint: "primary", bgImage: "https://images.unsplash.com/photo-1518133680487-4179324e58a7?w=150&auto=format&fit=crop" },
+    { bootstrapIcon: "speedometer2", label: "Career Fit Score", value: fitScore, delta: fitScore !== "0%" ? "+3%" : "0%", up: true, tint: "mint", bgImage: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=150&auto=format&fit=crop" },
   ];
 
   // XP Calculations
@@ -70,6 +70,12 @@ export function StatCards() {
           const isPrimary = s.tint === "primary";
           return (
             <View key={s.label} style={styles.card}>
+              <Image
+                source={{ uri: s.bgImage }}
+                style={StyleSheet.absoluteFillObject}
+                resizeMode="cover"
+              />
+              <View style={[StyleSheet.absoluteFillObject, { backgroundColor: "rgba(255, 255, 255, 0.88)" }]} />
               <View style={styles.header}>
                 <View style={[styles.iconContainer, isPrimary ? styles.bgPrimary : styles.bgMint]}>
                   <BootstrapIcon name={s.bootstrapIcon} size={15} color={isPrimary ? "#6366f1" : "#0d9488"} />
@@ -167,6 +173,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.03,
     shadowRadius: 8,
     elevation: 2,
+    position: "relative",
+    overflow: "hidden",
   },
   header: {
     flexDirection: "row",

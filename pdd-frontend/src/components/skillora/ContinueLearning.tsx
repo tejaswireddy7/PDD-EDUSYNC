@@ -392,11 +392,7 @@ export function ContinueLearning() {
             style={styles.card}
             activeOpacity={0.9}
             onPress={() => {
-              if (Platform.OS === "web") {
-                window.open("/course-learn?course=" + encodeURIComponent(c.title), "_blank");
-              } else {
-                navigate({ to: "/course-learn", search: { course: c.title } });
-              }
+              navigate({ to: "/course-learn", search: { course: c.title } });
             }}
           >
             <View style={styles.cardHeader}>
@@ -497,11 +493,7 @@ export function ContinueLearning() {
                     style={styles.modalCard}
                     onPress={() => {
                       setShowAllCoursesModal(false);
-                      if (Platform.OS === "web") {
-                        window.open("/course-learn?course=" + encodeURIComponent(c.title), "_blank");
-                      } else {
-                        navigate({ to: "/course-learn", search: { course: c.title } });
-                      }
+                      navigate({ to: "/course-learn", search: { course: c.title } });
                     }}
                     activeOpacity={0.9}
                   >

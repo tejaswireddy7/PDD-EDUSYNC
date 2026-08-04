@@ -64,6 +64,38 @@ const DEFAULT_STATE: DashboardState = {
 
 // Internal store variables
 let state: DashboardState = { ...DEFAULT_STATE };
+
+// Synchronously hydrate state if localStorage is available
+if (typeof window !== "undefined" && window.localStorage) {
+  const lastUserId = window.localStorage.getItem("last_logged_in_user_id");
+  const savedToken = window.localStorage.getItem("supabase_session_token");
+  if (lastUserId && savedToken) {
+    const savedProfile = window.localStorage.getItem(`user_profile_${lastUserId}`);
+    if (savedProfile) {
+      try {
+        const parsedProfile = JSON.parse(savedProfile);
+        state.user = {
+          name: parsedProfile.name || "Student",
+          email: parsedProfile.email || "",
+          registeredAt: parsedProfile.created_at ? new Date(parsedProfile.created_at).getTime() : Date.now(),
+          streak: parsedProfile.streak ?? 1,
+          coursesCompleted: parsedProfile.courses_completed ?? 0,
+          careerFitScore: parsedProfile.career_fit_score ?? 0,
+          xp: parsedProfile.xp ?? 0
+        };
+        state.token = savedToken;
+        state.surveyCompleted = window.localStorage.getItem(`survey_completed_${parsedProfile.email}`) === "true";
+        state.isLoadingProfile = false;
+        
+        const savedAnswers = window.localStorage.getItem(`survey_answers_${parsedProfile.email}`);
+        if (savedAnswers) {
+          state.surveyAnswers = JSON.parse(savedAnswers);
+        }
+      } catch (e) {}
+    }
+  }
+}
+
 const listeners = new Set<() => void>();
 
 // Centralized state updater

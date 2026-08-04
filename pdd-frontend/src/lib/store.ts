@@ -169,14 +169,12 @@ export function useDashboardStore() {
     };
   }, []);
 
-  const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+  const recommendedCourses = current.recommendations?.courses || [];
+  const allCoursesCompleted = recommendedCourses.length > 0 && recommendedCourses.every(c => c.progress === 100);
+
   const isResurveyDue =
     current.surveyCompleted &&
-    (current.forceResurveyTriggered ||
-      (current.lastSurveyDate !== null &&
-        Date.now() - current.lastSurveyDate >= SEVEN_DAYS_MS &&
-        (current.skippedResurveyAt === null ||
-          Date.now() - current.skippedResurveyAt >= SEVEN_DAYS_MS)));
+    (current.forceResurveyTriggered || allCoursesCompleted);
 
   return {
     ...current,
@@ -919,6 +917,7 @@ supabase.auth.onAuthStateChange((event: any, session: any) => {
         xp: finalXp
       },
       surveyCompleted: localSurveyDone || (profile ? (!!profile.last_survey_date || !!profile.lastSurveyDate || !!profile.focus_domain || !!profile.focusDomain) : false),
+      lastSurveyDate: profile?.last_survey_date || profile?.lastSurveyDate ? new Date(profile.last_survey_date || profile.lastSurveyDate).getTime() : (localSurveyDone ? Date.now() : null),
       surveyAnswers: profile && (profile.focus_domain || profile.focusDomain) ? {
         focusDomain: profile.focus_domain || profile.focusDomain,
         proficiency: profile.proficiency || "Beginner",

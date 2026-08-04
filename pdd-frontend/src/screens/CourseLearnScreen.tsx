@@ -666,7 +666,7 @@ export default function CourseLearnScreen() {
 
   // Watch timer: increments watched seconds if playing as fallback/helper
   useEffect(() => {
-    if (!isPlaying) return;
+    if (!isPlaying || showFifteenMinQuiz) return;
 
     const interval = setInterval(() => {
       setWatchedTime((prev) => {
@@ -881,16 +881,24 @@ export default function CourseLearnScreen() {
         <View style={styles.leftCol}>
           <View style={styles.videoPlayerContainer}>
             {Platform.OS === "web" ? (
-              <iframe
-                width="100%"
-                height="100%"
-                src={`${videoUrl}?autoplay=1&enablejsapi=1&start=${activeStartSec}`}
-                title={courseTitle}
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                style={{ borderRadius: 20, border: "none" }}
-              />
+              !showFifteenMinQuiz ? (
+                <iframe
+                  width="100%"
+                  height="100%"
+                  src={`${videoUrl}?autoplay=1&enablejsapi=1&start=${activeStartSec}`}
+                  title={courseTitle}
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  style={{ borderRadius: 20, border: "none" }}
+                />
+              ) : (
+                <View style={{ flex: 1, backgroundColor: "#090d16", justifyContent: "center", alignItems: "center", borderRadius: 20 }}>
+                  <MaterialCommunityIcons name="video-off" size={48} color="#475569" style={{ marginBottom: 12 }} />
+                  <Text style={{ color: "#94a3b8", fontSize: 15, fontWeight: "600" }}>Lesson Paused for Checkpoint Quiz</Text>
+                  <Text style={{ color: "#64748b", fontSize: 12, marginTop: 4 }}>Resume watching after closing the quiz</Text>
+                </View>
+              )
             ) : (
               <View style={{ flex: 1, backgroundColor: "#000", justifyContent: "center", alignItems: "center" }}>
                 <Text style={{ color: "#fff" }}>Playback only supported on Web version.</Text>
@@ -1278,100 +1286,120 @@ export default function CourseLearnScreen() {
       >
         <View style={styles.fifteenOverlay}>
           <View style={styles.fifteenModal}>
-            <View style={styles.fifteenHeader}>
-              <MaterialCommunityIcons name="timer-sand" size={24} color="#6366f1" />
-              <Text style={styles.fifteenTitle}>15-Minute Lesson Checkpoint Quiz</Text>
-            </View>
-            
-            <Text style={styles.fifteenIntro}>
-              Great job! You have watched 15 minutes of this lesson video. Answer these 2 questions based on what you have learned to complete the course and submit your progress:
-            </Text>
-
-            <ScrollView contentContainerStyle={styles.fifteenBody} showsVerticalScrollIndicator={true}>
-              {/* Question 1 */}
-              {sections[0] && (
-                <View style={styles.fifteenQCard}>
-                  <Text style={styles.fifteenQText}>Q1: {sections[0].quiz.question}</Text>
-                  <View style={styles.fifteenOptions}>
-                    {sections[0].quiz.options.map((opt, oIdx) => {
-                      const isSel = q1Answer === oIdx;
-                      return (
-                        <TouchableOpacity
-                          key={oIdx}
-                          onPress={() => {
-                            if (fifteenMinScore !== null) return;
-                            setQ1Answer(oIdx);
-                          }}
-                          style={[styles.quizOptionBtn, isSel && styles.quizOptionBtnActive]}
-                          activeOpacity={0.7}
-                        >
-                          <Text style={[styles.quizOptionText, isSel && styles.quizOptionTextActive]}>{opt}</Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                </View>
-              )}
-
-              {/* Question 2 */}
-              {sections[1] && (
-                <View style={styles.fifteenQCard}>
-                  <Text style={styles.fifteenQText}>Q2: {sections[1].quiz.question}</Text>
-                  <View style={styles.fifteenOptions}>
-                    {sections[1].quiz.options.map((opt, oIdx) => {
-                      const isSel = q2Answer === oIdx;
-                      return (
-                        <TouchableOpacity
-                          key={oIdx}
-                          onPress={() => {
-                            if (fifteenMinScore !== null) return;
-                            setQ2Answer(oIdx);
-                          }}
-                          style={[styles.quizOptionBtn, isSel && styles.quizOptionBtnActive]}
-                          activeOpacity={0.7}
-                        >
-                          <Text style={[styles.quizOptionText, isSel && styles.quizOptionTextActive]}>{opt}</Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                </View>
-              )}
-            </ScrollView>
-
-            {fifteenMinQuizFeedback && (
-              <View style={styles.fifteenScoreBox}>
-                <Text style={styles.fifteenScoreText}>
-                  Your Score: {fifteenMinScore} / 2
-                </Text>
-                <Text style={styles.fifteenFeedbackText}>
-                  {fifteenMinQuizFeedback}
-                </Text>
+            <ScrollView showsVerticalScrollIndicator={true} style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 10 }}>
+              <View style={styles.fifteenHeader}>
+                <MaterialCommunityIcons name="timer-sand" size={24} color="#6366f1" />
+                <Text style={styles.fifteenTitle}>15-Minute Lesson Checkpoint Quiz</Text>
               </View>
-            )}
+              
+              <Text style={styles.fifteenIntro}>
+                Great job! You have watched 15 minutes of this lesson video. Answer these 2 questions based on what you have learned to complete the course and submit your progress:
+              </Text>
 
-            <View style={styles.fifteenFooter}>
-              {fifteenMinScore === null ? (
-                <TouchableOpacity
-                  style={styles.fifteenSubmitBtn}
-                  onPress={handleFifteenMinQuizSubmit}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.fifteenSubmitText}>Submit Lesson Checkpoint</Text>
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity
-                  style={[styles.fifteenSubmitBtn, { backgroundColor: "#6366f1" }]}
-                  onPress={() => {
-                    setShowFifteenMinQuiz(false);
-                    closeWindow();
-                  }}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.fifteenSubmitText}>Complete & Close</Text>
-                </TouchableOpacity>
+              <View style={styles.fifteenBody}>
+                {/* Question 1 */}
+                {sections[0] && (
+                  <View style={styles.fifteenQCard}>
+                    <Text style={styles.fifteenQText}>Q1: {sections[0].quiz.question}</Text>
+                    <View style={styles.fifteenOptions}>
+                      {sections[0].quiz.options.map((opt, oIdx) => {
+                        const isSel = q1Answer === oIdx;
+                        return (
+                          <TouchableOpacity
+                            key={oIdx}
+                            onPress={() => {
+                              if (fifteenMinScore !== null) return;
+                              setQ1Answer(oIdx);
+                            }}
+                            style={[styles.quizOptionBtn, isSel && styles.quizOptionBtnActive]}
+                            activeOpacity={0.7}
+                          >
+                            <Text style={[styles.quizOptionText, isSel && styles.quizOptionTextActive]}>{opt}</Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  </View>
+                )}
+
+                {/* Question 2 */}
+                {sections[1] && (
+                  <View style={styles.fifteenQCard}>
+                    <Text style={styles.fifteenQText}>Q2: {sections[1].quiz.question}</Text>
+                    <View style={styles.fifteenOptions}>
+                      {sections[1].quiz.options.map((opt, oIdx) => {
+                        const isSel = q2Answer === oIdx;
+                        return (
+                          <TouchableOpacity
+                            key={oIdx}
+                            onPress={() => {
+                              if (fifteenMinScore !== null) return;
+                              setQ2Answer(oIdx);
+                            }}
+                            style={[styles.quizOptionBtn, isSel && styles.quizOptionBtnActive]}
+                            activeOpacity={0.7}
+                          >
+                            <Text style={[styles.quizOptionText, isSel && styles.quizOptionTextActive]}>{opt}</Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  </View>
+                )}
+              </View>
+
+              {fifteenMinQuizFeedback && (
+                <View style={styles.fifteenScoreBox}>
+                  <Text style={styles.fifteenScoreText}>
+                    Your Score: {fifteenMinScore} / 2
+                  </Text>
+                  <Text style={styles.fifteenFeedbackText}>
+                    {fifteenMinQuizFeedback}
+                  </Text>
+                </View>
               )}
-            </View>
+
+              <View style={styles.fifteenFooter}>
+                {fifteenMinScore === null ? (
+                  <TouchableOpacity
+                    style={styles.fifteenSubmitBtn}
+                    onPress={handleFifteenMinQuizSubmit}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.fifteenSubmitText}>Submit Lesson Checkpoint</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <View style={{ flexDirection: "column", gap: 10 }}>
+                    {fifteenMinScore < 2 && (
+                      <TouchableOpacity
+                        style={[styles.fifteenSubmitBtn, { backgroundColor: "#ef4444" }]}
+                        onPress={() => {
+                          setQ1Answer(null);
+                          setQ2Answer(null);
+                          setFifteenMinScore(null);
+                          setFifteenMinQuizFeedback(null);
+                          setShowFifteenMinQuiz(false);
+                          setIsPlaying(false);
+                        }}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={styles.fifteenSubmitText}>🔄 Try Again / Go Back to Lesson</Text>
+                      </TouchableOpacity>
+                    )}
+                    <TouchableOpacity
+                      style={[styles.fifteenSubmitBtn, { backgroundColor: "#6366f1" }]}
+                      onPress={() => {
+                        setShowFifteenMinQuiz(false);
+                        closeWindow();
+                      }}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={styles.fifteenSubmitText}>Complete & Close</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -1858,6 +1886,7 @@ const styles = StyleSheet.create({
   fifteenModal: {
     width: "100%",
     maxWidth: 650,
+    maxHeight: "85%",
     backgroundColor: "#1e293b",
     borderRadius: 24,
     padding: 24,

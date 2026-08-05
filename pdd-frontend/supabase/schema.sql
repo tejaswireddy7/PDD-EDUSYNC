@@ -444,13 +444,7 @@ create policy "Users can update connection requests they received" on public.pee
 -- Peer Conversations Policies
 drop policy if exists "Users can view conversations they participate in" on public.peer_conversations;
 create policy "Users can view conversations they participate in" on public.peer_conversations
-  for select using (
-    exists (
-      select 1 from public.peer_conversation_participants
-      where peer_conversation_participants.conversation_id = id
-      and peer_conversation_participants.user_id = auth.uid()
-    )
-  );
+  for select using (auth.role() = 'authenticated');
 
 drop policy if exists "Users can insert conversations" on public.peer_conversations;
 create policy "Users can insert conversations" on public.peer_conversations
@@ -543,4 +537,28 @@ begin
   end if;
 end;
 $$;
+
+-- ==========================================
+-- FILE ATTACHMENT COLUMNS FOR PEER MESSAGES
+-- ==========================================
+alter table public.peer_messages add column if not exists attachment_url text;
+alter table public.peer_messages add column if not exists attachment_name text;
+
+-- ==========================================
+-- STORAGE BUCKET FOR CHAT ATTACHMENTS
+-- ==========================================
+insert into storage.buckets (id, name, public)
+values ('chat-attachments', 'chat-attachments', true)
+on conflict (id) do update set public = true;
+
+-- Setup Storage Policies for Chat Attachments
+drop policy if exists "Allow public read access to chat attachments" on storage.objects;
+create policy "Allow public read access to chat attachments"
+  on storage.objects for select using (bucket_id = 'chat-attachments');
+
+drop policy if exists "Allow authenticated users to upload chat attachments" on storage.objects;
+create policy "Allow authenticated users to upload chat attachments"
+  on storage.objects for insert with check (
+    bucket_id = 'chat-attachments' and auth.role() = 'authenticated'
+  );
 

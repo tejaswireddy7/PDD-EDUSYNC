@@ -1440,11 +1440,23 @@ export async function fetchDBMessagesPaged(conversationId: string, limit: number
 }
 
 // 27. Send Message in a conversation
-export async function sendDBMessage(conversationId: string, senderId: string, message: string): Promise<any> {
+export async function sendDBMessage(
+  conversationId: string, 
+  senderId: string, 
+  message: string,
+  attachmentUrl?: string,
+  attachmentName?: string
+): Promise<any> {
   try {
     const { data, error } = await supabase
       .from("peer_messages")
-      .insert({ conversation_id: conversationId, sender_id: senderId, message })
+      .insert({ 
+        conversation_id: conversationId, 
+        sender_id: senderId, 
+        message,
+        attachment_url: attachmentUrl,
+        attachment_name: attachmentName
+      })
       .select()
       .single();
     if (error) throw error;
@@ -1567,5 +1579,47 @@ export async function getOrCreateConversation(user1: string, user2: string): Pro
     throw e;
   }
 }
+
+// 31. Disconnect a connection
+export async function deleteDBConnection(connectionId: string): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from("peer_connections")
+      .delete()
+      .eq("id", connectionId);
+    if (error) throw error;
+  } catch (e) {
+    console.error("deleteDBConnection failed:", e);
+    throw e;
+  }
+}
+
+// 32. Block a connection user
+export async function blockDBUser(connectionId: string): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from("peer_connections")
+      .update({ status: "blocked" })
+      .eq("id", connectionId);
+    if (error) throw error;
+  } catch (e) {
+    console.error("blockDBUser failed:", e);
+    throw e;
+  }
+}
+
+// 33. Block a user directly (no existing connection)
+export async function blockDBUserDirect(senderId: string, receiverId: string): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from("peer_connections")
+      .insert({ sender_id: senderId, receiver_id: receiverId, status: "blocked" });
+    if (error) throw error;
+  } catch (e) {
+    console.error("blockDBUserDirect failed:", e);
+    throw e;
+  }
+}
+
 
 

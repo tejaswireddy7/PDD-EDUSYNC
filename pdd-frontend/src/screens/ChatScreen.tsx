@@ -15,7 +15,11 @@ import {
   fetchDBMessagesPaged,
   sendDBMessage,
   markMessagesAsRead,
-  getOrCreateConversation
+  getOrCreateConversation,
+  deleteDBConnection,
+  blockDBUser,
+  blockDBUserDirect,
+  fetchDBProfile
 } from "../lib/supabase-db";
 
 type PeerUser = {
@@ -64,7 +68,7 @@ export default function ChatScreen() {
   
   // Active Chat States
   const [activeConv, setActiveConv] = useState<Conversation | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<any[]>([]);
   const [draft, setDraft] = useState("");
   
   // Search & Pagination States
@@ -72,6 +76,93 @@ export default function ChatScreen() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [msgOffset, setMsgOffset] = useState(0);
+
+  // Connection Menu & Analytics States
+  const [menuVisibleId, setMenuVisibleId] = useState<string | null>(null);
+  const [selectedPeerProfile, setSelectedPeerProfile] = useState<any>(null);
+  const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
+
+  const fileInputRef = useRef<any>(null);
+
+  const handleAttachFile = () => {
+    if (Platform.OS === "web") {
+      fileInputRef.current?.click();
+    }
+  };
+
+  const handleFileSelected = async (e: any) => {
+    const file = e.target?.files?.[0];
+    if (!file || !activeConv) return;
+
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `${activeConv.id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("chat-attachments")
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("chat-attachments")
+        .getPublicUrl(filePath);
+
+      const sentMsg = await sendDBMessage(
+        activeConv.id, 
+        currentUserId, 
+        `Shared a file: ${file.name}`, 
+        publicUrl, 
+        file.name
+      );
+      setMessages((prev) => [...prev, sentMsg]);
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    } catch (err) {
+      console.error("File upload failed:", err);
+      Alert.alert("Upload Error", "Failed to upload attachment.");
+    }
+  };
+
+  const handleDisconnect = async (connId: string) => {
+    try {
+      await deleteDBConnection(connId);
+      Alert.alert("Success", "Disconnected successfully.");
+      loadInitialData();
+    } catch (e) {
+      Alert.alert("Error", "Failed to disconnect.");
+    }
+  };
+
+  const handleBlock = async (connId: string | null, peerId: string) => {
+    try {
+      if (connId) {
+        await blockDBUser(connId);
+      } else {
+        await blockDBUserDirect(currentUserId, peerId);
+      }
+      Alert.alert("Success", "User blocked successfully.");
+      loadInitialData();
+    } catch (e) {
+      Alert.alert("Error", "Failed to block user.");
+    }
+  };
+
+  const handleViewAnalytics = async (peerId: string) => {
+    try {
+      const profile = await fetchDBProfile(peerId);
+      if (profile) {
+        setSelectedPeerProfile(profile);
+        setShowAnalyticsModal(true);
+      } else {
+        Alert.alert("No Data", "This user hasn't initialized their profile stats yet.");
+      }
+    } catch (e) {
+      Alert.alert("Error", "Failed to load peer analytics.");
+    }
+  };
 
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -486,48 +577,137 @@ export default function ChatScreen() {
                             <Text style={styles.peerName}>{p.name}</Text>
                             <Text style={styles.peerTrack}>{p.focusDomain} · {p.proficiency}</Text>
                           </View>
-
-                          {!conn ? (
-                            <TouchableOpacity 
-                              onPress={() => handleSendRequest(p.id)}
-                              style={styles.actionBtn}
-                            >
-                              <Text style={styles.actionBtnText}>Connect</Text>
-                            </TouchableOpacity>
-                          ) : conn.status === "pending" ? (
-                            conn.sender_id === currentUserId ? (
-                              <Text style={styles.statusLabel}>Pending Sent</Text>
+                          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                            {!conn ? (
+                              <TouchableOpacity 
+                                onPress={() => handleSendRequest(p.id)}
+                                style={styles.actionBtn}
+                              >
+                                <Text style={styles.actionBtnText}>Connect</Text>
+                              </TouchableOpacity>
+                            ) : conn.status === "pending" ? (
+                              conn.sender_id === currentUserId ? (
+                                <Text style={styles.statusLabel}>Pending Sent</Text>
+                              ) : (
+                                <View style={styles.rowButtons}>
+                                  <TouchableOpacity 
+                                    onPress={() => handleUpdateRequest(conn.id, "accepted", conn.sender_id)}
+                                    style={[styles.smallBtn, { backgroundColor: "#10b981" }]}
+                                  >
+                                    <Text style={styles.smallBtnText}>Accept</Text>
+                                  </TouchableOpacity>
+                                  <TouchableOpacity 
+                                    onPress={() => handleUpdateRequest(conn.id, "rejected", conn.sender_id)}
+                                    style={[styles.smallBtn, { backgroundColor: "#ef4444" }]}
+                                  >
+                                    <Text style={styles.smallBtnText}>Reject</Text>
+                                  </TouchableOpacity>
+                                </View>
+                              )
+                            ) : conn.status === "accepted" ? (
+                              <TouchableOpacity 
+                                onPress={async () => {
+                                  try {
+                                    const convId = await getOrCreateConversation(currentUserId, p.id);
+                                    setActiveConv({
+                                      id: convId,
+                                      peer: p
+                                    });
+                                    setTab("chats");
+                                  } catch (err) {
+                                    Alert.alert("Error", "Failed to start conversation.");
+                                  }
+                                }}
+                                style={[styles.actionBtn, { backgroundColor: "#10b981" }]}
+                              >
+                                <Text style={styles.actionBtnText}>Chat</Text>
+                              </TouchableOpacity>
                             ) : (
-                              <View style={styles.rowButtons}>
+                              <Text style={styles.statusLabel}>Rejected</Text>
+                            )}
+
+                            {(!conn || conn.status !== "blocked") && (
+                              <TouchableOpacity 
+                                onPress={() => setMenuVisibleId(menuVisibleId === p.id ? null : p.id)}
+                                style={{ padding: 6 }}
+                              >
+                                <Feather name="more-vertical" size={16} color="#64748b" />
+                              </TouchableOpacity>
+                            )}
+                          </View>
+
+                          {menuVisibleId === p.id && (
+                            <View style={styles.dropdownMenu}>
+                              {conn?.status === "accepted" && (
                                 <TouchableOpacity 
-                                  onPress={() => handleUpdateRequest(conn.id, "accepted", conn.sender_id)}
-                                  style={[styles.smallBtn, { backgroundColor: "#10b981" }]}
+                                  onPress={() => {
+                                    setMenuVisibleId(null);
+                                    handleDisconnect(conn.id);
+                                  }}
+                                  style={styles.menuItem}
                                 >
-                                  <Text style={styles.smallBtnText}>Accept</Text>
+                                  <Feather name="user-x" size={12} color="#ef4444" style={styles.menuIcon} />
+                                  <Text style={[styles.menuText, { color: "#ef4444" }]}>Disconnect</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity 
-                                  onPress={() => handleUpdateRequest(conn.id, "rejected", conn.sender_id)}
-                                  style={[styles.smallBtn, { backgroundColor: "#ef4444" }]}
-                                >
-                                  <Text style={styles.smallBtnText}>Reject</Text>
-                                </TouchableOpacity>
-                              </View>
-                            )
-                          ) : conn.status === "accepted" ? (
+                              )}
+                              <TouchableOpacity 
+                                onPress={() => {
+                                  setMenuVisibleId(null);
+                                  handleBlock(conn?.id || null, p.id);
+                                }}
+                                style={styles.menuItem}
+                              >
+                                <Feather name="slash" size={12} color="#f59e0b" style={styles.menuIcon} />
+                                <Text style={styles.menuText}>Block</Text>
+                              </TouchableOpacity>
+                              <TouchableOpacity 
+                                onPress={() => {
+                                  setMenuVisibleId(null);
+                                  handleViewAnalytics(p.id);
+                                }}
+                                style={styles.menuItem}
+                              >
+                                <Feather name="bar-chart-2" size={12} color="#6366f1" style={styles.menuIcon} />
+                                <Text style={styles.menuText}>View Analytics</Text>
+                              </TouchableOpacity>
+                            </View>
+                          )}
+                        </View>
+                      );
+                    })
+                  )}
+                </View>
+
+                {/* My Connections */}
+                <View style={styles.connBlock}>
+                  <Text style={styles.sectionHeader}>My Connections</Text>
+                  {(() => {
+                    const acceptedConns = connections.filter(c => c.status === "accepted");
+                    if (acceptedConns.length === 0) {
+                      return <Text style={styles.emptyText}>No active connections yet.</Text>;
+                    }
+                    return acceptedConns.map(c => {
+                      const peerId = c.sender_id === currentUserId ? c.receiver_id : c.sender_id;
+                      const peer = peers.find(p => p.id === peerId);
+                      if (!peer) return null;
+                      return (
+                        <View key={c.id} style={styles.searchItem}>
+                          <View style={styles.peerMeta}>
+                            <Text style={styles.peerName}>{peer.name}</Text>
+                            <Text style={styles.peerTrack}>{peer.focusDomain} · {peer.proficiency}</Text>
+                          </View>
+
+                          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                             <TouchableOpacity 
                               onPress={async () => {
-                                console.log("[ChatScreen] Chat button clicked. currentUserId:", currentUserId, "peerId:", p.id);
                                 try {
-                                  const convId = await getOrCreateConversation(currentUserId, p.id);
-                                  console.log("[ChatScreen] getOrCreateConversation returned convId:", convId);
+                                  const convId = await getOrCreateConversation(currentUserId, peer.id);
                                   setActiveConv({
                                     id: convId,
-                                    peer: p
+                                    peer: peer
                                   });
                                   setTab("chats");
-                                  console.log("[ChatScreen] Tab switched to chats. ActiveConv set successfully.");
                                 } catch (err) {
-                                  console.error("[ChatScreen] Failed to start conversation:", err);
                                   Alert.alert("Error", "Failed to start conversation.");
                                 }
                               }}
@@ -535,13 +715,53 @@ export default function ChatScreen() {
                             >
                               <Text style={styles.actionBtnText}>Chat</Text>
                             </TouchableOpacity>
-                          ) : (
-                            <Text style={styles.statusLabel}>Rejected</Text>
+
+                            <TouchableOpacity 
+                              onPress={() => setMenuVisibleId(menuVisibleId === peer.id ? null : peer.id)}
+                              style={{ padding: 6 }}
+                            >
+                              <Feather name="more-vertical" size={16} color="#64748b" />
+                            </TouchableOpacity>
+                          </View>
+
+                          {menuVisibleId === peer.id && (
+                            <View style={styles.dropdownMenu}>
+                              <TouchableOpacity 
+                                onPress={() => {
+                                  setMenuVisibleId(null);
+                                  handleDisconnect(c.id);
+                                }}
+                                style={styles.menuItem}
+                              >
+                                <Feather name="user-x" size={12} color="#ef4444" style={styles.menuIcon} />
+                                <Text style={[styles.menuText, { color: "#ef4444" }]}>Disconnect</Text>
+                              </TouchableOpacity>
+                              <TouchableOpacity 
+                                onPress={() => {
+                                  setMenuVisibleId(null);
+                                  handleBlock(c.id, peer.id);
+                                }}
+                                style={styles.menuItem}
+                              >
+                                <Feather name="slash" size={12} color="#f59e0b" style={styles.menuIcon} />
+                                <Text style={styles.menuText}>Block</Text>
+                              </TouchableOpacity>
+                              <TouchableOpacity 
+                                onPress={() => {
+                                  setMenuVisibleId(null);
+                                  handleViewAnalytics(peer.id);
+                                }}
+                                style={styles.menuItem}
+                              >
+                                <Feather name="bar-chart-2" size={12} color="#6366f1" style={styles.menuIcon} />
+                                <Text style={styles.menuText}>View Analytics</Text>
+                              </TouchableOpacity>
+                            </View>
                           )}
                         </View>
                       );
-                    })
-                  )}
+                    });
+                  })()}
                 </View>
 
                 {/* Incoming Pending Connections */}
@@ -647,51 +867,147 @@ export default function ChatScreen() {
           >
             {loadingMore && <ActivityIndicator size="small" color="#6366f1" style={{ marginVertical: 8 }} />}
             
-            {messages.map((m) => {
-              const isMe = m.sender_id === currentUserId;
-              return (
-                <View key={m.id} style={[styles.msgRow, isMe ? styles.msgRowMe : styles.msgRowThem]}>
-                  <View style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleThem]}>
-                    <Text style={[styles.bubbleText, isMe ? styles.textWhite : styles.textDark]}>
-                      {m.message}
-                    </Text>
-                    <View style={styles.msgMeta}>
-                      <Text style={[styles.msgTime, isMe ? styles.timeMe : styles.timeThem]}>
-                        {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </Text>
-                      {isMe && (
-                        <MaterialCommunityIcons 
-                          name={m.is_read ? "check-all" : "check"} 
-                          size={12} 
-                          color={m.is_read ? "#2dd4bf" : "rgba(255,255,255,0.7)"} 
-                        />
-                      )}
-                    </View>
-                  </View>
-                </View>
-              );
-            })}
-          </ScrollView>
-
-          {/* Footer Input Bar */}
-          <View style={styles.chatFooter}>
-            <TextInput
-              value={draft}
-              onChangeText={setDraft}
-              placeholder="Type your message..."
-              placeholderTextColor="#94a3b8"
-              style={styles.input}
-            />
-            <TouchableOpacity 
-              onPress={handleSend} 
-              disabled={!draft.trim()}
-              style={[styles.sendButton, !draft.trim() && styles.disabledSendButton]}
-            >
-              <Feather name="send" size={16} color="#ffffff" />
+             {messages.map((m) => {
+               const isMe = m.sender_id === currentUserId;
+               return (
+                 <View key={m.id} style={[styles.msgRow, isMe ? styles.msgRowMe : styles.msgRowThem]}>
+                   <View style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleThem]}>
+                     <Text style={[styles.bubbleText, isMe ? styles.textWhite : styles.textDark]}>
+                       {m.message}
+                     </Text>
+                     {m.attachment_url && (
+                       <TouchableOpacity 
+                         onPress={() => window.open(m.attachment_url, "_blank")}
+                         style={[styles.attachmentBadge, isMe ? styles.attachmentMe : styles.attachmentThem]}
+                       >
+                         <Feather name="file" size={12} color={isMe ? "#ffffff" : "#6366f1"} />
+                         <Text style={[styles.attachmentText, isMe ? styles.textWhite : styles.textPrimary]} numberOfLines={1}>
+                           {m.attachment_name || "Download File"}
+                         </Text>
+                       </TouchableOpacity>
+                     )}
+                     <View style={styles.msgMeta}>
+                       <Text style={[styles.msgTime, isMe ? styles.timeMe : styles.timeThem]}>
+                         {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                       </Text>
+                       {isMe && (
+                         <MaterialCommunityIcons 
+                           name={m.is_read ? "check-all" : "check"} 
+                           size={12} 
+                           color={m.is_read ? "#2dd4bf" : "rgba(255,255,255,0.7)"} 
+                         />
+                       )}
+                     </View>
+                   </View>
+                 </View>
+               );
+             })}
+           </ScrollView>
+ 
+           {/* Hidden File Picker Input for Web */}
+           {Platform.OS === "web" && (
+             <input 
+               type="file" 
+               ref={fileInputRef} 
+               onChange={handleFileSelected} 
+               style={{ display: "none" }} 
+             />
+           )}
+ 
+           {/* Footer Input Bar */}
+           <View style={styles.chatFooter}>
+             <TouchableOpacity 
+               onPress={handleAttachFile} 
+               style={styles.attachButton}
+             >
+               <Feather name="paperclip" size={18} color="#64748b" />
+             </TouchableOpacity>
+             <TextInput
+               value={draft}
+               onChangeText={setDraft}
+               placeholder="Type your message..."
+               placeholderTextColor="#94a3b8"
+               style={styles.input}
+             />
+             <TouchableOpacity 
+               onPress={handleSend} 
+               disabled={!draft.trim()}
+               style={[styles.sendButton, !draft.trim() && styles.disabledSendButton]}
+             >
+               <Feather name="send" size={16} color="#ffffff" />
             </TouchableOpacity>
           </View>
         </View>
       )}
+
+      {/* Peer Analytics Modal */}
+      <Modal
+        visible={showAnalyticsModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowAnalyticsModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.analyticsCard}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Student Analytics</Text>
+              <TouchableOpacity onPress={() => setShowAnalyticsModal(false)}>
+                <Feather name="x" size={20} color="#64748b" />
+              </TouchableOpacity>
+            </View>
+
+            {selectedPeerProfile && (
+              <View>
+                <View style={styles.profileSection}>
+                  <View style={[styles.largeAvatar, { backgroundColor: "#6366f1" }]}>
+                    <Text style={styles.largeAvatarText}>
+                      {(selectedPeerProfile.name || "Student")[0].toUpperCase()}
+                    </Text>
+                  </View>
+                  <Text style={styles.profileName}>{selectedPeerProfile.name || "Student"}</Text>
+                  <Text style={styles.profileEmail}>{selectedPeerProfile.email}</Text>
+                  <Text style={styles.profileTrackBadge}>
+                    {selectedPeerProfile.focus_domain || selectedPeerProfile.focusDomain || "Frontend"} Track
+                  </Text>
+                </View>
+
+                <View style={styles.statsGrid}>
+                  <View style={styles.statBox}>
+                    <Feather name="zap" size={16} color="#ef4444" />
+                    <Text style={styles.statVal}>{selectedPeerProfile.xp ?? 0} XP</Text>
+                    <Text style={styles.statLabel}>Total XP</Text>
+                  </View>
+
+                  <View style={styles.statBox}>
+                    <Feather name="award" size={16} color="#f59e0b" />
+                    <Text style={styles.statVal}>{selectedPeerProfile.streak ?? 1} days</Text>
+                    <Text style={styles.statLabel}>Streak</Text>
+                  </View>
+
+                  <View style={styles.statBox}>
+                    <Feather name="check-circle" size={16} color="#10b981" />
+                    <Text style={styles.statVal}>{selectedPeerProfile.courses_completed ?? selectedPeerProfile.coursesCompleted ?? 0}</Text>
+                    <Text style={styles.statLabel}>Completed</Text>
+                  </View>
+
+                  <View style={styles.statBox}>
+                    <Feather name="trending-up" size={16} color="#6366f1" />
+                    <Text style={styles.statVal}>{selectedPeerProfile.career_fit_score ?? selectedPeerProfile.careerFitScore ?? 0}%</Text>
+                    <Text style={styles.statLabel}>Career Fit</Text>
+                  </View>
+                </View>
+
+                <TouchableOpacity 
+                  onPress={() => setShowAnalyticsModal(false)}
+                  style={styles.closeModalBtn}
+                >
+                  <Text style={styles.closeModalText}>Close</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -1050,5 +1366,163 @@ const styles = StyleSheet.create({
   },
   disabledSendButton: {
     backgroundColor: "#cbd5e1",
+  },
+  attachmentBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    marginTop: 6,
+  },
+  attachmentMe: {
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+  },
+  attachmentThem: {
+    backgroundColor: "#f1f5f9",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  attachmentText: {
+    fontSize: 11,
+    fontWeight: "600",
+    maxWidth: 160,
+  },
+  textPrimary: {
+    color: "#6366f1",
+  },
+  attachButton: {
+    padding: 6,
+  },
+  dropdownMenu: {
+    position: "absolute",
+    right: 12,
+    top: 40,
+    backgroundColor: "#ffffff",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
+    paddingVertical: 4,
+    width: 140,
+    zIndex: 100,
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  menuIcon: {
+    marginRight: 8,
+  },
+  menuText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#334155",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+  },
+  analyticsCard: {
+    width: "100%",
+    maxWidth: 440,
+    backgroundColor: "#ffffff",
+    borderRadius: 24,
+    padding: 24,
+    boxShadow: "0 20px 25px -5px rgba(0,0,0,0.3)",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
+    paddingBottom: 12,
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#0f172a",
+  },
+  profileSection: {
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  largeAvatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 8,
+  },
+  largeAvatarText: {
+    color: "#ffffff",
+    fontSize: 20,
+    fontWeight: "800",
+  },
+  profileName: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#0f172a",
+  },
+  profileEmail: {
+    fontSize: 11,
+    color: "#64748b",
+    marginBottom: 6,
+  },
+  profileTrackBadge: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#6366f1",
+    backgroundColor: "#e0e7ff",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  statsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+    marginBottom: 20,
+  },
+  statBox: {
+    flex: 1,
+    minWidth: "45%",
+    backgroundColor: "#f8fafc",
+    borderWidth: 1,
+    borderColor: "#f1f5f9",
+    borderRadius: 14,
+    padding: 12,
+    alignItems: "center",
+  },
+  statVal: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#0f172a",
+    marginTop: 4,
+  },
+  statLabel: {
+    fontSize: 10,
+    color: "#64748b",
+    marginTop: 1,
+  },
+  closeModalBtn: {
+    backgroundColor: "#6366f1",
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  closeModalText: {
+    color: "#ffffff",
+    fontSize: 13,
+    fontWeight: "700",
   },
 });

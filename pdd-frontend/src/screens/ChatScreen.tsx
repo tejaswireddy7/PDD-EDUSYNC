@@ -509,8 +509,23 @@ export default function ChatScreen() {
                                 </TouchableOpacity>
                               </View>
                             )
+                          ) : conn.status === "accepted" ? (
+                            <TouchableOpacity 
+                              onPress={() => {
+                                const conv = conversations.find(c => c.peer.id === p.id);
+                                if (conv) {
+                                  setActiveConv(conv);
+                                  setTab("chats");
+                                } else {
+                                  Alert.alert("Initializing Chat", "Chat session is being initialized, please try again in a moment.");
+                                }
+                              }}
+                              style={[styles.actionBtn, { backgroundColor: "#10b981" }]}
+                            >
+                              <Text style={styles.actionBtnText}>Chat</Text>
+                            </TouchableOpacity>
                           ) : (
-                            <Text style={styles.statusLabel}>{conn.status === "accepted" ? "Connected" : "Rejected"}</Text>
+                            <Text style={styles.statusLabel}>Rejected</Text>
                           )}
                         </View>
                       );

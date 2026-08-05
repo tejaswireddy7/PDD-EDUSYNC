@@ -459,13 +459,7 @@ create policy "Users can insert conversations" on public.peer_conversations
 -- Peer Conversation Participants Policies
 drop policy if exists "Users can view participants in their conversations" on public.peer_conversation_participants;
 create policy "Users can view participants in their conversations" on public.peer_conversation_participants
-  for select using (
-    exists (
-      select 1 from public.peer_conversation_participants cp
-      where cp.conversation_id = conversation_id
-      and cp.user_id = auth.uid()
-    )
-  );
+  for select using (auth.role() = 'authenticated');
 
 drop policy if exists "Allow inserting participants" on public.peer_conversation_participants;
 create policy "Allow inserting participants" on public.peer_conversation_participants

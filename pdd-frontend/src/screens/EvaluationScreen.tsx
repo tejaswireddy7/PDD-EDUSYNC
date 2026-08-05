@@ -86,7 +86,7 @@ export default function EvaluationScreen() {
   if (!submittedId) {
     return (
       <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
-        <Header />
+        <Header hideSurvey={true} />
         <View style={styles.emptyStateCard}>
           <LinearGradient
             colors={["rgba(99, 102, 241, 0.05)", "rgba(13, 148, 136, 0.05)"]}
@@ -125,7 +125,7 @@ export default function EvaluationScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
-      <Header />
+      <Header hideSurvey={true} />
 
       {/* Main Score Overview Card */}
       <View style={styles.scoreCard}>
@@ -135,15 +135,17 @@ export default function EvaluationScreen() {
             <Text style={styles.scoreTitle}>{submittedTitle}</Text>
             <Text style={styles.scoreMentor}>Reviewed by AI · {evaluation.mentor}</Text>
           </View>
-          <LinearGradient
-            colors={["#0d9488", "#14b8a6"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.scoreBadge}
-          >
-            <Text style={styles.scoreBadgeText}>{total}/{max}</Text>
-            <Text style={styles.scoreBadgeLabel}>Score</Text>
-          </LinearGradient>
+          <View style={styles.scoreContainer}>
+            <View style={styles.scoreIconWrapper}>
+              <Feather name="award" size={18} color="#0d9488" />
+            </View>
+            <View style={styles.scoreTextWrapper}>
+              <Text style={styles.scoreNumberText}>
+                {total}<Text style={styles.scoreMaxText}>/{max}</Text>
+              </Text>
+              <Text style={styles.scoreLabelText}>Score</Text>
+            </View>
+          </View>
         </View>
         
         {/* AI generated feedback banner */}
@@ -308,23 +310,46 @@ const styles: any = StyleSheet.create({
     color: "#64748b",
     marginTop: 2,
   },
-  scoreBadge: {
-    height: 52,
-    width: 60,
+  scoreContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(13, 148, 136, 0.08)",
+    borderWidth: 1,
+    borderColor: "rgba(13, 148, 136, 0.15)",
     borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  scoreIconWrapper: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(13, 148, 136, 0.12)",
     justifyContent: "center",
     alignItems: "center",
+    marginRight: 8,
   },
-  scoreBadgeText: {
-    color: "#ffffff",
-    fontSize: 15,
+  scoreTextWrapper: {
+    justifyContent: "center",
+  },
+  scoreNumberText: {
+    fontSize: 16,
     fontWeight: "800",
+    color: "#0d9488",
+    lineHeight: 18,
   },
-  scoreBadgeLabel: {
-    color: "rgba(255,255,255,0.8)",
-    fontSize: 8,
+  scoreMaxText: {
+    fontSize: 11,
     fontWeight: "600",
+    color: "#64748b",
+  },
+  scoreLabelText: {
+    fontSize: 8,
+    fontWeight: "700",
+    color: "#0d9488",
     textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginTop: 0,
   },
   feedbackBanner: {
     flexDirection: "row",

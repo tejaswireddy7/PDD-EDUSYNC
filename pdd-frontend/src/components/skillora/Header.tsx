@@ -5,7 +5,11 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useDashboardStore } from "../../lib/store";
 import { supabase } from "../../lib/supabase";
 
-export function Header() {
+interface HeaderProps {
+  hideSurvey?: boolean;
+}
+
+export function Header({ hideSurvey = false }: HeaderProps) {
   const store = useDashboardStore();
   const userName = store.user?.name || "Student";
   const [showNotifications, setShowNotifications] = React.useState(false);
@@ -34,11 +38,22 @@ export function Header() {
     }
   };
 
+  const getGreeting = () => {
+    const hours = new Date().getHours();
+    if (hours >= 0 && hours < 12) {
+      return "Good morning";
+    } else if (hours >= 12 && hours < 16) {
+      return "Good afternoon";
+    } else {
+      return "Good evening";
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.greetingContainer}>
         <View style={styles.metaRow}>
-          <Text style={styles.metaText}>Good morning</Text>
+          <Text style={styles.metaText}>{getGreeting()}</Text>
           <View style={styles.dot} />
           <Text style={styles.metaText}>
             {new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}
@@ -48,14 +63,16 @@ export function Header() {
           <Text style={styles.welcomeText}>
             Welcome back, {userName} <Text style={styles.waveEmoji}>👋</Text>
           </Text>
-          <TouchableOpacity 
-            onPress={store.triggerManualSurvey}
-            style={styles.takeSurveyPill}
-            activeOpacity={0.8}
-          >
-            <Feather name="clipboard" size={11} color="#6366f1" />
-            <Text style={styles.takeSurveyText}>Take Survey</Text>
-          </TouchableOpacity>
+          {!hideSurvey && (
+            <TouchableOpacity 
+              onPress={store.triggerManualSurvey}
+              style={styles.takeSurveyPill}
+              activeOpacity={0.8}
+            >
+              <Feather name="clipboard" size={11} color="#6366f1" />
+              <Text style={styles.takeSurveyText}>Take Survey</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 

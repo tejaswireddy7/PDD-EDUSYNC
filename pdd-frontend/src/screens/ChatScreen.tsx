@@ -556,7 +556,7 @@ export default function ChatScreen() {
                   />
                 </View>
 
-                <View style={styles.searchResults}>
+                <View style={[styles.searchResults, menuVisibleId ? { zIndex: 50, position: "relative" } : null]}>
                   <Text style={styles.sectionHeader}>
                     {searchQuery.trim().length > 0 ? "Search Results" : "Discover Peers"}
                   </Text>
@@ -572,7 +572,7 @@ export default function ChatScreen() {
                       );
 
                       return (
-                        <View key={p.id} style={styles.searchItem}>
+                        <View key={p.id} style={[styles.searchItem, menuVisibleId === p.id ? { zIndex: 100, position: "relative" } : null]}>
                           <View style={styles.peerMeta}>
                             <Text style={styles.peerName}>{p.name}</Text>
                             <Text style={styles.peerTrack}>{p.focusDomain} · {p.proficiency}</Text>
@@ -679,7 +679,7 @@ export default function ChatScreen() {
                 </View>
 
                 {/* My Connections */}
-                <View style={styles.connBlock}>
+                <View style={[styles.connBlock, menuVisibleId ? { zIndex: 40, position: "relative" } : null]}>
                   <Text style={styles.sectionHeader}>My Connections</Text>
                   {(() => {
                     const acceptedConns = connections.filter(c => c.status === "accepted");
@@ -691,7 +691,7 @@ export default function ChatScreen() {
                       const peer = peers.find(p => p.id === peerId);
                       if (!peer) return null;
                       return (
-                        <View key={c.id} style={styles.searchItem}>
+                        <View key={c.id} style={[styles.searchItem, menuVisibleId === peer.id ? { zIndex: 100, position: "relative" } : null]}>
                           <View style={styles.peerMeta}>
                             <Text style={styles.peerName}>{peer.name}</Text>
                             <Text style={styles.peerTrack}>{peer.focusDomain} · {peer.proficiency}</Text>

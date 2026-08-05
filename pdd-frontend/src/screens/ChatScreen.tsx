@@ -2,6 +2,11 @@ import React, { useState, useRef, useEffect } from "react";
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator, Modal, Alert, NativeSyntheticEvent, NativeScrollEvent } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Header } from "../components/skillora/Header";
+import { 
+  Search, MoreVertical, UserMinus, Ban, BarChart3, 
+  ArrowLeft, Paperclip, FileText, Send, X, 
+  Zap, Award, CheckCircle2, TrendingUp, MessageSquare, ChevronRight
+} from "lucide-react";
 import { LinearGradient } from "expo-linear-gradient";
 import { useDashboardStore } from "../lib/store";
 import { supabase } from "../lib/supabase";
@@ -572,7 +577,7 @@ export default function ChatScreen() {
                       );
 
                       return (
-                        <View key={p.id} style={[styles.searchItem, menuVisibleId === p.id ? { zIndex: 100, position: "relative" } : null]}>
+                        <View key={p.id} style={[styles.searchItem, menuVisibleId === 'discover-' + p.id ? { zIndex: 100, position: "relative" } : null]}>
                           <View style={styles.peerMeta}>
                             <Text style={styles.peerName}>{p.name}</Text>
                             <Text style={styles.peerTrack}>{p.focusDomain} · {p.proficiency}</Text>
@@ -628,15 +633,15 @@ export default function ChatScreen() {
 
                             {(!conn || conn.status !== "blocked") && (
                               <TouchableOpacity 
-                                onPress={() => setMenuVisibleId(menuVisibleId === p.id ? null : p.id)}
+                                onPress={() => setMenuVisibleId(menuVisibleId === 'discover-' + p.id ? null : 'discover-' + p.id)}
                                 style={{ padding: 6 }}
                               >
-                                <MaterialCommunityIcons name="dots-vertical" size={18} color="#64748b" />
+                                <MoreVertical size={18} color="#64748b" />
                               </TouchableOpacity>
                             )}
                           </View>
 
-                          {menuVisibleId === p.id && (
+                          {menuVisibleId === 'discover-' + p.id && (
                             <View style={styles.dropdownMenu}>
                               {conn?.status === "accepted" && (
                                 <TouchableOpacity 
@@ -646,7 +651,7 @@ export default function ChatScreen() {
                                   }}
                                   style={styles.menuItem}
                                 >
-                                  <MaterialCommunityIcons name="link-off" size={16} color="#ef4444" style={styles.menuIcon} />
+                                  <UserMinus size={14} color="#ef4444" style={styles.menuIcon} />
                                   <Text style={[styles.menuText, { color: "#ef4444" }]}>Disconnect</Text>
                                 </TouchableOpacity>
                               )}
@@ -657,7 +662,7 @@ export default function ChatScreen() {
                                 }}
                                 style={styles.menuItem}
                               >
-                                <MaterialCommunityIcons name="account-cancel" size={16} color="#f59e0b" style={styles.menuIcon} />
+                                <Ban size={14} color="#f59e0b" style={styles.menuIcon} />
                                 <Text style={styles.menuText}>Block</Text>
                               </TouchableOpacity>
                               <TouchableOpacity 
@@ -667,7 +672,7 @@ export default function ChatScreen() {
                                 }}
                                 style={styles.menuItem}
                               >
-                                <MaterialCommunityIcons name="chart-bar" size={16} color="#6366f1" style={styles.menuIcon} />
+                                <BarChart3 size={14} color="#6366f1" style={styles.menuIcon} />
                                 <Text style={styles.menuText}>View Analytics</Text>
                               </TouchableOpacity>
                             </View>
@@ -691,7 +696,7 @@ export default function ChatScreen() {
                       const peer = peers.find(p => p.id === peerId);
                       if (!peer) return null;
                       return (
-                        <View key={c.id} style={[styles.searchItem, menuVisibleId === peer.id ? { zIndex: 100, position: "relative" } : null]}>
+                        <View key={c.id} style={[styles.searchItem, menuVisibleId === 'myconns-' + peer.id ? { zIndex: 100, position: "relative" } : null]}>
                           <View style={styles.peerMeta}>
                             <Text style={styles.peerName}>{peer.name}</Text>
                             <Text style={styles.peerTrack}>{peer.focusDomain} · {peer.proficiency}</Text>
@@ -717,14 +722,14 @@ export default function ChatScreen() {
                             </TouchableOpacity>
 
                             <TouchableOpacity 
-                              onPress={() => setMenuVisibleId(menuVisibleId === peer.id ? null : peer.id)}
+                              onPress={() => setMenuVisibleId(menuVisibleId === 'myconns-' + peer.id ? null : 'myconns-' + peer.id)}
                               style={{ padding: 6 }}
                             >
-                              <MaterialCommunityIcons name="dots-vertical" size={18} color="#64748b" />
+                              <MoreVertical size={18} color="#64748b" />
                             </TouchableOpacity>
                           </View>
 
-                          {menuVisibleId === peer.id && (
+                          {menuVisibleId === 'myconns-' + peer.id && (
                             <View style={styles.dropdownMenu}>
                               <TouchableOpacity 
                                 onPress={() => {
@@ -733,7 +738,7 @@ export default function ChatScreen() {
                                 }}
                                 style={styles.menuItem}
                               >
-                                <MaterialCommunityIcons name="link-off" size={16} color="#ef4444" style={styles.menuIcon} />
+                                <UserMinus size={14} color="#ef4444" style={styles.menuIcon} />
                                 <Text style={[styles.menuText, { color: "#ef4444" }]}>Disconnect</Text>
                               </TouchableOpacity>
                               <TouchableOpacity 
@@ -743,7 +748,7 @@ export default function ChatScreen() {
                                 }}
                                 style={styles.menuItem}
                               >
-                                <MaterialCommunityIcons name="account-cancel" size={16} color="#f59e0b" style={styles.menuIcon} />
+                                <Ban size={14} color="#f59e0b" style={styles.menuIcon} />
                                 <Text style={styles.menuText}>Block</Text>
                               </TouchableOpacity>
                               <TouchableOpacity 
@@ -753,7 +758,7 @@ export default function ChatScreen() {
                                 }}
                                 style={styles.menuItem}
                               >
-                                <MaterialCommunityIcons name="chart-bar" size={16} color="#6366f1" style={styles.menuIcon} />
+                                <BarChart3 size={14} color="#6366f1" style={styles.menuIcon} />
                                 <Text style={styles.menuText}>View Analytics</Text>
                               </TouchableOpacity>
                             </View>

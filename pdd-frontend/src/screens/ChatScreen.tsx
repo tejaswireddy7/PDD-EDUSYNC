@@ -14,7 +14,8 @@ import {
   fetchDBConversations,
   fetchDBMessagesPaged,
   sendDBMessage,
-  markMessagesAsRead
+  markMessagesAsRead,
+  getOrCreateConversation
 } from "../lib/supabase-db";
 
 type PeerUser = {
@@ -320,11 +321,14 @@ export default function ChatScreen() {
   // Connection Management Actions
   const handleSendRequest = async (receiverId: string) => {
     try {
-      await sendDBConnectionRequest(currentUserId, receiverId);
-      Alert.alert("Success", "Connection request sent successfully!");
+      const conn = await sendDBConnectionRequest(currentUserId, receiverId);
+      if (conn && conn.id) {
+        await updateDBConnectionStatus(conn.id, "accepted", currentUserId, receiverId);
+      }
+      Alert.alert("Success", "Connected successfully!");
       loadInitialData();
     } catch (e) {
-      Alert.alert("Error", "Failed to send request.");
+      Alert.alert("Error", "Failed to connect.");
     }
   };
 
@@ -511,13 +515,16 @@ export default function ChatScreen() {
                             )
                           ) : conn.status === "accepted" ? (
                             <TouchableOpacity 
-                              onPress={() => {
-                                const conv = conversations.find(c => c.peer.id === p.id);
-                                if (conv) {
-                                  setActiveConv(conv);
+                              onPress={async () => {
+                                try {
+                                  const convId = await getOrCreateConversation(currentUserId, p.id);
+                                  setActiveConv({
+                                    id: convId,
+                                    peer: p
+                                  });
                                   setTab("chats");
-                                } else {
-                                  Alert.alert("Initializing Chat", "Chat session is being initialized, please try again in a moment.");
+                                } catch (err) {
+                                  Alert.alert("Error", "Failed to start conversation.");
                                 }
                               }}
                               style={[styles.actionBtn, { backgroundColor: "#10b981" }]}

@@ -1495,3 +1495,55 @@ export async function fetchDBAllIncomingUnreadCount(currentUserId: string): Prom
   }
 }
 
+// 30. Get or Create Peer Conversation
+export async function getOrCreateConversation(user1: string, user2: string): Promise<string> {
+  try {
+    // 1. Fetch conversations for user1
+    const { data: myPart, error: partErr } = await supabase
+      .from("peer_conversation_participants")
+      .select("conversation_id")
+      .eq("user_id", user1);
+    if (partErr) throw partErr;
+
+    if (myPart && myPart.length > 0) {
+      const convIds = myPart.map(cp => cp.conversation_id);
+
+      // 2. Find common conversation containing user2
+      const { data: commonPart, error: commonErr } = await supabase
+        .from("peer_conversation_participants")
+        .select("conversation_id")
+        .in("conversation_id", convIds)
+        .eq("user_id", user2)
+        .maybeSingle();
+
+      if (commonErr) throw commonErr;
+      if (commonPart) {
+        return commonPart.conversation_id;
+      }
+    }
+
+    // 3. Create conversation if not exist
+    const { data: conv, error: convError } = await supabase
+      .from("peer_conversations")
+      .insert({})
+      .select()
+      .single();
+    if (convError) throw convError;
+
+    // 4. Insert participants
+    const { error: partError } = await supabase
+      .from("peer_conversation_participants")
+      .insert([
+        { conversation_id: conv.id, user_id: user1 },
+        { conversation_id: conv.id, user_id: user2 }
+      ]);
+    if (partError) throw partError;
+
+    return conv.id;
+  } catch (e) {
+    console.warn("getOrCreateConversation failed:", e);
+    throw e;
+  }
+}
+
+

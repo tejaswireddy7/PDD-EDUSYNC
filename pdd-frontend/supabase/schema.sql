@@ -511,3 +511,21 @@ create policy "Allow authenticated users to upload chat attachments"
     bucket_id = 'chat-attachments' and auth.role() = 'authenticated'
   );
 
+-- 20. USER ENROLLMENTS Table
+create table if not exists public.user_enrollments (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users on delete cascade not null,
+  course_id integer references public.courses(id) on delete cascade not null,
+  progress integer default 0,
+  created_at timestamp with time zone default now(),
+  unique(user_id, course_id)
+);
+
+alter table public.user_enrollments enable row level security;
+drop policy if exists "Users can view their own enrollments" on public.user_enrollments;
+create policy "Users can view their own enrollments" on public.user_enrollments for select using (auth.uid() = user_id);
+drop policy if exists "Users can insert their own enrollments" on public.user_enrollments;
+create policy "Users can insert their own enrollments" on public.user_enrollments for insert with check (auth.uid() = user_id);
+drop policy if exists "Users can update their own enrollments" on public.user_enrollments;
+create policy "Users can update their own enrollments" on public.user_enrollments for update using (auth.uid() = user_id);
+

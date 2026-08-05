@@ -1226,7 +1226,7 @@ export async function fetchDBRecommendations(userId: string): Promise<any | null
   return null;
 }
 
-// 19. Update courses progress inside recommendations table
+// 19. Update courses progress inside recommendations table and user_enrollments
 export async function saveDBCourseProgress(userId: string, courses: DBCourse[]): Promise<void> {
   try {
     const { error } = await supabase
@@ -1243,6 +1243,21 @@ export async function saveDBCourseProgress(userId: string, courses: DBCourse[]):
           courses: JSON.stringify(courses)
         })
         .eq("user_id", userId);
+    }
+
+    // Sync individual course progress to user_enrollments table
+    if (courses && courses.length > 0) {
+      for (const course of courses) {
+        if (course.id) {
+          await supabase
+            .from("user_enrollments")
+            .upsert({
+              user_id: userId,
+              course_id: course.id,
+              progress: course.progress || 0
+            }, { onConflict: "user_id,course_id" });
+        }
+      }
     }
   } catch (e) {
     logError("saveDBCourseProgress", e);
@@ -1576,6 +1591,37 @@ export async function blockDBUserDirect(senderId: string, receiverId: string): P
     if (error) throw error;
   } catch (e) {
     console.error("blockDBUserDirect failed:", e);
+    throw e;
+  }
+}
+
+// 34. Fetch User Enrollments from Supabase
+export async function fetchDBUserEnrollments(userId: string): Promise<any[]> {
+  try {
+    const { data, error } = await supabase
+      .from("user_enrollments")
+      .select("*")
+      .eq("user_id", userId);
+    if (error) throw error;
+    return data || [];
+  } catch (e) {
+    console.error("fetchDBUserEnrollments failed:", e);
+    return [];
+  }
+}
+
+// 35. Enroll in a Course in Supabase
+export async function enrollInDBCourse(userId: string, courseId: number): Promise<any> {
+  try {
+    const { data, error } = await supabase
+      .from("user_enrollments")
+      .insert({ user_id: userId, course_id: courseId, progress: 0 })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  } catch (e) {
+    console.error("enrollInDBCourse failed:", e);
     throw e;
   }
 }

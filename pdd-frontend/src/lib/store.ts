@@ -10,7 +10,9 @@ import {
   fetchDBMilestones,
   fetchDBAssessments,
   fetchDBRecommendations,
-  saveDBCourseProgress
+  saveDBCourseProgress,
+  fetchDBUserEnrollments,
+  enrollInDBCourse
 } from "./supabase-db";
 
 async function getNextAssessmentTitle(userId: string, focusDomain: string, proficiency: string): Promise<string> {
@@ -39,6 +41,8 @@ export interface DashboardState {
   submittedAssessmentId: string | null; // Tracks dynamic test submits
   token: string | null;
   recommendations: RecommendationOutput | null;
+  suggestedCourses: any[];
+  enrolledCourses: any[];
   isLoadingRecommendations: boolean;
   isLoadingProfile: boolean;
   lowDataMode: boolean;
@@ -56,6 +60,8 @@ const DEFAULT_STATE: DashboardState = {
   submittedAssessmentId: null,
   token: null,
   recommendations: null,
+  suggestedCourses: [],
+  enrolledCourses: [],
   isLoadingRecommendations: false,
   isLoadingProfile: true,
   lowDataMode: false,
@@ -199,6 +205,67 @@ export function useDashboardStore() {
       });
     },
 
+    enrollInCourse: async (courseId: number) => {
+      try {
+        const sessionData = await supabase.auth.getSession();
+        const session = sessionData.data.session;
+        if (session?.user) {
+          await enrollInDBCourse(session.user.id, courseId);
+          const answers = state.surveyAnswers;
+          if (answers) {
+            const courses = await fetchDBCourses(answers.focusDomain, answers.proficiency);
+            
+            let coursesWithProgress = courses;
+            if (typeof window !== "undefined" && window.localStorage) {
+              const email = state.user?.email || "guest";
+              const savedProgress = window.localStorage.getItem(`courses_progress_${email}`);
+              if (savedProgress) {
+                try {
+                  const progressMap = JSON.parse(savedProgress);
+                  coursesWithProgress = courses.map(c => ({
+                    ...c,
+                    progress: progressMap[c.title] !== undefined ? progressMap[c.title] : c.progress
+                  }));
+                } catch (e) {}
+              }
+            }
+
+            const enrollments = await fetchDBUserEnrollments(session.user.id);
+            const progressMap = enrollments.reduce((acc, e) => {
+              acc[e.course_id] = e.progress;
+              return acc;
+            }, {} as Record<number, number>);
+
+            const enrolled: any[] = [];
+            const suggested: any[] = [];
+
+            coursesWithProgress.forEach(c => {
+              const isEnrolled = c.id !== undefined ? (progressMap[c.id] !== undefined) : false;
+              if (isEnrolled) {
+                enrolled.push({
+                  ...c,
+                  progress: progressMap[c.id] !== undefined ? progressMap[c.id] : (c.progress || 0)
+                });
+              } else {
+                suggested.push(c);
+              }
+            });
+
+            updateState({ enrolledCourses: enrolled, suggestedCourses: suggested });
+          }
+        } else {
+          const target = state.suggestedCourses.find(c => c.id === courseId);
+          if (target) {
+            const updatedSuggested = state.suggestedCourses.filter(c => c.id !== courseId);
+            const updatedEnrolled = [...state.enrolledCourses, { ...target, progress: 0 }];
+            updateState({ enrolledCourses: updatedEnrolled, suggestedCourses: updatedSuggested });
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to enroll in course:", err);
+      }
+    },
+
     fetchRecommendations: async () => {
       const answers = state.surveyAnswers;
       updateState({ isLoadingRecommendations: true });
@@ -220,13 +287,53 @@ export function useDashboardStore() {
         return coursesList;
       };
 
+      const sessionData = await supabase.auth.getSession();
+      const session = sessionData.data.session;
+      const userId = session?.user?.id;
+
+      const partitionAndSetCourses = async (allCourses: any[], currentUserId?: string) => {
+        let enrolled: any[] = [];
+        let suggested: any[] = [];
+
+        if (!currentUserId) {
+          // Guest mode: first course enrolled, others suggested
+          enrolled = allCourses.slice(0, 1).map(c => ({ ...c, progress: c.progress || 0 }));
+          suggested = allCourses.slice(1);
+        } else {
+          try {
+            const enrollments = await fetchDBUserEnrollments(currentUserId);
+            const progressMap = enrollments.reduce((acc, e) => {
+              acc[e.course_id] = e.progress;
+              return acc;
+            }, {} as Record<number, number>);
+
+            allCourses.forEach(c => {
+              const isEnrolled = c.id !== undefined ? (progressMap[c.id] !== undefined) : false;
+              if (isEnrolled) {
+                enrolled.push({
+                  ...c,
+                  progress: progressMap[c.id] !== undefined ? progressMap[c.id] : (c.progress || 0)
+                });
+              } else {
+                suggested.push(c);
+              }
+            });
+          } catch (e) {
+            console.warn("Error partitioning courses:", e);
+            enrolled = allCourses.slice(0, 1).map(c => ({ ...c, progress: c.progress || 0 }));
+            suggested = allCourses.slice(1);
+          }
+        }
+
+        updateState({ enrolledCourses: enrolled, suggestedCourses: suggested });
+      };
+
       try {
-        const sessionData = await supabase.auth.getSession();
-        const session = sessionData.data.session;
-        if (session && session.user) {
-          const dbRec = await fetchDBRecommendations(session.user.id);
+        if (userId) {
+          const dbRec = await fetchDBRecommendations(userId);
           if (dbRec && dbRec.courses && dbRec.courses.length > 0) {
             const coursesWithProgress = overlayProgress(dbRec.courses);
+            await partitionAndSetCourses(coursesWithProgress, userId);
             updateState({
               recommendations: {
                 courses: coursesWithProgress,
@@ -247,15 +354,12 @@ export function useDashboardStore() {
       if (answers) {
         updateState({ isLoadingRecommendations: true });
         try {
-          const sessionData = await supabase.auth.getSession();
-          const session = sessionData.data.session;
-          
           const [courses, resources, milestones, nextAssessment] = await Promise.all([
             fetchDBCourses(answers.focusDomain, answers.proficiency),
             fetchDBResources(answers.focusDomain, answers.proficiency),
             fetchDBMilestones(answers.focusDomain, answers.proficiency),
-            session?.user
-              ? getNextAssessmentTitle(session.user.id, answers.focusDomain, answers.proficiency)
+            userId
+              ? getNextAssessmentTitle(userId, answers.focusDomain, answers.proficiency)
               : Promise.resolve(
                   answers.focusDomain === "Frontend" ? "React State & Styling Quiz"
                     : answers.focusDomain === "Backend" ? "Dockerized Server Setup Challenge"
@@ -265,6 +369,7 @@ export function useDashboardStore() {
           ]);
           
           const coursesWithProgress = overlayProgress(courses);
+          await partitionAndSetCourses(coursesWithProgress, userId);
           updateState({
             recommendations: {
               courses: coursesWithProgress,
@@ -294,6 +399,7 @@ export function useDashboardStore() {
         if (recData && !error) {
           if (recData.courses) {
             recData.courses = overlayProgress(recData.courses);
+            await partitionAndSetCourses(recData.courses, userId);
           }
           updateState({ recommendations: recData, isLoadingRecommendations: false });
           return;
@@ -311,7 +417,8 @@ export function useDashboardStore() {
           [],
           state.surveyAnswers.targetLearningGoal
         );
-        localRecs.courses = overlayProgress(localRecs.courses);
+        const coursesWithProgress = overlayProgress(localRecs.courses);
+        await partitionAndSetCourses(coursesWithProgress, userId);
         updateState({ recommendations: localRecs, isLoadingRecommendations: false });
       } else {
         updateState({ recommendations: null, isLoadingRecommendations: false });

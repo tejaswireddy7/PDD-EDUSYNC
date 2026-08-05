@@ -248,8 +248,14 @@ export function ContinueLearning() {
   const navigate = useNavigate();
   
   const allCourses = store.recommendations?.courses || [];
-  const activeCourses = allCourses.filter((c) => c.progress > 0 && c.progress < 100);
-  const courses = activeCourses.length > 0 ? activeCourses : (allCourses.length > 0 ? [allCourses[0]] : []);
+  const enrolled = store.enrolledCourses || [];
+  const suggested = store.suggestedCourses || [];
+
+  React.useEffect(() => {
+    if (store.surveyCompleted && enrolled.length === 0 && suggested.length === 0) {
+      store.fetchRecommendations();
+    }
+  }, [store.surveyCompleted]);
 
   const [videoUrl, setVideoUrl] = React.useState<string | null>(null);
   const [videoTitle, setVideoTitle] = React.useState<string>("");
@@ -365,7 +371,7 @@ export function ContinueLearning() {
 
   const modalCourses = allCourses;
   const listToRender = modalTab === "my"
-    ? modalCourses.filter((c) => c.progress > 0)
+    ? enrolled
     : modalCourses;
 
   const handleOpenAllCourses = () => {
@@ -386,58 +392,130 @@ export function ContinueLearning() {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContainer}
       >
-        {courses.map((c) => (
-          <TouchableOpacity 
-            key={c.title} 
-            style={styles.card}
-            activeOpacity={0.9}
-            onPress={() => {
-              navigate({ to: "/course-learn", search: { course: c.title } });
-            }}
-          >
-            <View style={styles.cardHeader}>
-              <Image
-                source={{ uri: getCourseImage(c.subject, c.title) }}
-                style={StyleSheet.absoluteFillObject}
-                resizeMode="cover"
-              />
-              <LinearGradient
-                colors={["rgba(15, 23, 42, 0.45)", "rgba(15, 23, 42, 0.1)"]}
-                style={StyleSheet.absoluteFillObject}
-              />
-              <View style={styles.badgeRow}>
-                <View style={styles.subjectBadge}>
-                  <Text style={styles.subjectText}>{c.subject}</Text>
-                </View>
-                {c.ai && (
-                  <View style={styles.aiBadge}>
-                    <MaterialCommunityIcons name={"sparkles" as any} size={10} color="#6366f1" />
-                    <Text style={styles.aiText}>AI Pick</Text>
+        {enrolled.length === 0 ? (
+          <View style={styles.emptyEnrolledCard}>
+            <MaterialCommunityIcons name="book-open-blank-variant" size={24} color="#64748b" style={{ marginBottom: 6 }} />
+            <Text style={styles.emptyEnrolledTitle}>No Enrolled Courses</Text>
+            <Text style={styles.emptyEnrolledText}>Select a suggested course below and click Enroll to start learning!</Text>
+          </View>
+        ) : (
+          enrolled.map((c) => (
+            <TouchableOpacity 
+              key={c.title} 
+              style={styles.card}
+              activeOpacity={0.9}
+              onPress={() => {
+                navigate({ to: "/course-learn", search: { course: c.title } });
+              }}
+            >
+              <View style={styles.cardHeader}>
+                <Image
+                  source={{ uri: getCourseImage(c.subject, c.title) }}
+                  style={StyleSheet.absoluteFillObject}
+                  resizeMode="cover"
+                />
+                <LinearGradient
+                  colors={["rgba(15, 23, 42, 0.45)", "rgba(15, 23, 42, 0.1)"]}
+                  style={StyleSheet.absoluteFillObject}
+                />
+                <View style={styles.badgeRow}>
+                  <View style={styles.subjectBadge}>
+                    <Text style={styles.subjectText}>{c.subject}</Text>
                   </View>
-                )}
-              </View>
-              <View style={styles.playButton}>
-                <Feather name="play" size={16} color="#6366f1" style={styles.playIcon} />
-              </View>
-            </View>
-            <View style={styles.cardBody}>
-              <View style={styles.metaRow}>
-                <Feather name="clock" size={12} color="#64748b" />
-                <Text style={styles.metaText}>{c.time}</Text>
-                <View style={styles.dot} />
-                <Text style={styles.metaText}>{c.difficulty}</Text>
-              </View>
-              <Text style={styles.courseTitle} numberOfLines={2}>{c.title}</Text>
-              <View style={styles.progressRow}>
-                <View style={styles.progressTrack}>
-                  <View style={[styles.progressBar, { width: `${c.progress}%` }]} />
+                  {c.ai && (
+                    <View style={styles.aiBadge}>
+                      <MaterialCommunityIcons name={"sparkles" as any} size={10} color="#6366f1" />
+                      <Text style={styles.aiText}>AI Pick</Text>
+                    </View>
+                  )}
                 </View>
-                <Text style={styles.progressText}>{c.progress}%</Text>
+                <View style={styles.playButton}>
+                  <Feather name="play" size={16} color="#6366f1" style={styles.playIcon} />
+                </View>
               </View>
-            </View>
-          </TouchableOpacity>
-        ))}
+              <View style={styles.cardBody}>
+                <View style={styles.metaRow}>
+                  <Feather name="clock" size={12} color="#64748b" />
+                  <Text style={styles.metaText}>{c.time}</Text>
+                  <View style={styles.dot} />
+                  <Text style={styles.metaText}>{c.difficulty}</Text>
+                </View>
+                <Text style={styles.courseTitle} numberOfLines={2}>{c.title}</Text>
+                <View style={styles.progressRow}>
+                  <View style={styles.progressTrack}>
+                    <View style={[styles.progressBar, { width: `${c.progress}%` }]} />
+                  </View>
+                  <Text style={styles.progressText}>{c.progress}%</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))
+        )}
       </ScrollView>
+
+      {/* Suggested Courses Section */}
+      {suggested.length > 0 && (
+        <View style={{ marginTop: 20 }}>
+          <View style={styles.header}>
+            <Text style={styles.title}>Suggested Courses</Text>
+          </View>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContainer}
+          >
+            {suggested.map((c) => (
+              <View key={c.title} style={styles.card}>
+                <View style={styles.cardHeader}>
+                  <Image
+                    source={{ uri: getCourseImage(c.subject, c.title) }}
+                    style={StyleSheet.absoluteFillObject}
+                    resizeMode="cover"
+                  />
+                  <LinearGradient
+                    colors={["rgba(15, 23, 42, 0.45)", "rgba(15, 23, 42, 0.1)"]}
+                    style={StyleSheet.absoluteFillObject}
+                  />
+                  <View style={styles.badgeRow}>
+                    <View style={styles.subjectBadge}>
+                      <Text style={styles.subjectText}>{c.subject}</Text>
+                    </View>
+                    {c.ai && (
+                      <View style={styles.aiBadge}>
+                        <MaterialCommunityIcons name={"sparkles" as any} size={10} color="#6366f1" />
+                        <Text style={styles.aiText}>AI Pick</Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+                <View style={styles.cardBody}>
+                  <View style={styles.metaRow}>
+                    <Feather name="clock" size={12} color="#64748b" />
+                    <Text style={styles.metaText}>{c.time}</Text>
+                    <View style={styles.dot} />
+                    <Text style={styles.metaText}>{c.difficulty}</Text>
+                  </View>
+                  <Text style={styles.courseTitle} numberOfLines={2}>{c.title}</Text>
+                  
+                  <TouchableOpacity
+                    style={styles.enrollBtn}
+                    activeOpacity={0.8}
+                    onPress={() => {
+                      if (c.id) {
+                        store.enrollInCourse(c.id);
+                        Alert.alert("Enrolled Successfully!", `You have enrolled in "${c.title}". It is now in your Continue Learning panel.`);
+                      }
+                    }}
+                  >
+                    <Feather name="plus-circle" size={14} color="#ffffff" style={{ marginRight: 6 }} />
+                    <Text style={styles.enrollBtnText}>Enroll Course</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+      )}
 
       {/* View All Courses Modal */}
       <Modal
@@ -463,7 +541,7 @@ export function ContinueLearning() {
                 activeOpacity={0.8}
               >
                 <Text style={[styles.modalTabBtnText, modalTab === "my" && styles.modalTabBtnTextActive]}>
-                  My Courses ({modalCourses.filter((c) => c.progress > 0).length})
+                  My Courses ({enrolled.length})
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity 
@@ -492,6 +570,10 @@ export function ContinueLearning() {
                     key={c.title}
                     style={styles.modalCard}
                     onPress={() => {
+                      if (!enrolled.some(ec => ec.title === c.title)) {
+                        Alert.alert("Enroll Required", "Please click the 'Enroll' button to add this course to your learning pathway first.");
+                        return;
+                      }
                       setShowAllCoursesModal(false);
                       navigate({ to: "/course-learn", search: { course: c.title } });
                     }}
@@ -524,7 +606,23 @@ export function ContinueLearning() {
                         </View>
                       </View>
                       <View style={styles.modalCardRight}>
-                        <Feather name="play-circle" size={32} color="#ffffff" />
+                        {enrolled.some(ec => ec.title === c.title) ? (
+                          <Feather name="play-circle" size={32} color="#ffffff" />
+                        ) : (
+                          <TouchableOpacity
+                            style={styles.modalEnrollBtn}
+                            activeOpacity={0.8}
+                            onPress={(e) => {
+                              e.stopPropagation();
+                              if (c.id) {
+                                store.enrollInCourse(c.id);
+                                Alert.alert("Enrolled Successfully!", `You have enrolled in "${c.title}". It is now in your Continue Learning panel.`);
+                              }
+                            }}
+                          >
+                            <Text style={styles.modalEnrollText}>Enroll</Text>
+                          </TouchableOpacity>
+                        )}
                       </View>
                     </View>
                   </TouchableOpacity>
@@ -1120,5 +1218,54 @@ const styles = StyleSheet.create({
     textAlign: "center",
     paddingHorizontal: 24,
     lineHeight: 16,
+  },
+  enrollBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#6366f1",
+    borderRadius: 12,
+    paddingVertical: 8,
+    marginTop: 4,
+  },
+  enrollBtnText: {
+    color: "#ffffff",
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  emptyEnrolledCard: {
+    width: cardWidth,
+    height: 190,
+    backgroundColor: "#f8fafc",
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderStyle: "dashed",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 16,
+  },
+  emptyEnrolledTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#0f172a",
+    marginBottom: 2,
+  },
+  emptyEnrolledText: {
+    fontSize: 11,
+    color: "#64748b",
+    textAlign: "center",
+    lineHeight: 15,
+  },
+  modalEnrollBtn: {
+    backgroundColor: "#2dd4bf",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  modalEnrollText: {
+    color: "#ffffff",
+    fontSize: 11,
+    fontWeight: "700",
   },
 });

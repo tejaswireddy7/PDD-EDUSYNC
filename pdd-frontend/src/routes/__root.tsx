@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { createRootRoute, Outlet, Link } from "@tanstack/react-router";
-import { Home, BookOpen, MessageSquare, BarChart2, FolderOpen, LogOut } from "lucide-react";
+import { Home, BookOpen, MessageSquare, BarChart2, FolderOpen, LogOut, User } from "lucide-react";
 import AuthScreen from "../screens/AuthScreen";
 import { useDashboardStore } from "../lib/store";
 import { supabase } from "../lib/supabase";
@@ -73,6 +73,7 @@ function RootLayout() {
     { to: "/chat", label: "Messenger", icon: MessageSquare, badge: unreadMessagesCount > 0 ? String(unreadMessagesCount) : undefined },
     { to: "/evaluation", label: "Analytics", icon: BarChart2 },
     { to: "/resources", label: "Resource Hub", icon: FolderOpen, badge: "3" },
+    { to: "/profile", label: "Profile", icon: User },
   ];
 
   if (!isAuthenticated) {
@@ -149,18 +150,6 @@ function RootLayout() {
                 <p className="text-[10px] text-slate-400 truncate">{store.user?.email || "student@edusync.ai"}</p>
               </div>
             </div>
-            <button 
-              onClick={async () => {
-                if (window.confirm("Are you sure you want to log out?")) {
-                  await supabase.auth.signOut();
-                  store.resetStore();
-                }
-              }}
-              title="Log Out"
-              className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
-            >
-              <LogOut className="h-4.5 w-4.5" />
-            </button>
           </div>
         </div>
       </aside>
@@ -208,21 +197,6 @@ function RootLayout() {
             );
           })}
 
-          {/* Mobile Log Out Button */}
-          <button
-            onClick={async () => {
-              if (window.confirm("Are you sure you want to log out?")) {
-                await supabase.auth.signOut();
-                store.resetStore();
-              }
-            }}
-            className="flex flex-col items-center justify-center flex-1 py-1 text-slate-400 hover:text-red-500 transition-all duration-200 text-center cursor-pointer"
-          >
-            <div className="relative flex items-center justify-center p-1 rounded-lg">
-              <LogOut className="h-5.5 w-5.5" />
-            </div>
-            <span className="text-[10px] font-medium tracking-tight mt-0.5">Log Out</span>
-          </button>
         </nav>
       </div>
     </div>

@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ResourcesRouteImport } from './routes/resources'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as EvaluationRouteImport } from './routes/evaluation'
 import { Route as CourseLearnRouteImport } from './routes/course-learn'
 import { Route as ChatRouteImport } from './routes/chat'
@@ -19,6 +20,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const ResourcesRoute = ResourcesRouteImport.update({
   id: '/resources',
   path: '/resources',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EvaluationRoute = EvaluationRouteImport.update({
@@ -53,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/chat': typeof ChatRoute
   '/course-learn': typeof CourseLearnRoute
   '/evaluation': typeof EvaluationRoute
+  '/profile': typeof ProfileRoute
   '/resources': typeof ResourcesRoute
 }
 export interface FileRoutesByTo {
@@ -61,6 +68,7 @@ export interface FileRoutesByTo {
   '/chat': typeof ChatRoute
   '/course-learn': typeof CourseLearnRoute
   '/evaluation': typeof EvaluationRoute
+  '/profile': typeof ProfileRoute
   '/resources': typeof ResourcesRoute
 }
 export interface FileRoutesById {
@@ -70,6 +78,7 @@ export interface FileRoutesById {
   '/chat': typeof ChatRoute
   '/course-learn': typeof CourseLearnRoute
   '/evaluation': typeof EvaluationRoute
+  '/profile': typeof ProfileRoute
   '/resources': typeof ResourcesRoute
 }
 export interface FileRouteTypes {
@@ -80,6 +89,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/course-learn'
     | '/evaluation'
+    | '/profile'
     | '/resources'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -88,6 +98,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/course-learn'
     | '/evaluation'
+    | '/profile'
     | '/resources'
   id:
     | '__root__'
@@ -96,6 +107,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/course-learn'
     | '/evaluation'
+    | '/profile'
     | '/resources'
   fileRoutesById: FileRoutesById
 }
@@ -105,6 +117,7 @@ export interface RootRouteChildren {
   ChatRoute: typeof ChatRoute
   CourseLearnRoute: typeof CourseLearnRoute
   EvaluationRoute: typeof EvaluationRoute
+  ProfileRoute: typeof ProfileRoute
   ResourcesRoute: typeof ResourcesRoute
 }
 
@@ -115,6 +128,13 @@ declare module '@tanstack/react-router' {
       path: '/resources'
       fullPath: '/resources'
       preLoaderRoute: typeof ResourcesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/evaluation': {
@@ -161,6 +181,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChatRoute: ChatRoute,
   CourseLearnRoute: CourseLearnRoute,
   EvaluationRoute: EvaluationRoute,
+  ProfileRoute: ProfileRoute,
   ResourcesRoute: ResourcesRoute,
 }
 export const routeTree = rootRouteImport

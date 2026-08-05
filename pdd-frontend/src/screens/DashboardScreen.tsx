@@ -32,13 +32,7 @@ export default function DashboardScreen() {
           <Text style={styles.sandboxTitle}>EduSync Testing Sandbox</Text>
         </View>
         <View style={styles.sandboxActions}>
-          <TouchableOpacity 
-            activeOpacity={0.8} 
-            onPress={store.triggerInstantResurvey} 
-            style={styles.sandboxBtn}
-          >
-            <Text style={styles.sandboxBtnText}>⚡ Simulate 7-Day Resurvey</Text>
-          </TouchableOpacity>
+
           <TouchableOpacity 
             activeOpacity={0.8} 
             onPress={store.resetSurvey} 
@@ -79,11 +73,6 @@ export default function DashboardScreen() {
         isResurvey={false} 
       />
 
-      {/* Modal 2: 7-Day Recurring Check-In Survey (Active after 7 days) */}
-      <SurveyModal 
-        visible={store.isResurveyDue} 
-        isResurvey={true} 
-      />
     </View>
   );
 }

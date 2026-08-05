@@ -63,29 +63,10 @@ export function Header({ hideSurvey = false }: HeaderProps) {
           <Text style={styles.welcomeText}>
             Welcome back, {userName} <Text style={styles.waveEmoji}>👋</Text>
           </Text>
-          {!hideSurvey && (
-            <TouchableOpacity 
-              onPress={store.triggerManualSurvey}
-              style={styles.takeSurveyPill}
-              activeOpacity={0.8}
-            >
-              <Feather name="clipboard" size={11} color="#6366f1" />
-              <Text style={styles.takeSurveyText}>Take Survey</Text>
-            </TouchableOpacity>
-          )}
         </View>
       </View>
 
       <View style={styles.actionsContainer}>
-        {/* Retake Survey / Preferences Button */}
-        <TouchableOpacity 
-          style={styles.iconButton} 
-          onPress={store.triggerInstantResurvey}
-          activeOpacity={0.75}
-        >
-          <Feather name="sliders" size={18} color="#475569" />
-        </TouchableOpacity>
-
         <TouchableOpacity style={styles.iconButton} onPress={() => setShowNotifications(!showNotifications)}>
           <Feather name="bell" size={20} color="#475569" />
           <View style={styles.badge} />
@@ -99,11 +80,6 @@ export function Header({ hideSurvey = false }: HeaderProps) {
         >
           <Text style={styles.streakText}>{store.user?.streak ?? 0} 🔥</Text>
         </LinearGradient>
-
-        {/* Logout Button — right beside streak */}
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.75}>
-          <MaterialCommunityIcons name="logout" size={18} color="#475569" />
-        </TouchableOpacity>
 
         {showNotifications && (
           <View style={styles.notificationsContainer}>

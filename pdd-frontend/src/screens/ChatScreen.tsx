@@ -461,60 +461,62 @@ export default function ChatScreen() {
                   />
                 </View>
 
-                {searchQuery.trim().length > 0 && (
-                  <View style={styles.searchResults}>
-                    <Text style={styles.sectionHeader}>Search Results</Text>
-                    {searchablePeers.length === 0 ? (
-                      <Text style={styles.emptyText}>No users matched your search query.</Text>
-                    ) : (
-                      searchablePeers.map(p => {
-                        const conn = connections.find(c => 
-                          (c.sender_id === currentUserId && c.receiver_id === p.id) ||
-                          (c.receiver_id === currentUserId && c.sender_id === p.id)
-                        );
+                <View style={styles.searchResults}>
+                  <Text style={styles.sectionHeader}>
+                    {searchQuery.trim().length > 0 ? "Search Results" : "Discover Peers"}
+                  </Text>
+                  {searchablePeers.length === 0 ? (
+                    <Text style={styles.emptyText}>
+                      {searchQuery.trim().length > 0 ? "No users matched your search query." : "No peers available to discover."}
+                    </Text>
+                  ) : (
+                    searchablePeers.map(p => {
+                      const conn = connections.find(c => 
+                        (c.sender_id === currentUserId && c.receiver_id === p.id) ||
+                        (c.receiver_id === currentUserId && c.sender_id === p.id)
+                      );
 
-                        return (
-                          <View key={p.id} style={styles.searchItem}>
-                            <View style={styles.peerMeta}>
-                              <Text style={styles.peerName}>{p.name}</Text>
-                              <Text style={styles.peerTrack}>{p.focusDomain} · {p.proficiency}</Text>
-                            </View>
-
-                            {!conn ? (
-                              <TouchableOpacity 
-                                onPress={() => handleSendRequest(p.id)}
-                                style={styles.actionBtn}
-                              >
-                                <Text style={styles.actionBtnText}>Connect</Text>
-                              </TouchableOpacity>
-                            ) : conn.status === "pending" ? (
-                              conn.sender_id === currentUserId ? (
-                                <Text style={styles.statusLabel}>Pending Sent</Text>
-                              ) : (
-                                <View style={styles.rowButtons}>
-                                  <TouchableOpacity 
-                                    onPress={() => handleUpdateRequest(conn.id, "accepted", conn.sender_id)}
-                                    style={[styles.smallBtn, { backgroundColor: "#10b981" }]}
-                                  >
-                                    <Text style={styles.smallBtnText}>Accept</Text>
-                                  </TouchableOpacity>
-                                  <TouchableOpacity 
-                                    onPress={() => handleUpdateRequest(conn.id, "rejected", conn.sender_id)}
-                                    style={[styles.smallBtn, { backgroundColor: "#ef4444" }]}
-                                  >
-                                    <Text style={styles.smallBtnText}>Reject</Text>
-                                  </TouchableOpacity>
-                                </View>
-                              )
-                            ) : (
-                              <Text style={styles.statusLabel}>{conn.status === "accepted" ? "Connected" : "Rejected"}</Text>
-                            )}
+                      return (
+                        <View key={p.id} style={styles.searchItem}>
+                          <View style={styles.peerMeta}>
+                            <Text style={styles.peerName}>{p.name}</Text>
+                            <Text style={styles.peerTrack}>{p.focusDomain} · {p.proficiency}</Text>
                           </View>
-                        );
-                      })
-                    )}
-                  </View>
-                )}
+
+                          {!conn ? (
+                            <TouchableOpacity 
+                              onPress={() => handleSendRequest(p.id)}
+                              style={styles.actionBtn}
+                            >
+                              <Text style={styles.actionBtnText}>Connect</Text>
+                            </TouchableOpacity>
+                          ) : conn.status === "pending" ? (
+                            conn.sender_id === currentUserId ? (
+                              <Text style={styles.statusLabel}>Pending Sent</Text>
+                            ) : (
+                              <View style={styles.rowButtons}>
+                                <TouchableOpacity 
+                                  onPress={() => handleUpdateRequest(conn.id, "accepted", conn.sender_id)}
+                                  style={[styles.smallBtn, { backgroundColor: "#10b981" }]}
+                                >
+                                  <Text style={styles.smallBtnText}>Accept</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity 
+                                  onPress={() => handleUpdateRequest(conn.id, "rejected", conn.sender_id)}
+                                  style={[styles.smallBtn, { backgroundColor: "#ef4444" }]}
+                                >
+                                  <Text style={styles.smallBtnText}>Reject</Text>
+                                </TouchableOpacity>
+                              </View>
+                            )
+                          ) : (
+                            <Text style={styles.statusLabel}>{conn.status === "accepted" ? "Connected" : "Rejected"}</Text>
+                          )}
+                        </View>
+                      );
+                    })
+                  )}
+                </View>
 
                 {/* Incoming Pending Connections */}
                 <View style={styles.connBlock}>

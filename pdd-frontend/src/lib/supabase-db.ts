@@ -176,7 +176,16 @@ export async function fetchDBCourses(focusDomain: string, proficiency: string): 
       .eq("difficulty", proficiency);
 
     if (error) throw error;
-    if (data && data.length > 0) return data as DBCourse[];
+    if (data && data.length > 0) {
+      const seen = new Set<string>();
+      const uniqueCourses = data.filter((c: any) => {
+        const key = c.title.toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+      return uniqueCourses as DBCourse[];
+    }
   } catch (e) {
     logError("fetchDBCourses", e);
   }

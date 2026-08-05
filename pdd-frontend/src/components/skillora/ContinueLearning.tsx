@@ -389,7 +389,7 @@ export function ContinueLearning() {
       </View>
       <ScrollView 
         horizontal 
-        showsHorizontalScrollIndicator={false}
+        showsHorizontalScrollIndicator={true}
         contentContainerStyle={styles.scrollContainer}
       >
         {enrolled.length === 0 ? (
@@ -461,7 +461,7 @@ export function ContinueLearning() {
           </View>
           <ScrollView 
             horizontal 
-            showsHorizontalScrollIndicator={false}
+            showsHorizontalScrollIndicator={true}
             contentContainerStyle={styles.scrollContainer}
           >
             {suggested.map((c) => (

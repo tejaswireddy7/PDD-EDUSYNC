@@ -536,7 +536,7 @@ export default function ChatScreen() {
                           📖 {conv.peer.currentCourse}
                         </Text>
                       </View>
-                      <Feather name="chevron-right" size={16} color="#94a3b8" />
+                      <MaterialCommunityIcons name="chevron-right" size={18} color="#94a3b8" />
                     </TouchableOpacity>
                   ))
                 )}
@@ -546,7 +546,7 @@ export default function ChatScreen() {
               <View style={styles.connectionsPane}>
                 {/* Search Registered Users */}
                 <View style={styles.searchBar}>
-                  <Feather name="search" size={14} color="#64748b" />
+                  <MaterialCommunityIcons name="magnify" size={16} color="#64748b" />
                   <TextInput
                     value={searchQuery}
                     onChangeText={setSearchQuery}
@@ -631,7 +631,7 @@ export default function ChatScreen() {
                                 onPress={() => setMenuVisibleId(menuVisibleId === p.id ? null : p.id)}
                                 style={{ padding: 6 }}
                               >
-                                <Feather name="more-vertical" size={16} color="#64748b" />
+                                <MaterialCommunityIcons name="dots-vertical" size={18} color="#64748b" />
                               </TouchableOpacity>
                             )}
                           </View>
@@ -646,7 +646,7 @@ export default function ChatScreen() {
                                   }}
                                   style={styles.menuItem}
                                 >
-                                  <Feather name="user-x" size={12} color="#ef4444" style={styles.menuIcon} />
+                                  <MaterialCommunityIcons name="link-off" size={16} color="#ef4444" style={styles.menuIcon} />
                                   <Text style={[styles.menuText, { color: "#ef4444" }]}>Disconnect</Text>
                                 </TouchableOpacity>
                               )}
@@ -657,7 +657,7 @@ export default function ChatScreen() {
                                 }}
                                 style={styles.menuItem}
                               >
-                                <Feather name="slash" size={12} color="#f59e0b" style={styles.menuIcon} />
+                                <MaterialCommunityIcons name="account-cancel" size={16} color="#f59e0b" style={styles.menuIcon} />
                                 <Text style={styles.menuText}>Block</Text>
                               </TouchableOpacity>
                               <TouchableOpacity 
@@ -667,7 +667,7 @@ export default function ChatScreen() {
                                 }}
                                 style={styles.menuItem}
                               >
-                                <Feather name="bar-chart-2" size={12} color="#6366f1" style={styles.menuIcon} />
+                                <MaterialCommunityIcons name="chart-bar" size={16} color="#6366f1" style={styles.menuIcon} />
                                 <Text style={styles.menuText}>View Analytics</Text>
                               </TouchableOpacity>
                             </View>
@@ -720,7 +720,7 @@ export default function ChatScreen() {
                               onPress={() => setMenuVisibleId(menuVisibleId === peer.id ? null : peer.id)}
                               style={{ padding: 6 }}
                             >
-                              <Feather name="more-vertical" size={16} color="#64748b" />
+                              <MaterialCommunityIcons name="dots-vertical" size={18} color="#64748b" />
                             </TouchableOpacity>
                           </View>
 
@@ -733,7 +733,7 @@ export default function ChatScreen() {
                                 }}
                                 style={styles.menuItem}
                               >
-                                <Feather name="user-x" size={12} color="#ef4444" style={styles.menuIcon} />
+                                <MaterialCommunityIcons name="link-off" size={16} color="#ef4444" style={styles.menuIcon} />
                                 <Text style={[styles.menuText, { color: "#ef4444" }]}>Disconnect</Text>
                               </TouchableOpacity>
                               <TouchableOpacity 
@@ -743,7 +743,7 @@ export default function ChatScreen() {
                                 }}
                                 style={styles.menuItem}
                               >
-                                <Feather name="slash" size={12} color="#f59e0b" style={styles.menuIcon} />
+                                <MaterialCommunityIcons name="account-cancel" size={16} color="#f59e0b" style={styles.menuIcon} />
                                 <Text style={styles.menuText}>Block</Text>
                               </TouchableOpacity>
                               <TouchableOpacity 
@@ -753,7 +753,7 @@ export default function ChatScreen() {
                                 }}
                                 style={styles.menuItem}
                               >
-                                <Feather name="bar-chart-2" size={12} color="#6366f1" style={styles.menuIcon} />
+                                <MaterialCommunityIcons name="chart-bar" size={16} color="#6366f1" style={styles.menuIcon} />
                                 <Text style={styles.menuText}>View Analytics</Text>
                               </TouchableOpacity>
                             </View>
@@ -834,7 +834,7 @@ export default function ChatScreen() {
           {/* Header */}
           <View style={styles.chatHeader}>
             <TouchableOpacity onPress={() => setActiveConv(null)} style={styles.backButton}>
-              <Feather name="arrow-left" size={18} color="#0f172a" />
+              <MaterialCommunityIcons name="arrow-left" size={20} color="#0f172a" />
             </TouchableOpacity>
 
             <View style={styles.chatHeaderAvatarWrapper}>
@@ -880,7 +880,7 @@ export default function ChatScreen() {
                          onPress={() => window.open(m.attachment_url, "_blank")}
                          style={[styles.attachmentBadge, isMe ? styles.attachmentMe : styles.attachmentThem]}
                        >
-                         <Feather name="file" size={12} color={isMe ? "#ffffff" : "#6366f1"} />
+                         <MaterialCommunityIcons name="file-document-outline" size={14} color={isMe ? "#ffffff" : "#6366f1"} />
                          <Text style={[styles.attachmentText, isMe ? styles.textWhite : styles.textPrimary]} numberOfLines={1}>
                            {m.attachment_name || "Download File"}
                          </Text>
@@ -920,7 +920,7 @@ export default function ChatScreen() {
                onPress={handleAttachFile} 
                style={styles.attachButton}
              >
-               <Feather name="paperclip" size={18} color="#64748b" />
+               <MaterialCommunityIcons name="paperclip" size={20} color="#64748b" />
              </TouchableOpacity>
              <TextInput
                value={draft}
@@ -934,7 +934,7 @@ export default function ChatScreen() {
                disabled={!draft.trim()}
                style={[styles.sendButton, !draft.trim() && styles.disabledSendButton]}
              >
-               <Feather name="send" size={16} color="#ffffff" />
+               <MaterialCommunityIcons name="send" size={18} color="#ffffff" />
             </TouchableOpacity>
           </View>
         </View>
@@ -952,7 +952,7 @@ export default function ChatScreen() {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Student Analytics</Text>
               <TouchableOpacity onPress={() => setShowAnalyticsModal(false)}>
-                <Feather name="x" size={20} color="#64748b" />
+                <MaterialCommunityIcons name="close" size={20} color="#64748b" />
               </TouchableOpacity>
             </View>
 
@@ -973,25 +973,25 @@ export default function ChatScreen() {
 
                 <View style={styles.statsGrid}>
                   <View style={styles.statBox}>
-                    <Feather name="zap" size={16} color="#ef4444" />
+                    <MaterialCommunityIcons name="zap" size={16} color="#ef4444" />
                     <Text style={styles.statVal}>{selectedPeerProfile.xp ?? 0} XP</Text>
                     <Text style={styles.statLabel}>Total XP</Text>
                   </View>
 
                   <View style={styles.statBox}>
-                    <Feather name="award" size={16} color="#f59e0b" />
+                    <MaterialCommunityIcons name="award" size={16} color="#f59e0b" />
                     <Text style={styles.statVal}>{selectedPeerProfile.streak ?? 1} days</Text>
                     <Text style={styles.statLabel}>Streak</Text>
                   </View>
 
                   <View style={styles.statBox}>
-                    <Feather name="check-circle" size={16} color="#10b981" />
+                    <MaterialCommunityIcons name="check-circle" size={16} color="#10b981" />
                     <Text style={styles.statVal}>{selectedPeerProfile.courses_completed ?? selectedPeerProfile.coursesCompleted ?? 0}</Text>
                     <Text style={styles.statLabel}>Completed</Text>
                   </View>
 
                   <View style={styles.statBox}>
-                    <Feather name="trending-up" size={16} color="#6366f1" />
+                    <MaterialCommunityIcons name="trending-up" size={16} color="#6366f1" />
                     <Text style={styles.statVal}>{selectedPeerProfile.career_fit_score ?? selectedPeerProfile.careerFitScore ?? 0}%</Text>
                     <Text style={styles.statLabel}>Career Fit</Text>
                   </View>

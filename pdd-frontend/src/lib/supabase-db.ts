@@ -689,91 +689,137 @@ export async function saveDBReply(userId: string, contactId: string, replyText: 
   return replyMsg;
 }
 
-// Helper to generate dynamic rubric criteria, answers, and comments based on seeded random hash
-function getThemedEvaluation(
-  assessmentId: string,
-  assessmentTitle: string,
+// Helper to generate dynamic rubric criteria based on title/questions analysis
+function generateDynamicRubric(
+  title: string,
+  questions: any[],
+  correctCount: number,
   focusDomain: string,
-  proficiency: string,
-  userId: string
-): DBEvaluation {
-  // Simple deterministic RNG seed
-  const seedString = assessmentId + userId + assessmentTitle;
-  let hash = 0;
-  for (let i = 0; i < seedString.length; i++) {
-    hash = seedString.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const rng = Math.abs(Math.sin(hash));
-
-  // Determine scores (8-10, 7-10, 6-9, etc.)
-  const score1 = Math.floor(rng * 3) + 8; // 8 to 10
-  const score2 = Math.floor(rng * 4) + 6; // 6 to 9
-  const score3 = Math.floor(rng * 3) + 7; // 7 to 9
-  const score4 = Math.floor(rng * 4) + 6; // 6 to 9
-
-  const title = assessmentTitle.toLowerCase();
-  let criteria: Array<{ criterion: string; max: number; note: string }> = [];
-  let aiFeedback = "";
-
-  if (title.includes("react") || title.includes("styling") || title.includes("component") || title.includes("frontend")) {
-    criteria = [
-      { criterion: "JSX Structuring & Markup", max: 10, note: "Clean nested nodes, correct React elements lifecycle rendering." },
-      { criterion: "State Hook Integrity", max: 10, note: "Separated local states, avoided unnecessary component rerender loops." },
-      { criterion: "Responsive Styles Layout", max: 10, note: "Flexbox structure scales cleanly on smaller screen containers." },
-      { criterion: "Virtual DOM Diffing Speed", max: 10, note: "Used memoized key props cleanly in list iterations." }
-    ];
-    aiFeedback = `Solid React implementation for "${assessmentTitle}". The component state handles user inputs fluidly. Consider optimization profiles in rendering loops.`;
-  } else if (title.includes("docker") || title.includes("server") || title.includes("api") || title.includes("backend") || title.includes("node")) {
-    criteria = [
-      { criterion: "REST Request Routing", max: 10, note: "Routes correctly configured matching standard HTTP verbs." },
-      { criterion: "Container Port Mappings", max: 10, note: "Proper dockerfile exposure configuration with non-root security." },
-      { criterion: "Database Connection Pool", max: 10, note: "Connections are reused properly, preventing socket exhaustion." },
-      { criterion: "Error Logging & Middleware", max: 10, note: "Custom middleware logs actions and handles errors cleanly." }
-    ];
-    aiFeedback = `The backend API structure for "${assessmentTitle}" scales cleanly. Middleware authentication is properly config-mapped. Consider pooled database sockets for high concurrency.`;
-  } else if (title.includes("pytorch") || title.includes("neural") || title.includes("model") || title.includes("data") || title.includes("python") || title.includes("pandas")) {
-    criteria = [
-      { criterion: "Tensor Shape Alignment", max: 10, note: "Dimension shapes map cleanly for linear algebra matrix structures." },
-      { criterion: "Optimizer Learning Rate", max: 10, note: "Optimizer learning schedule avoids early gradient collapse." },
-      { criterion: "Data Loader Prefetching", max: 10, note: "NumPy array calculations are vectorized, avoiding slow sequential parsing." },
-      { criterion: "Validation Accuracy Splits", max: 10, note: "Correct dataset isolation, avoiding data leakage." }
-    ];
-    aiFeedback = `Excellent modeling execution in "${assessmentTitle}". Backpropagation flows cleanly without gradient explosion. Consider adding early-stopping controls to mitigate validation overfitting.`;
+  isQuiz: boolean,
+  rng: number
+): Array<{ criterion: string; max: number; note: string; score: number }> {
+  const normTitle = title.toLowerCase();
+  
+  if (isQuiz) {
+    const criteriaList: Array<{ criterion: string; max: number; note: string; score: number }> = [];
+    const totalQuestions = questions.length || 3;
+    const correctRatio = correctCount / totalQuestions;
+    
+    const hasComponent = questions.some(q => q.question?.toLowerCase().includes("component") || q.question?.toLowerCase().includes("view"));
+    const hasState = questions.some(q => q.question?.toLowerCase().includes("state") || q.question?.toLowerCase().includes("hook") || q.question?.toLowerCase().includes("context"));
+    const hasLayout = questions.some(q => q.question?.toLowerCase().includes("flexbox") || q.question?.toLowerCase().includes("style") || q.question?.toLowerCase().includes("css"));
+    const hasBridge = questions.some(q => q.question?.toLowerCase().includes("bridge") || q.question?.toLowerCase().includes("native") || q.question?.toLowerCase().includes("hardware"));
+    
+    if (hasComponent || focusDomain === "Frontend" || focusDomain === "Mobile") {
+      criteriaList.push({
+        criterion: "UI Element Syntax",
+        max: 5,
+        score: Math.round(correctRatio * 5),
+        note: "Syntax and structure of standard UI elements and tags."
+      });
+    }
+    if (hasState) {
+      criteriaList.push({
+        criterion: "Data Flow Controls",
+        max: 5,
+        score: Math.round(Math.max(1, correctRatio * 5 + (rng > 0.5 ? -1 : 0))),
+        note: "State preservation, properties passing, and event variables."
+      });
+    }
+    if (hasLayout) {
+      criteriaList.push({
+        criterion: "Display Layout Rules",
+        max: 5,
+        score: Math.round(Math.max(1, correctRatio * 5 + (rng > 0.5 ? 0 : -1))),
+        note: "Flex alignments, grids, margins, and responsiveness."
+      });
+    }
+    if (hasBridge) {
+      criteriaList.push({
+        criterion: "Native API Interfaces",
+        max: 5,
+        score: Math.round(correctRatio * 5),
+        note: "Accessing native hardware bridge channels safely."
+      });
+    }
+    
+    if (criteriaList.length < 2) {
+      criteriaList.push(
+        {
+          criterion: "Recall Accuracy",
+          max: 5,
+          score: Math.round(correctRatio * 5),
+          note: "Recalling key factual concepts from course reading materials."
+        },
+        {
+          criterion: "Critical Evaluation",
+          max: 5,
+          score: Math.round(Math.max(1, correctRatio * 5 + (rng > 0.5 ? -1 : 0))),
+          note: "Selecting appropriate solutions under specified conditions."
+        }
+      );
+    }
+    
+    return criteriaList;
   } else {
-    criteria = [
-      { criterion: "Core Logic Correctness", max: 10, note: `Algorithm behaves as expected for ${focusDomain} workflows.` },
-      { criterion: "Architectural Cleanliness", max: 10, note: "Proper code grouping and modular script separation." },
-      { criterion: "Execution Speed", max: 10, note: "High performance rendering execution; zero memory leaks detected." },
-      { criterion: "Inline Explanations", max: 10, note: "Clear inline comments explaining complex processing blocks." }
-    ];
-    aiFeedback = `Strong overall implementation for "${assessmentTitle}". All core objectives have been verified. Consider expanding negative assertions in your test suite to secure release builds.`;
+    const score1 = Math.floor(rng * 3) + 8; // 8 to 10
+    const score2 = Math.floor(rng * 4) + 6; // 6 to 9
+    const score3 = Math.floor(rng * 3) + 7; // 7 to 9
+    const score4 = Math.floor(rng * 4) + 6; // 6 to 9
+
+    if (normTitle.includes("react native") || normTitle.includes("expo") || normTitle.includes("mobile")) {
+      return [
+        { criterion: "Native Components & JSX", max: 10, score: score1, note: "Correct usage of View, Text, ScrollView, FlatList." },
+        { criterion: "Layout and Style Sheets", max: 10, score: score2, note: "Flexbox structures scale cleanly on multiple emulator screen dimensions." },
+        { criterion: "App Navigation Flows", max: 10, score: score3, note: "Expo Router/Tab layout links behave smoothly without routing stack locks." },
+        { criterion: "Hardware Bridge & States", max: 10, score: score4, note: "Proper async permission handles for camera, local storage, or maps." }
+      ];
+    } else if (normTitle.includes("css") || normTitle.includes("html") || normTitle.includes("styling") || normTitle.includes("frontend")) {
+      return [
+        { criterion: "HTML5 Semantic Nodes", max: 10, score: score1, note: "Correct hierarchical structure using main, section, article tags." },
+        { criterion: "CSS Grid & Flexbox Layouts", max: 10, score: score2, note: "Perfect responsiveness from mobile sizes to wide monitors." },
+        { criterion: "JavaScript State & DOM Hooks", max: 10, score: score3, note: "Correct DOM selection and asynchronous callback integration." },
+        { criterion: "Loading Speed & Web Vitals", max: 10, score: score4, note: "Proper image caching, minimized bundle sizes, clean code structure." }
+      ];
+    } else if (normTitle.includes("sql") || normTitle.includes("database") || normTitle.includes("backend") || normTitle.includes("api")) {
+      return [
+        { criterion: "REST Endpoints Structure", max: 10, score: score1, note: "HTTP actions (GET, POST, DELETE) conform to standard REST protocol rules." },
+        { criterion: "SQL Queries and Indexing", max: 10, score: score2, note: "Efficient join queries; proper database indexing preventing slow queries." },
+        { criterion: "Prisma Schema Relationships", max: 10, score: score3, note: "Well configured entity-relation foreign keys and cascades." },
+        { criterion: "Request Error Catching", max: 10, score: score4, note: "Custom middleware filters invalid user parameters and handles server exceptions." }
+      ];
+    } else if (normTitle.includes("python") || normTitle.includes("model") || normTitle.includes("pytorch") || normTitle.includes("ai")) {
+      return [
+        { criterion: "Tensor Dimension Shapes", max: 10, score: score1, note: "Shapes match exactly during training steps without compilation failures." },
+        { criterion: "Optimizers & Loss Math", max: 10, score: score2, note: "Loss value declines predictably without early gradient collapse." },
+        { criterion: "NumPy Vectorized Calculations", max: 10, score: score3, note: "Fast parallel processing, avoiding loops on heavy datasets." },
+        { criterion: "Cross-Validation Isolations", max: 10, score: score4, note: "Accurate training vs test set splitting with zero data leakage." }
+      ];
+    } else {
+      return [
+        { criterion: "Core Logic Correctness", max: 10, score: score1, note: `Algorithm behaves as expected for ${focusDomain} workflows.` },
+        { criterion: "Architectural Cleanliness", max: 10, score: score2, note: "Proper code grouping and modular script separation." },
+        { criterion: "Execution Speed", max: 10, score: score3, note: "High performance rendering execution; zero memory leaks detected." },
+        { criterion: "Inline Explanations", max: 10, score: score4, note: "Clear inline comments explaining complex processing blocks." }
+      ];
+    }
   }
+}
 
-  // Inject scores
-  const rubric = criteria.map((c, idx) => {
-    const s = idx === 0 ? score1 : idx === 1 ? score2 : idx === 2 ? score3 : score4;
-    return { ...c, score: s };
-  });
-
-  const totalScore = rubric.reduce((s, r) => s + r.score, 0);
-  const maxScore = rubric.reduce((s, r) => s + r.max, 0);
-
-  const focusSubjectsMap: Record<string, string[]> = {
-    Frontend: ["React Native / React", "CSS & Flexbox Layouts", "JS ES6+ Async Features", "Web Performance Optimization", "State Hydration"],
-    Backend: ["RESTful API Protocols", "NodeJS Event Loops", "SQL / Database Queries", "Docker Deployment", "System Architecture"],
-    Mobile: ["React Native Core Views", "Platform UI Guidelines", "Expo CLI / Bundle Sizes", "State Management Hooks", "Native Device Bridges"],
-    AI: ["Python Core Scripting", "ML Regression Analysis", "Neural Networks & PyTorch", "NLP Data Processing", "Linear Algebra Foundations"],
-  };
-  const subjects = focusSubjectsMap[focusDomain] || focusSubjectsMap["Mobile"];
-
-  // Subject performance threshold-based calculations
+// Helper to calculate subject performance metrics dynamically based on quizzes/assignments progress
+function calculateDynamicSubjects(
+  subjects: string[],
+  focusDomain: string,
+  currentEvaluationScorePercent: number,
+  userId: string,
+  rng: number
+): Array<{ name: string; score: number; trend: string }> {
   let totalQuizzesPassed = 0;
   let totalVideosWatched = 0;
   let totalSubmittedAssessments = 0;
   let averageAssessmentScore = 0;
 
   if (typeof window !== "undefined" && window.localStorage) {
-    // 1. Quizzes passed
     for (let i = 0; i < window.localStorage.length; i++) {
       const key = window.localStorage.key(i);
       if (key && key.startsWith("completed_quizzes_")) {
@@ -786,7 +832,6 @@ function getThemedEvaluation(
       }
     }
 
-    // 2. Videos watched
     for (let i = 0; i < window.localStorage.length; i++) {
       const key = window.localStorage.key(i);
       if (key && key.startsWith("video_progress_")) {
@@ -799,7 +844,6 @@ function getThemedEvaluation(
       }
     }
 
-    // 3. Submitted assessments & average score
     const evalCacheKey = `evaluations_${userId}`;
     const cachedEvalsStr = window.localStorage.getItem(evalCacheKey);
     if (cachedEvalsStr) {
@@ -814,29 +858,32 @@ function getThemedEvaluation(
     }
   }
 
-  // Threshold weights and conditions:
-  // Quizzes passed threshold: 6 quizzes passed = 100% of quiz progress weight (35 points max)
   const quizProgressPercent = Math.min(100, (totalQuizzesPassed / 6) * 100);
-  
-  // Video watched threshold: 4 videos watched = 100% of video progress weight (25 points max)
   const videoProgressPercent = Math.min(100, (totalVideosWatched / 4) * 100);
-
-  // Assessments threshold: if assessments submitted, use average score, else baseline of 40% (40 points max)
   const assessmentProgressPercent = totalSubmittedAssessments > 0 ? averageAssessmentScore : 40;
 
-  // Weighted calculation (Quizzes: 35%, Videos: 25%, Assessments: 40%)
   const calculatedBasePerformance = Math.round(
     (quizProgressPercent * 0.35) + 
     (videoProgressPercent * 0.25) + 
     (assessmentProgressPercent * 0.40)
   );
 
-  // Ensure minimum baseline starting score of 35% if user has just registered
   const finalBaseScore = Math.max(35, Math.min(100, calculatedBasePerformance));
 
-  const subjectsList = subjects.map((sub, idx) => {
-    // Generate slight deterministic variance (+/- 3%) for each subject so they don't look completely identical
-    let subjectScore = finalBaseScore + (idx * 2) - 3;
+  return subjects.map((sub, idx) => {
+    let relevanceBoost = 0;
+    const isHighCurrentScore = currentEvaluationScorePercent >= 75;
+    const isLowCurrentScore = currentEvaluationScorePercent < 55;
+
+    if (isHighCurrentScore) {
+      relevanceBoost = Math.round(rng * 8) + 2;
+    } else if (isLowCurrentScore) {
+      relevanceBoost = -Math.round(rng * 6) - 2;
+    } else {
+      relevanceBoost = Math.round((rng - 0.5) * 4);
+    }
+
+    let subjectScore = finalBaseScore + relevanceBoost + (idx * 2) - 3;
     subjectScore = Math.max(35, Math.min(100, subjectScore));
     const trendVal = subjectScore > 80 ? "+5" : subjectScore > 65 ? "+3" : "+2";
     return {
@@ -845,6 +892,52 @@ function getThemedEvaluation(
       trend: trendVal,
     };
   });
+}
+
+// Helper to generate dynamic rubric criteria, answers, and comments based on seeded random hash
+function getThemedEvaluation(
+  assessmentId: string,
+  assessmentTitle: string,
+  focusDomain: string,
+  proficiency: string,
+  userId: string
+): DBEvaluation {
+  const seedString = assessmentId + userId + assessmentTitle;
+  let hash = 0;
+  for (let i = 0; i < seedString.length; i++) {
+    hash = seedString.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const rng = Math.abs(Math.sin(hash));
+
+  const normTitle = assessmentTitle.toLowerCase();
+  let aiFeedback = "";
+
+  if (normTitle.includes("react native") || normTitle.includes("expo") || normTitle.includes("mobile")) {
+    aiFeedback = `Solid React Native mobile implementation for "${assessmentTitle}". The app navigation lifecycle works as expected, and layout constraints scale properly.`;
+  } else if (normTitle.includes("css") || normTitle.includes("html") || normTitle.includes("styling") || normTitle.includes("frontend")) {
+    aiFeedback = `Strong front-end structuring. Grid configurations render fluidly across viewport breakpoints.`;
+  } else if (normTitle.includes("sql") || normTitle.includes("database") || normTitle.includes("backend") || normTitle.includes("api")) {
+    aiFeedback = `Excellent API configuration. Server endpoints follow standard REST constraints cleanly, and connections are correctly closed.`;
+  } else if (normTitle.includes("python") || normTitle.includes("model") || normTitle.includes("pytorch") || normTitle.includes("ai")) {
+    aiFeedback = `Vectorized calculations perform cleanly. Shape assertions align perfectly throughout modeling cycles.`;
+  } else {
+    aiFeedback = `Solid overall implementation for "${assessmentTitle}". Code cleanliness and structure satisfy requirements.`;
+  }
+
+  const rubric = generateDynamicRubric(assessmentTitle, [], 0, focusDomain, false, rng);
+  const totalScore = rubric.reduce((s, r) => s + r.score, 0);
+  const maxScore = rubric.reduce((s, r) => s + r.max, 0);
+
+  const focusSubjectsMap: Record<string, string[]> = {
+    Frontend: ["React Native / React", "CSS & Flexbox Layouts", "JS ES6+ Async Features", "Web Performance Optimization", "State Hydration"],
+    Backend: ["RESTful API Protocols", "NodeJS Event Loops", "SQL / Database Queries", "Docker Deployment", "System Architecture"],
+    Mobile: ["React Native Core Views", "Platform UI Guidelines", "Expo CLI / Bundle Sizes", "State Management Hooks", "Native Device Bridges"],
+    AI: ["Python Core Scripting", "ML Regression Analysis", "Neural Networks & PyTorch", "NLP Data Processing", "Linear Algebra Foundations"],
+  };
+  const subjects = focusSubjectsMap[focusDomain] || focusSubjectsMap["Mobile"];
+  
+  const currentEvaluationScorePercent = Math.round((totalScore / maxScore) * 100);
+  const subjectsList = calculateDynamicSubjects(subjects, focusDomain, currentEvaluationScorePercent, userId, rng);
 
   const isCorrect1 = rng > 0.3;
   const isCorrect2 = rng < 0.7;
@@ -943,6 +1036,13 @@ export async function fetchDBEvaluation(
       
       const subjects = focusSubjectsMap[focusDomain] || focusSubjectsMap["Mobile"];
 
+      const seedString = assessmentId + userId + assessmentTitle;
+      let hash = 0;
+      for (let i = 0; i < seedString.length; i++) {
+        hash = seedString.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      const rng = Math.abs(Math.sin(hash));
+
       if (isQuiz) {
         let correctCount = 0;
         const dynamicAnswers = questions.map((q: any, idx: number) => {
@@ -965,19 +1065,12 @@ export async function fetchDBEvaluation(
           };
         });
 
-        const dynamicRubric = [
-          { criterion: "Correctness", score: correctCount, max: questions.length, note: `Answered ${correctCount} of ${questions.length} questions correctly.` },
-          { criterion: "Concept understanding", score: Math.round((correctCount / questions.length) * 10), max: 10, note: `Demonstrated understanding of core concepts.` },
-        ];
-
+        const dynamicRubric = generateDynamicRubric(assessmentTitle, questions, correctCount, focusDomain, true, rng);
         const score = dynamicRubric.reduce((s, r) => s + r.score, 0);
         const maxScore = dynamicRubric.reduce((s, r) => s + r.max, 0);
 
-        const subjectsList = subjects.map((sub, idx) => ({
-          name: sub,
-          score: Math.round((correctCount / questions.length) * 100),
-          trend: idx % 2 === 0 ? `+${3 + idx}` : `+${1 + idx}`,
-        }));
+        const currentEvaluationScorePercent = Math.round((correctCount / questions.length) * 100);
+        const subjectsList = calculateDynamicSubjects(subjects, focusDomain, currentEvaluationScorePercent, userId, rng);
 
         dynamicEval = {
           assessment_id: assessmentId,

@@ -253,7 +253,14 @@ export async function fetchDBCareerSuggestions(focusDomain: string): Promise<Arr
       .eq("focus_domain", focusDomain);
 
     if (error) throw error;
-    if (data && data.length > 0) return data;
+    if (data && data.length > 0) {
+      const seen = new Set<string>();
+      return data.filter(item => {
+        if (seen.has(item.role)) return false;
+        seen.add(item.role);
+        return true;
+      });
+    }
   } catch (e) {
     logError("fetchDBCareerSuggestions", e);
   }

@@ -338,21 +338,7 @@ insert into public.career_suggestions (focus_domain, role, match, skills) values
 ('AI', 'NLP & LLM Specialist', 81, array['Attention Models', 'Transformers', 'Data Wrangling'])
 on conflict do nothing;
 
--- Weak Areas
-insert into public.weak_areas (focus_domain, topic, score) values
-('Frontend', 'CSS Grid & Flexbox', 58),
-('Frontend', 'State Context Hydration', 62),
-('Frontend', 'TypeScript Strict Mappings', 68),
-('Backend', 'SQL Index & Join Queries', 54),
-('Backend', 'Asynchronous Event Loops', 61),
-('Backend', 'Prisma Schema Relations', 67),
-('Mobile', 'Native Bridge Compilation', 56),
-('Mobile', 'Flexbox Layout Scaling', 62),
-('Mobile', 'Expo Router Deep-Linking', 69),
-('AI', 'SGD Backpropagation Math', 52),
-('AI', 'Pandas Data Cleaning', 63),
-('AI', 'CNN Convolution Matrix', 68)
-on conflict do nothing;
+
 
 -- ==========================================
 -- 13. PEER CONNECTIONS Table

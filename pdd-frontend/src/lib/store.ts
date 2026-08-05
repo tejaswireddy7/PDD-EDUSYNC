@@ -75,6 +75,7 @@ if (typeof window !== "undefined" && window.localStorage) {
       try {
         const parsedProfile = JSON.parse(savedProfile);
         state.user = {
+          id: lastUserId,
           name: parsedProfile.name || "Student",
           email: parsedProfile.email || "",
           registeredAt: parsedProfile.created_at ? new Date(parsedProfile.created_at).getTime() : Date.now(),
@@ -130,6 +131,7 @@ export function useDashboardStore() {
           try {
             const parsedProfile = JSON.parse(savedProfile);
             hydratedUser = {
+              id: lastUserId,
               name: parsedProfile.name || "Student",
               email: parsedProfile.email || "",
               registeredAt: parsedProfile.created_at ? new Date(parsedProfile.created_at).getTime() : Date.now(),
@@ -184,6 +186,7 @@ export function useDashboardStore() {
     setAuth: (user: any, token: string) => {
       updateState({
         user: {
+          id: user.id || user.uid,
           name: user.name || user.email?.split("@")[0],
           email: user.email,
           registeredAt: Date.now(),
@@ -773,6 +776,7 @@ supabase.auth.onAuthStateChange((event: any, session: any) => {
   updateState({
     isLoadingProfile: true,
     user: {
+      id: userId,
       name: userName,
       email: userEmail,
       registeredAt: userCreatedAt,
@@ -908,6 +912,7 @@ supabase.auth.onAuthStateChange((event: any, session: any) => {
     updateState({
       isLoadingProfile: false,
       user: {
+        id: userId,
         name: profile?.name || userName,
         email: userEmail,
         registeredAt: new Date(profile?.created_at || profile?.createdAt || registrationDateObj).getTime(),

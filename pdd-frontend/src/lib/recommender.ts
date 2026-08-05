@@ -368,6 +368,7 @@ export interface SurveyAnswers {
 }
 
 export interface UserProfile {
+  id?: string;
   name: string;
   email: string;
   registeredAt: number;

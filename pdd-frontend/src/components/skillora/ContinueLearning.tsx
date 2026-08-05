@@ -501,8 +501,9 @@ export function ContinueLearning() {
                     style={styles.enrollBtn}
                     activeOpacity={0.8}
                     onPress={() => {
-                      if (c.id) {
-                        store.enrollInCourse(c.id);
+                      const idOrTitle = c.id || c.title;
+                      if (idOrTitle) {
+                        store.enrollInCourse(idOrTitle);
                         Alert.alert("Enrolled Successfully!", `You have enrolled in "${c.title}". It is now in your Continue Learning panel.`);
                       }
                     }}

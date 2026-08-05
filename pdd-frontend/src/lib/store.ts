@@ -206,12 +206,30 @@ export function useDashboardStore() {
       });
     },
 
-    enrollInCourse: async (courseId: number) => {
+    enrollInCourse: async (courseIdOrTitle: number | string) => {
       try {
         const sessionData = await supabase.auth.getSession();
         const session = sessionData.data.session;
         if (session?.user) {
-          await enrollInDBCourse(session.user.id, courseId);
+          let targetId: number | null = null;
+          if (typeof courseIdOrTitle === "number") {
+            targetId = courseIdOrTitle;
+          } else {
+            // Find course ID by title
+            const { data } = await supabase
+              .from("courses")
+              .select("id")
+              .eq("title", courseIdOrTitle)
+              .maybeSingle();
+            if (data) {
+              targetId = data.id;
+            }
+          }
+
+          if (targetId) {
+            await enrollInDBCourse(session.user.id, targetId);
+          }
+
           const answers = state.surveyAnswers;
           if (answers) {
             const courses = await fetchDBCourses(answers.focusDomain, answers.proficiency);
@@ -232,20 +250,27 @@ export function useDashboardStore() {
             }
 
             const enrollments = await fetchDBUserEnrollments(session.user.id);
-            const progressMap = enrollments.reduce((acc, e) => {
-              acc[e.course_id] = e.progress;
-              return acc;
-            }, {} as Record<number, number>);
+            const enrolledTitles = new Set<string>();
+            const progressMap: Record<number, number> = {};
+
+            enrollments.forEach(e => {
+              if (e.courses && e.courses.title) {
+                enrolledTitles.add(e.courses.title.toLowerCase());
+              }
+              progressMap[e.course_id] = e.progress;
+            });
 
             const enrolled: any[] = [];
             const suggested: any[] = [];
 
             coursesWithProgress.forEach(c => {
-              const isEnrolled = c.id !== undefined ? (progressMap[c.id] !== undefined) : false;
+              const isEnrolled = enrolledTitles.has(c.title.toLowerCase()) || 
+                (c.id !== undefined ? (progressMap[c.id] !== undefined) : false);
+
               if (isEnrolled) {
                 enrolled.push({
                   ...c,
-                  progress: progressMap[c.id] !== undefined ? progressMap[c.id] : (c.progress || 0)
+                  progress: c.id !== undefined && progressMap[c.id] !== undefined ? progressMap[c.id] : (c.progress || 0)
                 });
               } else {
                 suggested.push(c);
@@ -255,9 +280,13 @@ export function useDashboardStore() {
             updateState({ enrolledCourses: enrolled, suggestedCourses: suggested });
           }
         } else {
-          const target = state.suggestedCourses.find(c => c.id === courseId);
+          const target = state.suggestedCourses.find(c => 
+            typeof courseIdOrTitle === "number" ? c.id === courseIdOrTitle : c.title.toLowerCase() === courseIdOrTitle.toLowerCase()
+          );
           if (target) {
-            const updatedSuggested = state.suggestedCourses.filter(c => c.id !== courseId);
+            const updatedSuggested = state.suggestedCourses.filter(c => 
+              typeof courseIdOrTitle === "number" ? c.id !== courseIdOrTitle : c.title.toLowerCase() !== courseIdOrTitle.toLowerCase()
+            );
             const updatedEnrolled = [...state.enrolledCourses, { ...target, progress: 0 }];
             updateState({ enrolledCourses: updatedEnrolled, suggestedCourses: updatedSuggested });
           }
@@ -303,17 +332,24 @@ export function useDashboardStore() {
         } else {
           try {
             const enrollments = await fetchDBUserEnrollments(currentUserId);
-            const progressMap = enrollments.reduce((acc, e) => {
-              acc[e.course_id] = e.progress;
-              return acc;
-            }, {} as Record<number, number>);
+            const enrolledTitles = new Set<string>();
+            const progressMap: Record<number, number> = {};
+
+            enrollments.forEach(e => {
+              if (e.courses && e.courses.title) {
+                enrolledTitles.add(e.courses.title.toLowerCase());
+              }
+              progressMap[e.course_id] = e.progress;
+            });
 
             allCourses.forEach(c => {
-              const isEnrolled = c.id !== undefined ? (progressMap[c.id] !== undefined) : false;
+              const isEnrolled = enrolledTitles.has(c.title.toLowerCase()) || 
+                (c.id !== undefined ? (progressMap[c.id] !== undefined) : false);
+
               if (isEnrolled) {
                 enrolled.push({
                   ...c,
-                  progress: progressMap[c.id] !== undefined ? progressMap[c.id] : (c.progress || 0)
+                  progress: c.id !== undefined && progressMap[c.id] !== undefined ? progressMap[c.id] : (c.progress || 0)
                 });
               } else {
                 suggested.push(c);
@@ -518,17 +554,24 @@ export function useDashboardStore() {
         if (session?.user?.id) {
           try {
             const enrollments = await fetchDBUserEnrollments(session.user.id);
-            const progressMap = enrollments.reduce((acc, e) => {
-              acc[e.course_id] = e.progress;
-              return acc;
-            }, {} as Record<number, number>);
+            const enrolledTitles = new Set<string>();
+            const progressMap: Record<number, number> = {};
+
+            enrollments.forEach(e => {
+              if (e.courses && e.courses.title) {
+                enrolledTitles.add(e.courses.title.toLowerCase());
+              }
+              progressMap[e.course_id] = e.progress;
+            });
 
             coursesWithProgress.forEach(c => {
-              const isEnrolled = c.id !== undefined ? (progressMap[c.id] !== undefined) : false;
+              const isEnrolled = enrolledTitles.has(c.title.toLowerCase()) || 
+                (c.id !== undefined ? (progressMap[c.id] !== undefined) : false);
+
               if (isEnrolled) {
                 enrolled.push({
                   ...c,
-                  progress: progressMap[c.id] !== undefined ? progressMap[c.id] : (c.progress || 0)
+                  progress: c.id !== undefined && progressMap[c.id] !== undefined ? progressMap[c.id] : (c.progress || 0)
                 });
               } else {
                 suggested.push(c);

@@ -1644,7 +1644,12 @@ export async function fetchDBUserEnrollments(userId: string): Promise<any[]> {
   try {
     const { data, error } = await supabase
       .from("user_enrollments")
-      .select("*")
+      .select(`
+        *,
+        courses (
+          title
+        )
+      `)
       .eq("user_id", userId);
     if (error) throw error;
     return data || [];

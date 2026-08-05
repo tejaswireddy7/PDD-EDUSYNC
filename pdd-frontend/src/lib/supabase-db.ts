@@ -1273,6 +1273,41 @@ export async function saveDBCourseProgress(userId: string, courses: DBCourse[]):
   }
 }
 
+// Save complete recommendations
+export async function saveDBRecommendations(userId: string, recs: any): Promise<void> {
+  try {
+    const payload = {
+      userId: userId,
+      user_id: userId,
+      courses: typeof recs.courses === "string" ? recs.courses : JSON.stringify(recs.courses),
+      resources: typeof recs.resources === "string" ? recs.resources : JSON.stringify(recs.resources),
+      milestones: typeof recs.milestones === "string" ? recs.milestones : JSON.stringify(recs.milestones),
+      weeklyHoursTarget: recs.weeklyHoursTarget || 5,
+      nextAssessment: recs.nextAssessment || ""
+    };
+
+    const { error } = await supabase
+      .from("recommendations")
+      .upsert(payload, { onConflict: "user_id" });
+
+    if (error) {
+      // Fallback if user_id conflict constraint differs
+      await supabase
+        .from("recommendations")
+        .upsert({
+          userId: userId,
+          courses: typeof recs.courses === "string" ? recs.courses : JSON.stringify(recs.courses),
+          resources: typeof recs.resources === "string" ? recs.resources : JSON.stringify(recs.resources),
+          milestones: typeof recs.milestones === "string" ? recs.milestones : JSON.stringify(recs.milestones),
+          weeklyHoursTarget: recs.weeklyHoursTarget || 5,
+          nextAssessment: recs.nextAssessment || ""
+        }, { onConflict: "userId" });
+    }
+  } catch (e) {
+    logError("saveDBRecommendations", e);
+  }
+}
+
 // 20. Fetch All Profiles
 export async function fetchDBAllProfiles(): Promise<any[]> {
   try {

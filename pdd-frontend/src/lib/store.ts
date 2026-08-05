@@ -12,7 +12,8 @@ import {
   fetchDBRecommendations,
   saveDBCourseProgress,
   fetchDBUserEnrollments,
-  enrollInDBCourse
+  enrollInDBCourse,
+  saveDBRecommendations
 } from "./supabase-db";
 
 async function getNextAssessmentTitle(userId: string, focusDomain: string, proficiency: string): Promise<string> {
@@ -543,14 +544,24 @@ export function useDashboardStore() {
           suggested = coursesWithProgress.slice(1);
         }
 
+        const newRecs = {
+          courses: coursesWithProgress,
+          resources: resources.map(r => ({ title: r.title, type: r.type, duration: "15 min" })),
+          milestones,
+          weeklyHoursTarget: answers.learningHours,
+          nextAssessment
+        };
+
+        if (session?.user?.id) {
+          try {
+            await saveDBRecommendations(session.user.id, newRecs);
+          } catch (err) {
+            console.warn("Failed to persist recommendations to DB:", err);
+          }
+        }
+
         updateState({
-          recommendations: {
-            courses: coursesWithProgress,
-            resources: resources.map(r => ({ title: r.title, type: r.type, duration: "15 min" })),
-            milestones,
-            weeklyHoursTarget: answers.learningHours,
-            nextAssessment
-          },
+          recommendations: newRecs,
           enrolledCourses: enrolled,
           suggestedCourses: suggested,
           isLoadingRecommendations: false

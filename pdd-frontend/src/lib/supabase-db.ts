@@ -619,7 +619,7 @@ export async function fetchDBMessages(userId: string, contactId: string, welcome
 }
 
 // 11. Send Chat Message
-export async function sendDBMessage(userId: string, contactId: string, text: string): Promise<DBMessage> {
+export async function sendContactDBMessage(userId: string, contactId: string, text: string): Promise<DBMessage> {
   const newMsg: DBMessage = {
     id: String(Date.now()),
     from: "me",
@@ -644,7 +644,7 @@ export async function sendDBMessage(userId: string, contactId: string, text: str
       newMsg.id = data.id;
     }
   } catch (e) {
-    logError("sendDBMessage", e);
+    logError("sendContactDBMessage", e);
   }
 
   return newMsg;

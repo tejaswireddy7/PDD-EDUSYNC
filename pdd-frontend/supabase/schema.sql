@@ -502,3 +502,15 @@ create policy "Users can update message read status" on public.peer_messages
       and peer_conversation_participants.user_id = auth.uid()
     )
   );
+
+-- ==========================================
+-- ENABLE REALTIME REPLICATION FOR PEER CHATS
+-- ==========================================
+begin;
+  -- Add peer chat tables to the supabase_realtime publication
+  alter publication supabase_realtime add table public.peer_connections;
+  alter publication supabase_realtime add table public.peer_conversations;
+  alter publication supabase_realtime add table public.peer_conversation_participants;
+  alter publication supabase_realtime add table public.peer_messages;
+commit;
+

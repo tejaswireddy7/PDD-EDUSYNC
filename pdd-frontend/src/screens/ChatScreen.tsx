@@ -516,14 +516,18 @@ export default function ChatScreen() {
                           ) : conn.status === "accepted" ? (
                             <TouchableOpacity 
                               onPress={async () => {
+                                console.log("[ChatScreen] Chat button clicked. currentUserId:", currentUserId, "peerId:", p.id);
                                 try {
                                   const convId = await getOrCreateConversation(currentUserId, p.id);
+                                  console.log("[ChatScreen] getOrCreateConversation returned convId:", convId);
                                   setActiveConv({
                                     id: convId,
                                     peer: p
                                   });
                                   setTab("chats");
+                                  console.log("[ChatScreen] Tab switched to chats. ActiveConv set successfully.");
                                 } catch (err) {
+                                  console.error("[ChatScreen] Failed to start conversation:", err);
                                   Alert.alert("Error", "Failed to start conversation.");
                                 }
                               }}

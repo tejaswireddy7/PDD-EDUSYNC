@@ -1497,30 +1497,43 @@ export async function fetchDBAllIncomingUnreadCount(currentUserId: string): Prom
 
 // 30. Get or Create Peer Conversation
 export async function getOrCreateConversation(user1: string, user2: string): Promise<string> {
+  console.log("[Supabase DB] getOrCreateConversation started for user1:", user1, "user2:", user2);
   try {
     // 1. Fetch conversations for user1
     const { data: myPart, error: partErr } = await supabase
       .from("peer_conversation_participants")
       .select("conversation_id")
       .eq("user_id", user1);
-    if (partErr) throw partErr;
+    if (partErr) {
+      console.error("[Supabase DB] Fetching conversations for user1 failed:", partErr);
+      throw partErr;
+    }
+
+    console.log("[Supabase DB] user1 conversations count:", myPart ? myPart.length : 0);
 
     if (myPart && myPart.length > 0) {
       const convIds = myPart.map(cp => cp.conversation_id);
 
-      // 2. Find common conversation containing user2
-      const { data: commonPart, error: commonErr } = await supabase
+      // 2. Find common conversation containing user2 using limit(1) to avoid duplicate rows error
+      const { data: commonParts, error: commonErr } = await supabase
         .from("peer_conversation_participants")
         .select("conversation_id")
         .in("conversation_id", convIds)
         .eq("user_id", user2)
-        .maybeSingle();
+        .limit(1);
 
-      if (commonErr) throw commonErr;
-      if (commonPart) {
-        return commonPart.conversation_id;
+      if (commonErr) {
+        console.error("[Supabase DB] Finding common conversation failed:", commonErr);
+        throw commonErr;
+      }
+      
+      if (commonParts && commonParts.length > 0) {
+        console.log("[Supabase DB] Found existing conversation ID:", commonParts[0].conversation_id);
+        return commonParts[0].conversation_id;
       }
     }
+
+    console.log("[Supabase DB] No common conversation found. Creating a new one...");
 
     // 3. Create conversation if not exist
     const { data: conv, error: convError } = await supabase
@@ -1528,7 +1541,12 @@ export async function getOrCreateConversation(user1: string, user2: string): Pro
       .insert({})
       .select()
       .single();
-    if (convError) throw convError;
+    if (convError) {
+      console.error("[Supabase DB] Creating conversation failed:", convError);
+      throw convError;
+    }
+
+    console.log("[Supabase DB] New conversation created with ID:", conv.id);
 
     // 4. Insert participants
     const { error: partError } = await supabase
@@ -1537,11 +1555,15 @@ export async function getOrCreateConversation(user1: string, user2: string): Pro
         { conversation_id: conv.id, user_id: user1 },
         { conversation_id: conv.id, user_id: user2 }
       ]);
-    if (partError) throw partError;
+    if (partError) {
+      console.error("[Supabase DB] Inserting participants failed:", partError);
+      throw partError;
+    }
 
+    console.log("[Supabase DB] Participants inserted successfully. Returning new conversation ID:", conv.id);
     return conv.id;
   } catch (e) {
-    console.warn("getOrCreateConversation failed:", e);
+    console.error("[Supabase DB] getOrCreateConversation failed:", e);
     throw e;
   }
 }

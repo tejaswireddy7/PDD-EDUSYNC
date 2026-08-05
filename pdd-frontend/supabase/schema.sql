@@ -500,11 +500,47 @@ create policy "Users can update message read status" on public.peer_messages
 -- ==========================================
 -- ENABLE REALTIME REPLICATION FOR PEER CHATS
 -- ==========================================
-begin;
-  -- Add peer chat tables to the supabase_realtime publication
-  alter publication supabase_realtime add table public.peer_connections;
-  alter publication supabase_realtime add table public.peer_conversations;
-  alter publication supabase_realtime add table public.peer_conversation_participants;
-  alter publication supabase_realtime add table public.peer_messages;
-commit;
+do $$
+begin
+  -- Add peer_connections if not already added
+  if not exists (
+    select 1 from pg_publication_rel pr
+    join pg_class c on c.oid = pr.prrelid
+    join pg_publication p on p.oid = pr.prpubid
+    where p.pubname = 'supabase_realtime' and c.relname = 'peer_connections'
+  ) then
+    alter publication supabase_realtime add table public.peer_connections;
+  end if;
+
+  -- Add peer_conversations if not already added
+  if not exists (
+    select 1 from pg_publication_rel pr
+    join pg_class c on c.oid = pr.prrelid
+    join pg_publication p on p.oid = pr.prpubid
+    where p.pubname = 'supabase_realtime' and c.relname = 'peer_conversations'
+  ) then
+    alter publication supabase_realtime add table public.peer_conversations;
+  end if;
+
+  -- Add peer_conversation_participants if not already added
+  if not exists (
+    select 1 from pg_publication_rel pr
+    join pg_class c on c.oid = pr.prrelid
+    join pg_publication p on p.oid = pr.prpubid
+    where p.pubname = 'supabase_realtime' and c.relname = 'peer_conversation_participants'
+  ) then
+    alter publication supabase_realtime add table public.peer_conversation_participants;
+  end if;
+
+  -- Add peer_messages if not already added
+  if not exists (
+    select 1 from pg_publication_rel pr
+    join pg_class c on c.oid = pr.prrelid
+    join pg_publication p on p.oid = pr.prpubid
+    where p.pubname = 'supabase_realtime' and c.relname = 'peer_messages'
+  ) then
+    alter publication supabase_realtime add table public.peer_messages;
+  end if;
+end;
+$$;
 

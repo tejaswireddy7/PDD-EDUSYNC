@@ -511,6 +511,38 @@ export function useDashboardStore() {
         };
 
         const coursesWithProgress = overlayProgress(courses);
+        
+        let enrolled: any[] = [];
+        let suggested: any[] = [];
+        if (session?.user?.id) {
+          try {
+            const enrollments = await fetchDBUserEnrollments(session.user.id);
+            const progressMap = enrollments.reduce((acc, e) => {
+              acc[e.course_id] = e.progress;
+              return acc;
+            }, {} as Record<number, number>);
+
+            coursesWithProgress.forEach(c => {
+              const isEnrolled = c.id !== undefined ? (progressMap[c.id] !== undefined) : false;
+              if (isEnrolled) {
+                enrolled.push({
+                  ...c,
+                  progress: progressMap[c.id] !== undefined ? progressMap[c.id] : (c.progress || 0)
+                });
+              } else {
+                suggested.push(c);
+              }
+            });
+          } catch (e) {
+            console.warn("Error partitioning on submitSurvey:", e);
+            enrolled = coursesWithProgress.slice(0, 1).map(c => ({ ...c, progress: 0 }));
+            suggested = coursesWithProgress.slice(1);
+          }
+        } else {
+          enrolled = coursesWithProgress.slice(0, 1).map(c => ({ ...c, progress: 0 }));
+          suggested = coursesWithProgress.slice(1);
+        }
+
         updateState({
           recommendations: {
             courses: coursesWithProgress,
@@ -519,6 +551,8 @@ export function useDashboardStore() {
             weeklyHoursTarget: answers.learningHours,
             nextAssessment
           },
+          enrolledCourses: enrolled,
+          suggestedCourses: suggested,
           isLoadingRecommendations: false
         });
       } catch (e) {
@@ -541,7 +575,17 @@ export function useDashboardStore() {
             } catch (e) {}
           }
         }
-        updateState({ recommendations: localRecs, isLoadingRecommendations: false });
+        
+        const localCourses = localRecs.courses;
+        const enrolled = localCourses.slice(0, 1).map(c => ({ ...c, progress: 0 }));
+        const suggested = localCourses.slice(1);
+
+        updateState({ 
+          recommendations: localRecs, 
+          enrolledCourses: enrolled,
+          suggestedCourses: suggested,
+          isLoadingRecommendations: false 
+        });
       }
     },
 

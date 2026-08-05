@@ -5,7 +5,7 @@ import { Header } from "../components/skillora/Header";
 import { LinearGradient } from "expo-linear-gradient";
 import { useDashboardStore } from "../lib/store";
 import { supabase } from "../lib/supabase";
-import { fetchDBEvaluation, submitDBGrievance, DBEvaluation } from "../lib/supabase-db";
+import { fetchDBEvaluation, DBEvaluation } from "../lib/supabase-db";
 
 export default function EvaluationScreen() {
   const store = useDashboardStore();
@@ -15,9 +15,6 @@ export default function EvaluationScreen() {
 
   const [evaluation, setEvaluation] = useState<DBEvaluation | null>(null);
   const [loading, setLoading] = useState(false);
-  const [grievance, setGrievance] = useState("");
-  const [sent, setSent] = useState(false);
-  const [refNo, setRefNo] = useState("");
 
   const [submittedId, setSubmittedId] = useState<string | null>(store.submittedAssessmentId);
   const [submittedTitle, setSubmittedTitle] = useState<string>(assessmentTitle);
@@ -84,24 +81,7 @@ export default function EvaluationScreen() {
     loadEvaluation();
   }, [submittedId, focusDomain, userProficiency, submittedTitle]);
 
-  const handleGrievanceSubmit = async () => {
-    if (!grievance.trim() || !submittedId) return;
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const ref = await submitDBGrievance(
-          user.id,
-          submittedId,
-          submittedTitle,
-          grievance
-        );
-        setRefNo(ref);
-        setSent(true);
-      }
-    } catch (err) {
-      console.warn("Failed to submit grievance:", err);
-    }
-  };
+
 
   if (!submittedId) {
     return (
@@ -274,60 +254,6 @@ export default function EvaluationScreen() {
           })}
         </View>
       </View>
-
-      {/* Percentile Ranking Hero Panel */}
-      <LinearGradient
-        colors={["#0f172a", "#1e1b4b"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.heroPanel}
-      >
-        <Feather name="award" size={24} color="#ffffff" style={styles.heroIcon} />
-        <Text style={styles.heroRankLabel}>Percentile Ranking</Text>
-        <Text style={styles.heroRankValue}>Top 8%</Text>
-        <Text style={styles.heroRankDesc}>
-          Among 12,480 learners in {focusDomain} ({userProficiency}) this month.
-        </Text>
-      </LinearGradient>
-
-      {/* Submit Grievance Widget */}
-      <View style={styles.rubricBreakdownCard}>
-        <View style={styles.cardHeader}>
-          <Feather name="alert-triangle" size={16} color="#ef4444" />
-          <Text style={styles.cardTitle}>Submit Grievance</Text>
-        </View>
-        <Text style={styles.grievanceDesc}>
-          Disagree with a score? Request a re-evaluation by a senior mentor.
-        </Text>
-        
-        {sent ? (
-          <View style={styles.successAlert}>
-            <Feather name="check-circle" size={14} color="#0d9488" />
-            <Text style={styles.successAlertText}>
-              Grievance submitted · Ref #{refNo}
-            </Text>
-          </View>
-        ) : (
-          <View style={styles.formContainer}>
-            <TextInput
-              style={styles.formInput}
-              multiline
-              numberOfLines={3}
-              value={grievance}
-              onChangeText={setGrievance}
-              placeholder="Mention the question number and reason…"
-              placeholderTextColor="#94a3b8"
-            />
-            <TouchableOpacity 
-              onPress={handleGrievanceSubmit}
-              style={styles.submitBtn}
-            >
-              <Text style={styles.submitBtnText}>Send request</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
-
       <View style={styles.spacer} />
     </ScrollView>
   );

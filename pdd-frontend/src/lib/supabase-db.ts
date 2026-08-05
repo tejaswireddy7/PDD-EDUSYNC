@@ -766,11 +766,85 @@ function getThemedEvaluation(
   };
   const subjects = focusSubjectsMap[focusDomain] || focusSubjectsMap["Mobile"];
 
-  const subjectsList = subjects.map((sub, idx) => ({
-    name: sub,
-    score: 80 + Math.floor(rng * 15) + (idx * 2) > 100 ? 98 : 80 + Math.floor(rng * 15) + (idx * 2),
-    trend: `+${Math.floor(rng * 5) + idx + 1}`,
-  }));
+  // Subject performance threshold-based calculations
+  let totalQuizzesPassed = 0;
+  let totalVideosWatched = 0;
+  let totalSubmittedAssessments = 0;
+  let averageAssessmentScore = 0;
+
+  if (typeof window !== "undefined" && window.localStorage) {
+    // 1. Quizzes passed
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const key = window.localStorage.key(i);
+      if (key && key.startsWith("completed_quizzes_")) {
+        try {
+          const val = JSON.parse(window.localStorage.getItem(key) || "[]");
+          if (Array.isArray(val)) {
+            totalQuizzesPassed += val.length;
+          }
+        } catch (e) {}
+      }
+    }
+
+    // 2. Videos watched
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const key = window.localStorage.key(i);
+      if (key && key.startsWith("video_progress_")) {
+        try {
+          const val = parseFloat(window.localStorage.getItem(key) || "0");
+          if (val > 10) {
+            totalVideosWatched++;
+          }
+        } catch (e) {}
+      }
+    }
+
+    // 3. Submitted assessments & average score
+    const evalCacheKey = `evaluations_${userId}`;
+    const cachedEvalsStr = window.localStorage.getItem(evalCacheKey);
+    if (cachedEvalsStr) {
+      try {
+        const cachedEvals = JSON.parse(cachedEvalsStr);
+        if (Array.isArray(cachedEvals) && cachedEvals.length > 0) {
+          totalSubmittedAssessments = cachedEvals.length;
+          const totalScorePercent = cachedEvals.reduce((sum, e) => sum + (e.score / e.max_score) * 100, 0);
+          averageAssessmentScore = Math.round(totalScorePercent / cachedEvals.length);
+        }
+      } catch (e) {}
+    }
+  }
+
+  // Threshold weights and conditions:
+  // Quizzes passed threshold: 6 quizzes passed = 100% of quiz progress weight (35 points max)
+  const quizProgressPercent = Math.min(100, (totalQuizzesPassed / 6) * 100);
+  
+  // Video watched threshold: 4 videos watched = 100% of video progress weight (25 points max)
+  const videoProgressPercent = Math.min(100, (totalVideosWatched / 4) * 100);
+
+  // Assessments threshold: if assessments submitted, use average score, else baseline of 40% (40 points max)
+  const assessmentProgressPercent = totalSubmittedAssessments > 0 ? averageAssessmentScore : 40;
+
+  // Weighted calculation (Quizzes: 35%, Videos: 25%, Assessments: 40%)
+  const calculatedBasePerformance = Math.round(
+    (quizProgressPercent * 0.35) + 
+    (videoProgressPercent * 0.25) + 
+    (assessmentProgressPercent * 0.40)
+  );
+
+  // Ensure minimum baseline starting score of 35% if user has just registered
+  const finalBaseScore = Math.max(35, Math.min(100, calculatedBasePerformance));
+
+  const subjectsList = subjects.map((sub, idx) => {
+    // Generate slight deterministic variance (+/- 3%) for each subject so they don't look completely identical
+    let subjectScore = finalBaseScore + (idx * 2) - 3;
+    subjectScore = Math.max(35, Math.min(100, subjectScore));
+    const trendVal = subjectScore > 80 ? "+5" : subjectScore > 65 ? "+3" : "+2";
+    return {
+      name: sub,
+      score: subjectScore,
+      trend: trendVal,
+    };
+  });
 
   const isCorrect1 = rng > 0.3;
   const isCorrect2 = rng < 0.7;
@@ -1009,31 +1083,7 @@ export async function fetchDBEvaluation(
   return getThemedEvaluation(assessmentId, assessmentTitle, focusDomain, proficiency, userId);
 }
 
-// 13. Submit Grievance
-export async function submitDBGrievance(
-  userId: string, 
-  assessmentId: string, 
-  assessmentTitle: string, 
-  reason: string
-): Promise<string> {
-  const refNo = `G-${Math.floor(Math.random() * 9000) + 1000}`;
-  try {
-    const { error } = await supabase
-      .from("grievances")
-      .insert({
-        user_id: userId,
-        assessment_id: assessmentId,
-        assessment_title: assessmentTitle,
-        reason,
-        ref_no: refNo
-      });
-
-    if (error) throw error;
-  } catch (e) {
-    logError("submitDBGrievance", e);
-  }
-  return refNo;
-}
+// Grievance filing removed by user request
 
 // Performance Trends and Weak Areas fetchers removed by user request
 

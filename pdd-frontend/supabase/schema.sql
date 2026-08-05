@@ -215,23 +215,7 @@ create policy "Anyone can view career suggestions" on public.career_suggestions 
 -- Dropped tables as requested by user
 drop table if exists public.performance_trends cascade;
 drop table if exists public.weak_areas cascade;
-
--- 12. GRIEVANCES Table
-create table if not exists public.grievances (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid references auth.users on delete cascade not null,
-  assessment_id text not null,
-  assessment_title text not null,
-  reason text not null,
-  ref_no text not null,
-  created_at timestamp with time zone default now()
-);
-
-alter table public.grievances enable row level security;
-drop policy if exists "Users can view their own grievances" on public.grievances;
-create policy "Users can view their own grievances" on public.grievances for select using (auth.uid() = user_id);
-drop policy if exists "Users can file grievances" on public.grievances;
-create policy "Users can file grievances" on public.grievances for insert with check (auth.uid() = user_id);
+drop table if exists public.grievances cascade;
 
 
 -- ==========================================

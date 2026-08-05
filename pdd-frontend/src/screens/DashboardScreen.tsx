@@ -3,7 +3,6 @@ import { ScrollView, StyleSheet, View, Text, TouchableOpacity, Platform, Activit
 import { Header } from "../components/skillora/Header";
 import { StatCards } from "../components/skillora/StatCards";
 import { ContinueLearning } from "../components/skillora/ContinueLearning";
-import { PerformanceChart } from "../components/skillora/PerformanceChart";
 import { CareerPanel } from "../components/skillora/CareerPanel";
 import { SideRail } from "../components/skillora/SideRail";
 import { ResourceHub } from "../components/skillora/ResourceHub";
@@ -64,7 +63,6 @@ export default function DashboardScreen() {
           <Header />
           <StatCards />
           <ContinueLearning />
-          <PerformanceChart />
           <CareerPanel />
           <SideRail />
           <ResourceHub />

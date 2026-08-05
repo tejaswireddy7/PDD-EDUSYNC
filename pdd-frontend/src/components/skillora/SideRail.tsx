@@ -10,7 +10,6 @@ export function SideRail() {
   const userProficiency = store.surveyAnswers?.proficiency || "Beginner";
   const nextAssessment = store.recommendations?.nextAssessment || `Introduction to ${focusDomain}`;
 
-  const [showRevisionPlan, setShowRevisionPlan] = useState(false);
   const [showCacheManager, setShowCacheManager] = useState(false);
 
   const showXpGuide = () => {
@@ -20,58 +19,12 @@ export function SideRail() {
     );
   };
 
-  // Domain-specific weak topics
-  const domainWeakMap: Record<string, Array<{ topic: string; score: number }>> = {
-    Frontend: [
-      { topic: "CSS Grid & Flexbox", score: 58 },
-      { topic: "State Context Hydration", score: 62 },
-      { topic: "TypeScript Strict Mappings", score: 68 },
-    ],
-    Backend: [
-      { topic: "SQL Index & Join Queries", score: 54 },
-      { topic: "Asynchronous Event Loops", score: 61 },
-      { topic: "Prisma Schema Relations", score: 67 },
-    ],
-    Mobile: [
-      { topic: "Native Bridge Compilation", score: 56 },
-      { topic: "Flexbox Layout Scaling", score: 62 },
-      { topic: "Expo Router Deep-Linking", score: 69 },
-    ],
-    AI: [
-      { topic: "SGD Backpropagation Math", score: 52 },
-      { topic: "Pandas Data Cleaning", score: 63 },
-      { topic: "CNN Convolution Matrix", score: 68 },
-    ],
-  };
-
-  const [weak, setWeak] = useState<Array<{ topic: string; score: number }>>([]);
-
   const initialUpcoming = [
     { title: nextAssessment, day: "Tue", date: "04", color: "primary" },
     { title: `${focusDomain} Lab Exercise`, day: "Thu", date: "06", color: "mint" },
     { title: `Comprehensive ${focusDomain} Exam`, day: "Sat", date: "08", color: "primary" },
   ];
   const [upcoming, setUpcoming] = useState<Array<{ title: string; day: string; date: string; color: string }>>(initialUpcoming);
-
-  React.useEffect(() => {
-    async function loadSideRailData() {
-      try {
-        const { fetchDBWeakAreas } = await import("../../lib/supabase-db");
-        const { supabase } = await import("../../lib/supabase");
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const dbWeak = await fetchDBWeakAreas(user.id, focusDomain);
-          setWeak(dbWeak);
-        } else {
-          setWeak([]);
-        }
-      } catch (err) {
-        console.warn("Failed to load weak areas from Supabase:", err);
-        setWeak([]);
-      }
-    }
-    loadSideRailData();
-  }, [focusDomain]);
 
   React.useEffect(() => {
     setUpcoming([
@@ -90,38 +43,6 @@ export function SideRail() {
 
   return (
     <View style={styles.container}>
-      {/* Weak Areas Widget */}
-      <View style={styles.card}>
-        <View style={styles.cardHeader}>
-          <View style={[styles.iconBox, styles.bgDestructive]}>
-            <Feather name="alert-circle" size={16} color="#ef4444" />
-          </View>
-          <Text style={styles.cardTitle}>Weak Areas</Text>
-        </View>
-        <View style={styles.list}>
-          {weak.length === 0 ? (
-            <Text style={{ fontSize: 11, color: "#64748b", fontStyle: "italic", textAlign: "center", marginVertical: 8 }}>
-              No weak areas identified yet! Keep learning. 🚀
-            </Text>
-          ) : (
-            weak.map((w) => (
-              <View key={w.topic} style={styles.weakRow}>
-                <View style={styles.weakMeta}>
-                  <Text style={styles.weakLabel}>{w.topic}</Text>
-                  <Text style={styles.weakValue}>{w.score}%</Text>
-                </View>
-                <View style={styles.progressBarTrack}>
-                  <View style={[styles.progressBarDestructive, { width: `${w.score}%` }]} />
-                </View>
-              </View>
-            ))
-          )}
-        </View>
-        <TouchableOpacity onPress={() => setShowRevisionPlan(true)}>
-          <Text style={styles.cardAction}>Generate revision plan →</Text>
-        </TouchableOpacity>
-      </View>
-
       {/* Upcoming Assessments Widget */}
       <View style={styles.card}>
         <View style={styles.cardHeader}>
@@ -200,63 +121,6 @@ export function SideRail() {
           <Feather name="download" size={14} color="#6366f1" />
         </TouchableOpacity>
       </TouchableOpacity>
-
-      {/* 1. REVISION PLAN MODAL */}
-      <Modal
-        visible={showRevisionPlan}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowRevisionPlan(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>AI Study Revision Plan</Text>
-              <TouchableOpacity onPress={() => setShowRevisionPlan(false)} style={styles.closeBtn}>
-                <Feather name="x" size={18} color="#475569" />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
-              <Text style={styles.revisionWelcome}>
-                AI has analyzed your academic checkpoints to build this targeted recovery schedule:
-              </Text>
-
-              {weak.length === 0 ? (
-                <View style={styles.perfectStateBox}>
-                  <Text style={styles.perfectStateEmoji}>🎉</Text>
-                  <Text style={styles.perfectStateTitle}>All Areas Are Strong!</Text>
-                  <Text style={styles.perfectStateText}>
-                    You do not have any identified weak areas yet. Revisit past course materials and complete advanced project assessments to challenge yourself!
-                  </Text>
-                </View>
-              ) : (
-                weak.map((w, idx) => (
-                  <View key={idx} style={styles.revisionTopicCard}>
-                    <View style={styles.topicHeader}>
-                      <Text style={styles.topicName}>{w.topic}</Text>
-                      <Text style={styles.topicScore}>Score: {w.score}%</Text>
-                    </View>
-                    <View style={styles.recoverySteps}>
-                      <Text style={styles.stepItem}>• Step 1: Re-read official documentation and notes in the Resource Hub.</Text>
-                      <Text style={styles.stepItem}>• Step 2: Watch divided lessons and complete the interactive section quizzes.</Text>
-                      <Text style={styles.stepItem}>• Step 3: Connect with your mentor (Priya M.) via AI Coach for clarification.</Text>
-                      <Text style={styles.stepItem}>• Step 4: Re-take the layout assessment when you feel confident.</Text>
-                    </View>
-                  </View>
-                ))
-              )}
-            </ScrollView>
-
-            <TouchableOpacity 
-              style={styles.modalActionBtn} 
-              onPress={() => setShowRevisionPlan(false)}
-            >
-              <Text style={styles.modalActionText}>Start Revision Session</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
 
       {/* 2. OFFLINE CACHE MANAGER MODAL */}
       <Modal

@@ -212,30 +212,9 @@ alter table public.career_suggestions enable row level security;
 drop policy if exists "Anyone can view career suggestions" on public.career_suggestions;
 create policy "Anyone can view career suggestions" on public.career_suggestions for select using (true);
 
--- 10. PERFORMANCE TRENDS Table
-create table if not exists public.performance_trends (
-  id serial primary key,
-  user_id uuid references auth.users on delete cascade not null,
-  proficiency text not null,
-  data integer[] not null,
-  avg_score integer not null
-);
-
-alter table public.performance_trends enable row level security;
-drop policy if exists "Users can view their own trends" on public.performance_trends;
-create policy "Users can view their own trends" on public.performance_trends for select using (auth.uid() = user_id);
-
--- 11. WEAK AREAS Table
-create table if not exists public.weak_areas (
-  id serial primary key,
-  focus_domain text not null,
-  topic text not null,
-  score integer not null
-);
-
-alter table public.weak_areas enable row level security;
-drop policy if exists "Anyone can view weak areas" on public.weak_areas;
-create policy "Anyone can view weak areas" on public.weak_areas for select using (true);
+-- Dropped tables as requested by user
+drop table if exists public.performance_trends cascade;
+drop table if exists public.weak_areas cascade;
 
 -- 12. GRIEVANCES Table
 create table if not exists public.grievances (

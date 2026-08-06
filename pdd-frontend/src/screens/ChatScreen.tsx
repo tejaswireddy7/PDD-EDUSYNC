@@ -42,7 +42,7 @@ type Connection = {
   id: string;
   sender_id: string;
   receiver_id: string;
-  status: "pending" | "accepted" | "rejected";
+  status: "pending" | "accepted" | "rejected" | "blocked";
 };
 
 type Message = {
@@ -978,13 +978,13 @@ export default function ChatScreen() {
 
                 <View style={styles.statsGrid}>
                   <View style={styles.statBox}>
-                    <MaterialCommunityIcons name="zap" size={16} color="#ef4444" />
+                    <Feather name="zap" size={16} color="#ef4444" />
                     <Text style={styles.statVal}>{selectedPeerProfile.xp ?? 0} XP</Text>
                     <Text style={styles.statLabel}>Total XP</Text>
                   </View>
 
                   <View style={styles.statBox}>
-                    <MaterialCommunityIcons name="award" size={16} color="#f59e0b" />
+                    <Feather name="award" size={16} color="#f59e0b" />
                     <Text style={styles.statVal}>{selectedPeerProfile.streak ?? 1} days</Text>
                     <Text style={styles.statLabel}>Streak</Text>
                   </View>

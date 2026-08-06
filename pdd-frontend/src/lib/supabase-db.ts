@@ -6,6 +6,7 @@ import { getRecommendations, RecommendationOutput, SurveyAnswers, UserProfile } 
 // -------------------------------------------------------------
 
 export interface DBCourse {
+  id?: number;
   title: string;
   subject: string;
   progress: number;

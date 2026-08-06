@@ -510,7 +510,7 @@ const styles = StyleSheet.create({
   },
   profileName: {
     fontSize: 18,
-    fontWeight: "850",
+    fontWeight: "800",
     color: "#0f172a",
   },
   profileEmail: {

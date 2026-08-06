@@ -326,9 +326,9 @@ export function useDashboardStore() {
         let suggested: any[] = [];
 
         if (!currentUserId) {
-          // Guest mode: first course enrolled, others suggested
-          enrolled = allCourses.slice(0, 1).map(c => ({ ...c, progress: c.progress || 0 }));
-          suggested = allCourses.slice(1);
+          // Guest mode: all suggested
+          enrolled = [];
+          suggested = allCourses;
         } else {
           try {
             const enrollments = await fetchDBUserEnrollments(currentUserId);
@@ -357,8 +357,8 @@ export function useDashboardStore() {
             });
           } catch (e) {
             console.warn("Error partitioning courses:", e);
-            enrolled = allCourses.slice(0, 1).map(c => ({ ...c, progress: c.progress || 0 }));
-            suggested = allCourses.slice(1);
+            enrolled = [];
+            suggested = allCourses;
           }
         }
 
@@ -579,12 +579,12 @@ export function useDashboardStore() {
             });
           } catch (e) {
             console.warn("Error partitioning on submitSurvey:", e);
-            enrolled = coursesWithProgress.slice(0, 1).map(c => ({ ...c, progress: 0 }));
-            suggested = coursesWithProgress.slice(1);
+            enrolled = [];
+            suggested = coursesWithProgress;
           }
         } else {
-          enrolled = coursesWithProgress.slice(0, 1).map(c => ({ ...c, progress: 0 }));
-          suggested = coursesWithProgress.slice(1);
+          enrolled = [];
+          suggested = coursesWithProgress;
         }
 
         const newRecs = {
@@ -631,8 +631,8 @@ export function useDashboardStore() {
         }
         
         const localCourses = localRecs.courses;
-        const enrolled = localCourses.slice(0, 1).map(c => ({ ...c, progress: 0 }));
-        const suggested = localCourses.slice(1);
+        const enrolled: any[] = [];
+        const suggested = localCourses;
 
         updateState({ 
           recommendations: localRecs, 

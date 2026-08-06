@@ -19,7 +19,7 @@ type Assessment = {
   progress: number;
   status: Status;
   questions?: Array<{ question: string; options: string[]; correctAnswer: number }> | null;
-  responses?: Record<number, number> | null;
+  responses?: any;
 };
 
 const typeIcon = {
@@ -107,13 +107,13 @@ export default function AssessmentsScreen() {
   return (
     <ScrollView ref={scrollViewRef} style={styles.container} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
       <Header />
-      
+
       {/* 1. Filterable Assessments List */}
       <AssessmentList items={items} activeId={current.id} onPick={setActive} />
-      
+
       {/* 2. Submission & Upload Panel */}
       <SubmissionPanel assessment={current} onUpdate={handleUpdate} />
-      
+
       <View style={styles.spacer} />
     </ScrollView>
   );
@@ -263,7 +263,7 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
   const [githubUrl, setGithubUrl] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState("");
   const [customFileText, setCustomFileText] = useState("");
-  
+
   // Quiz specific states
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
   const [quizScore, setQuizScore] = useState<number | null>(null);
@@ -273,7 +273,7 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
   const [validationError, setValidationError] = useState("");
 
   const isAdvanced = assessment.difficulty === "Advanced";
-  
+
   const subjectKey = (assessment.subject || "Mobile") as keyof typeof QUIZ_QUESTIONS;
   const questions = assessment.questions || QUIZ_QUESTIONS[subjectKey] || QUIZ_QUESTIONS["Mobile"];
   const templates = PROJECT_TEMPLATES[subjectKey] || PROJECT_TEMPLATES["Mobile"];
@@ -420,7 +420,7 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
             <Feather name="check-circle" size={24} color="#0d9488" />
           </View>
           <Text style={styles.successTitle}>Assessment Submitted!</Text>
-          
+
           {isAdvanced ? (
             <Text style={styles.successDesc}>
               Your project "{selectedTemplate || "Source Code Submission"}" has been submitted for AI feedback. Detailed rubric mapping is ready in the Gradebook.

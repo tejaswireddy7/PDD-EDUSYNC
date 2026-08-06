@@ -46,7 +46,7 @@ export interface DBAssessment {
   progress: number;
   status: "open" | "in-progress" | "submitted";
   questions?: Array<{ question: string; options: string[]; correctAnswer: number }> | null;
-  responses?: Record<number, number> | null;
+  responses?: any;
 }
 
 export interface DBContact {

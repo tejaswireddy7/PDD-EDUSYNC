@@ -266,8 +266,9 @@ export async function fetchDBCareerSuggestions(focusDomain: string): Promise<Arr
     if (data && data.length > 0) {
       const seen = new Set<string>();
       return data.filter(item => {
-        if (seen.has(item.role)) return false;
-        seen.add(item.role);
+        const normalized = item.role.trim().toLowerCase();
+        if (seen.has(normalized)) return false;
+        seen.add(normalized);
         return true;
       });
     }

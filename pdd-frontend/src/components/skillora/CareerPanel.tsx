@@ -39,7 +39,16 @@ export function CareerPanel() {
       try {
         const { fetchDBCareerSuggestions } = await import("../../lib/supabase-db");
         const dbCareers = await fetchDBCareerSuggestions(focusDomain);
-        setCareers(dbCareers);
+        
+        const seen = new Set<string>();
+        const uniqueCareers = dbCareers.filter(item => {
+          const normalized = item.role.trim().toLowerCase();
+          if (seen.has(normalized)) return false;
+          seen.add(normalized);
+          return true;
+        });
+        
+        setCareers(uniqueCareers);
       } catch (err) {
         console.warn("Failed to load career suggestions from Supabase:", err);
       }

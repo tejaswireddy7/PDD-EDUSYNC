@@ -296,6 +296,100 @@ export function useDashboardStore() {
       }
     },
 
+    unenrollFromCourse: async (courseIdOrTitle: number | string) => {
+      try {
+        const sessionData = await supabase.auth.getSession();
+        const session = sessionData.data.session;
+        if (session?.user) {
+          let targetId: number | null = null;
+          if (typeof courseIdOrTitle === "number") {
+            targetId = courseIdOrTitle;
+          } else {
+            // Find course ID by title
+            const { data } = await supabase
+              .from("courses")
+              .select("id")
+              .eq("title", courseIdOrTitle)
+              .maybeSingle();
+            if (data) {
+              targetId = data.id;
+            }
+          }
+
+          if (targetId) {
+            await supabase
+              .from("user_enrollments")
+              .delete()
+              .eq("user_id", session.user.id)
+              .eq("course_id", targetId);
+          }
+
+          const answers = state.surveyAnswers;
+          if (answers) {
+            const courses = await fetchDBCourses(answers.focusDomain, answers.proficiency);
+            
+            let coursesWithProgress = courses;
+            if (typeof window !== "undefined" && window.localStorage) {
+              const email = state.user?.email || "guest";
+              const savedProgress = window.localStorage.getItem(`courses_progress_${email}`);
+              if (savedProgress) {
+                try {
+                  const progressMap = JSON.parse(savedProgress);
+                  coursesWithProgress = courses.map(c => ({
+                    ...c,
+                    progress: progressMap[c.title] !== undefined ? progressMap[c.title] : c.progress
+                  }));
+                } catch (e) {}
+              }
+            }
+
+            const enrollments = await fetchDBUserEnrollments(session.user.id);
+            const enrolledTitles = new Set<string>();
+            const progressMap: Record<number, number> = {};
+
+            enrollments.forEach(e => {
+              if (e.courses && e.courses.title) {
+                enrolledTitles.add(e.courses.title.toLowerCase());
+              }
+              progressMap[e.course_id] = e.progress;
+            });
+
+            const enrolled: any[] = [];
+            const suggested: any[] = [];
+
+            coursesWithProgress.forEach(c => {
+              const isEnrolled = enrolledTitles.has(c.title.toLowerCase()) || 
+                (c.id !== undefined ? (progressMap[c.id] !== undefined) : false);
+
+              if (isEnrolled) {
+                enrolled.push({
+                  ...c,
+                  progress: c.id !== undefined && progressMap[c.id] !== undefined ? progressMap[c.id] : (c.progress || 0)
+                });
+              } else {
+                suggested.push(c);
+              }
+            });
+
+            updateState({ enrolledCourses: enrolled, suggestedCourses: suggested });
+          }
+        } else {
+          const target = state.enrolledCourses.find(c => 
+            typeof courseIdOrTitle === "number" ? c.id === courseIdOrTitle : c.title.toLowerCase() === courseIdOrTitle.toLowerCase()
+          );
+          if (target) {
+            const updatedEnrolled = state.enrolledCourses.filter(c => 
+              typeof courseIdOrTitle === "number" ? c.id !== courseIdOrTitle : c.title.toLowerCase() !== courseIdOrTitle.toLowerCase()
+            );
+            const updatedSuggested = [...state.suggestedCourses, target];
+            updateState({ enrolledCourses: updatedEnrolled, suggestedCourses: updatedSuggested });
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to unenroll from course:", err);
+      }
+    },
+
     fetchRecommendations: async () => {
       const answers = state.surveyAnswers;
       updateState({ isLoadingRecommendations: true });

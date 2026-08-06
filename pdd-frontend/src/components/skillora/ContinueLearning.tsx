@@ -608,15 +608,32 @@ export function ContinueLearning() {
                       </View>
                       <View style={styles.modalCardRight}>
                         {enrolled.some(ec => ec.title === c.title) ? (
-                          <Feather name="play-circle" size={32} color="#ffffff" />
+                          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                            <TouchableOpacity
+                              style={[styles.modalEnrollBtn, { backgroundColor: "#ef4444", minWidth: 60 }]}
+                              activeOpacity={0.8}
+                              onPress={(e) => {
+                                e.stopPropagation();
+                                const idOrTitle = c.id || c.title;
+                                if (idOrTitle) {
+                                  (store as any).unenrollFromCourse(idOrTitle);
+                                  Alert.alert("Unenrolled", `You have unenrolled from "${c.title}".`);
+                                }
+                              }}
+                            >
+                              <Text style={styles.modalEnrollText}>Drop</Text>
+                            </TouchableOpacity>
+                            <Feather name="play-circle" size={32} color="#ffffff" />
+                          </View>
                         ) : (
                           <TouchableOpacity
                             style={styles.modalEnrollBtn}
                             activeOpacity={0.8}
                             onPress={(e) => {
                               e.stopPropagation();
-                              if (c.id) {
-                                store.enrollInCourse(c.id);
+                              const idOrTitle = c.id || c.title;
+                              if (idOrTitle) {
+                                store.enrollInCourse(idOrTitle);
                                 Alert.alert("Enrolled Successfully!", `You have enrolled in "${c.title}". It is now in your Continue Learning panel.`);
                               }
                             }}

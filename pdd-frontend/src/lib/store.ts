@@ -482,19 +482,24 @@ export function useDashboardStore() {
         if (userId) {
           const dbRec = await fetchDBRecommendations(userId);
           if (dbRec && dbRec.courses && dbRec.courses.length > 0) {
-            const coursesWithProgress = overlayProgress(dbRec.courses);
-            await partitionAndSetCourses(coursesWithProgress, userId);
-            updateState({
-              recommendations: {
-                courses: coursesWithProgress,
-                resources: dbRec.resources,
-                milestones: dbRec.milestones,
-                weeklyHoursTarget: dbRec.weeklyHoursTarget || (answers ? answers.learningHours : 5),
-                nextAssessment: dbRec.nextAssessment
-              },
-              isLoadingRecommendations: false
-            });
-            return;
+            const firstCourse = dbRec.courses[0];
+            const isMatching = !answers || !firstCourse || firstCourse.subject.toLowerCase() === answers.focusDomain.toLowerCase();
+            
+            if (isMatching) {
+              const coursesWithProgress = overlayProgress(dbRec.courses);
+              await partitionAndSetCourses(coursesWithProgress, userId);
+              updateState({
+                recommendations: {
+                  courses: coursesWithProgress,
+                  resources: dbRec.resources,
+                  milestones: dbRec.milestones,
+                  weeklyHoursTarget: dbRec.weeklyHoursTarget || (answers ? answers.learningHours : 5),
+                  nextAssessment: dbRec.nextAssessment
+                },
+                isLoadingRecommendations: false
+              });
+              return;
+            }
           }
         }
       } catch (e) {

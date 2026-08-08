@@ -4,6 +4,19 @@ import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useDashboardStore } from "../lib/store";
 import { supabase } from "../lib/supabase";
 
+const themeColors = {
+  light: { primary: "#64748b" },
+  indigo: { primary: "#6366f1" },
+  dark: { primary: "#0d9488" },
+};
+
+function BootstrapIcon({ name, size, color, style }: { name: string; size: number; color: string; style?: any }) {
+  if (Platform.OS === "web") {
+    return <i className={`bi bi-${name}`} style={{ fontSize: size, color: color, display: "inline-block", lineHeight: 1, ...style }} />;
+  }
+  return <Feather name="help-circle" size={size} color={color} style={style} />;
+}
+
 export default function ProfileScreen() {
   const store = useDashboardStore();
   const userName = store.user?.name || "Student";
@@ -24,9 +37,41 @@ export default function ProfileScreen() {
 
   // Settings States
   const [pushNotifs, setPushNotifs] = useState(true);
-  const [emailNotifs, setEmailNotifs] = useState(false);
   const [appTheme, setAppTheme] = useState<"light" | "indigo" | "dark">("indigo");
-  const [isPrivate, setIsPrivate] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.localStorage) {
+      const savedTheme = (window.localStorage.getItem("app-theme") || "indigo") as "light" | "indigo" | "dark";
+      setAppTheme(savedTheme);
+      applyTheme(savedTheme);
+    }
+  }, []);
+
+  const applyTheme = (themeKey: "light" | "indigo" | "dark") => {
+    if (typeof window !== "undefined") {
+      const root = document.documentElement;
+      if (themeKey === "light") {
+        root.style.setProperty("--primary", "oklch(0.60 0.05 252)");
+        root.style.setProperty("--ring", "oklch(0.60 0.05 252)");
+      } else if (themeKey === "indigo") {
+        root.style.setProperty("--primary", "oklch(0.62 0.2 255)");
+        root.style.setProperty("--ring", "oklch(0.62 0.2 255)");
+      } else if (themeKey === "dark") {
+        root.style.setProperty("--primary", "oklch(0.72 0.15 165)");
+        root.style.setProperty("--ring", "oklch(0.72 0.15 165)");
+      }
+    }
+  };
+
+  const handleThemeChange = (themeKey: "light" | "indigo" | "dark") => {
+    setAppTheme(themeKey);
+    if (typeof window !== "undefined" && window.localStorage) {
+      window.localStorage.setItem("app-theme", themeKey);
+      applyTheme(themeKey);
+    }
+  };
+
+  const currentColors = themeColors[appTheme] || themeColors.indigo;
 
   // Password Reset States
   const [newPassword, setNewPassword] = useState("");
@@ -179,8 +224,8 @@ export default function ProfileScreen() {
       
       {/* Profile Overview Card */}
       <View style={styles.profileCard}>
-        <View style={styles.avatarCircle}>
-          <Text style={styles.avatarText}>
+        <View style={[styles.avatarCircle, { backgroundColor: `${currentColors.primary}1a` }]}>
+          <Text style={[styles.avatarText, { color: currentColors.primary }]}>
             {userName.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase()}
           </Text>
         </View>
@@ -188,8 +233,8 @@ export default function ProfileScreen() {
         <Text style={styles.profileEmail}>{userEmail}</Text>
 
         <View style={styles.badgeRow}>
-          <View style={styles.focusBadge}>
-            <Text style={styles.focusText}>{focusDomain}</Text>
+          <View style={[styles.focusBadge, { backgroundColor: `${currentColors.primary}14` }]}>
+            <Text style={[styles.focusText, { color: currentColors.primary }]}>{focusDomain}</Text>
           </View>
           <View style={styles.levelBadge}>
             <Text style={styles.levelText}>{userProficiency}</Text>
@@ -200,7 +245,7 @@ export default function ProfileScreen() {
       {/* Streak Options Card */}
       <View style={styles.card}>
         <View style={styles.cardHeader}>
-          <MaterialCommunityIcons name="fire" size={20} color="#f97316" />
+          <BootstrapIcon name="fire" size={20} color="#f97316" />
           <Text style={styles.cardTitle}>Study Streak Options</Text>
         </View>
         <View style={styles.streakPanel}>
@@ -212,8 +257,8 @@ export default function ProfileScreen() {
             }
           </Text>
           <View style={styles.streakGoalRow}>
-            <Feather name="trending-up" size={14} color="#6366f1" />
-            <Text style={styles.streakGoalText}>Next Streak Milestone: 7 Days (+250 XP bonus)</Text>
+            <BootstrapIcon name="graph-up-arrow" size={14} color={currentColors.primary} />
+            <Text style={[styles.streakGoalText, { color: currentColors.primary }]}>Next Streak Milestone: 7 Days (+250 XP bonus)</Text>
           </View>
         </View>
       </View>
@@ -221,7 +266,7 @@ export default function ProfileScreen() {
       {/* Achievements (Badges) Card */}
       <View style={styles.card}>
         <View style={styles.cardHeader}>
-          <Feather name="award" size={20} color="#3b82f6" />
+          <BootstrapIcon name="award" size={20} color="#3b82f6" />
           <Text style={styles.cardTitle}>Achievements & Badges</Text>
         </View>
         <View style={styles.badgeGrid}>
@@ -247,7 +292,7 @@ export default function ProfileScreen() {
       {/* Registered & Completed Courses */}
       <View style={styles.card}>
         <View style={styles.cardHeader}>
-          <Feather name="book-open" size={20} color="#10b981" />
+          <BootstrapIcon name="journal-code" size={20} color="#10b981" />
           <Text style={styles.cardTitle}>My Courses Pathway</Text>
         </View>
 
@@ -263,8 +308,8 @@ export default function ProfileScreen() {
                   <Text style={styles.courseItemTitle}>{c.title}</Text>
                   <Text style={styles.courseItemMeta}>{c.subject} • {c.time} • {c.difficulty}</Text>
                 </View>
-                <View style={styles.courseProgressBadge}>
-                  <Text style={styles.courseProgressText}>{c.progress}%</Text>
+                <View style={[styles.courseProgressBadge, { backgroundColor: `${currentColors.primary}1a` }]}>
+                  <Text style={[styles.courseProgressText, { color: currentColors.primary }]}>{c.progress}%</Text>
                 </View>
               </View>
             ))
@@ -284,7 +329,7 @@ export default function ProfileScreen() {
                   <Text style={styles.courseItemMeta}>{c.subject} • Completed</Text>
                 </View>
                 <View style={[styles.courseProgressBadge, { backgroundColor: "#dcfce7" }]}>
-                  <Feather name="check" size={12} color="#15803d" />
+                  <BootstrapIcon name="check-lg" size={12} color="#15803d" />
                 </View>
               </View>
             ))
@@ -293,9 +338,9 @@ export default function ProfileScreen() {
       </View>
 
       {/* Retake Survey Section */}
-      <View style={[styles.card, { borderColor: "rgba(99, 102, 241, 0.2)", backgroundColor: "rgba(99, 102, 241, 0.02)" }]}>
+      <View style={[styles.card, { borderColor: `${currentColors.primary}33`, backgroundColor: `${currentColors.primary}05` }]}>
         <View style={styles.cardHeader}>
-          <Feather name="sliders" size={20} color="#6366f1" />
+          <BootstrapIcon name="card-checklist" size={20} color={currentColors.primary} />
           <Text style={styles.cardTitle}>Learning Pathway Re-survey</Text>
         </View>
         <View style={styles.surveyBody}>
@@ -303,14 +348,14 @@ export default function ProfileScreen() {
             Want to change your learning goals or switch to another focus domain? Retaking the onboarding survey will reconfigure your recommended courses, milestone checklist, and upcoming assessments.
           </Text>
           <TouchableOpacity 
-            style={styles.surveyBtn} 
+            style={[styles.surveyBtn, { backgroundColor: currentColors.primary }]} 
             activeOpacity={0.8}
             onPress={() => {
               store.triggerManualSurvey();
               Alert.alert("Survey Initialized", "The onboarding configuration modal has been queued. Navigate to the Home dashboard tab to reconfigure your parameters.");
             }}
           >
-            <Feather name="refresh-cw" size={14} color="#ffffff" style={{ marginRight: 6 }} />
+            <BootstrapIcon name="arrow-repeat" size={14} color="#ffffff" style={{ marginRight: 6 }} />
             <Text style={styles.surveyBtnText}>Retake Onboarding Survey</Text>
           </TouchableOpacity>
         </View>
@@ -319,7 +364,7 @@ export default function ProfileScreen() {
       {/* Blocked Users Section */}
       <View style={styles.card}>
         <View style={styles.cardHeader}>
-          <Feather name="slash" size={20} color="#ef4444" />
+          <BootstrapIcon name="person-x" size={20} color="#ef4444" />
           <Text style={styles.cardTitle}>Blocked Connections Manager</Text>
         </View>
         {loadingBlocked ? (
@@ -350,7 +395,7 @@ export default function ProfileScreen() {
       {/* App Settings Section */}
       <View style={styles.card}>
         <View style={styles.cardHeader}>
-          <Feather name="settings" size={20} color="#475569" />
+          <BootstrapIcon name="gear" size={20} color="#475569" />
           <Text style={styles.cardTitle}>Settings & Preferences</Text>
         </View>
 
@@ -363,20 +408,8 @@ export default function ProfileScreen() {
           <Switch 
             value={pushNotifs} 
             onValueChange={setPushNotifs} 
-            trackColor={{ false: "#e2e8f0", true: "#a5b4fc" }}
-            thumbColor={pushNotifs ? "#6366f1" : "#94a3b8"}
-          />
-        </View>
-        <View style={styles.settingRow}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.settingLabel}>Email Summaries</Text>
-            <Text style={styles.settingDesc}>Receive weekly analytics progress summaries in your inbox.</Text>
-          </View>
-          <Switch 
-            value={emailNotifs} 
-            onValueChange={setEmailNotifs} 
-            trackColor={{ false: "#e2e8f0", true: "#a5b4fc" }}
-            thumbColor={emailNotifs ? "#6366f1" : "#94a3b8"}
+            trackColor={{ false: "#e2e8f0", true: `${currentColors.primary}66` }}
+            thumbColor={pushNotifs ? currentColors.primary : "#94a3b8"}
           />
         </View>
 
@@ -396,7 +429,7 @@ export default function ProfileScreen() {
                 <TouchableOpacity 
                   key={th.key} 
                   style={[styles.themeBtn, selected && { borderColor: th.color, backgroundColor: `${th.color}08` }]} 
-                  onPress={() => setAppTheme(th.key)}
+                  onPress={() => handleThemeChange(th.key)}
                   activeOpacity={0.8}
                 >
                   <View style={[styles.themeDot, { backgroundColor: th.color }]} />
@@ -407,22 +440,7 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* 3. Privacy Settings */}
-        <View style={styles.settingDivider} />
-        <View style={styles.settingRow}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.settingLabel}>Private Profile Mode</Text>
-            <Text style={styles.settingDesc}>Hide your profile details from peer student suggestion panels.</Text>
-          </View>
-          <Switch 
-            value={isPrivate} 
-            onValueChange={setIsPrivate} 
-            trackColor={{ false: "#e2e8f0", true: "#a5b4fc" }}
-            thumbColor={isPrivate ? "#6366f1" : "#94a3b8"}
-          />
-        </View>
-
-        {/* 4. Change Password Form */}
+        {/* 3. Change Password Form */}
         <View style={styles.settingDivider} />
         <View style={styles.passwordSection}>
           <Text style={styles.settingLabel}>Change Password</Text>
@@ -464,8 +482,8 @@ export default function ProfileScreen() {
           activeOpacity={0.85}
           onPress={handleLogout}
         >
-          <Feather name="log-out" size={16} color="#ffffff" style={{ marginRight: 8 }} />
-          <Text style={styles.logoutBtnText}>Sign Out & Log Out</Text>
+          <BootstrapIcon name="box-arrow-right" size={16} color="#ffffff" style={{ marginRight: 8 }} />
+          <Text style={styles.logoutBtnText}>Logout</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

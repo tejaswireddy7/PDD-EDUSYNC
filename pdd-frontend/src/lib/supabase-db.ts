@@ -27,6 +27,7 @@ export interface DBResource {
   downloads: number;
   trending: boolean;
   author: string;
+  course_title?: string;
   file_name?: string;
   file_type?: string;
   file_content?: string;
@@ -201,6 +202,7 @@ export async function fetchDBCourses(focusDomain: string, proficiency: string): 
 
 // 4. Fetch Resources
 export async function fetchDBResources(focusDomain?: string, proficiency?: string): Promise<DBResource[]> {
+  let dbData: DBResource[] = [];
   try {
     let query = supabase.from("resources").select("*");
     
@@ -214,16 +216,18 @@ export async function fetchDBResources(focusDomain?: string, proficiency?: strin
 
     const { data, error } = await query;
     if (error) throw error;
-    if (data && data.length > 0) return data as DBResource[];
+    if (data) {
+      dbData = data as DBResource[];
+    }
   } catch (e) {
     logError("fetchDBResources", e);
   }
 
-  // Fallback to local getRecommendations resources
+  // Fallback / preseeded templates
   const domain = focusDomain || "Mobile";
   const level = proficiency || "Beginner";
   const local = getRecommendations(domain as any, level as any);
-  return local.resources.map((res, index) => {
+  const fallbacks = local.resources.map((res, index) => {
     const resType: DBResource["type"] = 
       (res.type.includes("Article") || res.type.includes("Manual")) ? "PDF" 
       : res.type.includes("Tutorial") ? "Slides" 
@@ -241,6 +245,12 @@ export async function fetchDBResources(focusDomain?: string, proficiency?: strin
       author: "EduSync AI Coach"
     };
   });
+
+  // Merge database resources and fallback templates, avoiding duplicate titles
+  const seenTitles = new Set(dbData.map(r => r.title.toLowerCase()));
+  const uniqueFallbacks = fallbacks.filter(f => !seenTitles.has(f.title.toLowerCase()));
+
+  return [...dbData, ...uniqueFallbacks];
 }
 
 // 5. Fetch Career Milestones

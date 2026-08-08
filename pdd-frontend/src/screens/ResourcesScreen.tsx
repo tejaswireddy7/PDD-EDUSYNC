@@ -143,35 +143,36 @@ export default function ResourcesScreen() {
     setViewingResource(r);
   };
 
-  useEffect(() => {
-    async function loadResources() {
-      setLoading(true);
-      try {
-        const dbRes = await fetchDBResources();
-        const mapped = dbRes.map((x: any) => ({
-          id: x.id,
-          title: x.title,
-          subject: x.subject,
-          level: x.level,
-          type: x.type,
-          rating: x.rating || 5.0,
-          downloads: x.downloads || 0,
-          trending: x.trending || false,
-          author: x.author || "Anonymous",
-          fileName: x.file_name,
-          fileType: x.file_type,
-          fileContent: x.file_content
-        }));
-        setResources(mapped as any);
-      } catch (err) {
-        console.warn("Failed to load resources from Supabase:", err);
-        const local = localStorage.getItem("uploaded_resources");
-        const localItems = local ? JSON.parse(local) : [];
-        setResources(localItems);
-      } finally {
-        setLoading(false);
-      }
+  const loadResources = async () => {
+    setLoading(true);
+    try {
+      const dbRes = await fetchDBResources();
+      const mapped = dbRes.map((x: any) => ({
+        id: x.id,
+        title: x.title,
+        subject: x.subject,
+        level: x.level,
+        type: x.type,
+        rating: x.rating || 5.0,
+        downloads: x.downloads || 0,
+        trending: x.trending || false,
+        author: x.author || "Anonymous",
+        fileName: x.file_name,
+        fileType: x.file_type,
+        fileContent: x.file_content
+      }));
+      setResources(mapped as any);
+    } catch (err) {
+      console.warn("Failed to load resources from Supabase:", err);
+      const local = localStorage.getItem("uploaded_resources");
+      const localItems = local ? JSON.parse(local) : [];
+      setResources(localItems);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
     loadResources();
   }, []);
 
@@ -238,7 +239,7 @@ export default function ResourcesScreen() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        await supabase.from("resources").insert({
+        const { error } = await supabase.from("resources").insert({
           id: uploadedResource.id,
           title: uploadedResource.title,
           subject: uploadedResource.subject,
@@ -254,9 +255,19 @@ export default function ResourcesScreen() {
           file_type: uploadedResource.fileType,
           file_content: uploadedResource.fileContent
         });
+        if (error) {
+          console.error("Database insert error:", error);
+          Alert.alert("Database Error", `Failed to save resource to database: ${error.message}`);
+        } else {
+          Alert.alert("Success", "Resource has been successfully published to the database!");
+          loadResources();
+        }
+      } else {
+        Alert.alert("Auth Error", "You must be signed in to publish study resources.");
       }
-    } catch (e) {
+    } catch (e: any) {
       console.warn("Failed to upload resource to Supabase:", e);
+      Alert.alert("Upload Error", e.message || "Failed to upload resource.");
     }
 
     // Reset fields and close modal

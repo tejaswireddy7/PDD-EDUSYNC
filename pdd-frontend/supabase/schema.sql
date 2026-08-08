@@ -100,6 +100,7 @@ create table if not exists public.resources (
   trending boolean default false,
   author text default 'EduSync AI Coach',
   focus_domain text not null,
+  course_title text,
   file_name text,
   file_type text,
   file_content text

@@ -222,12 +222,15 @@ export async function fetchDBResources(focusDomain?: string, proficiency?: strin
   } catch (e) {
     logError("fetchDBResources", e);
   }
+  if (dbData.length > 0) {
+    return dbData;
+  }
 
-  // Fallback / preseeded templates
+  // Fallback / preseeded templates (only used when database has no records)
   const domain = focusDomain || "Mobile";
   const level = proficiency || "Beginner";
   const local = getRecommendations(domain as any, level as any);
-  const fallbacks = local.resources.map((res, index) => {
+  const fallbacks = local.resources.slice(0, 1).map((res, index) => {
     const resType: DBResource["type"] = 
       (res.type.includes("Article") || res.type.includes("Manual")) ? "PDF" 
       : res.type.includes("Tutorial") ? "Slides" 
@@ -246,11 +249,7 @@ export async function fetchDBResources(focusDomain?: string, proficiency?: strin
     };
   });
 
-  // Merge database resources and fallback templates, avoiding duplicate titles
-  const seenTitles = new Set(dbData.map(r => r.title.toLowerCase()));
-  const uniqueFallbacks = fallbacks.filter(f => !seenTitles.has(f.title.toLowerCase()));
-
-  return [...dbData, ...uniqueFallbacks];
+  return fallbacks;
 }
 
 // 5. Fetch Career Milestones

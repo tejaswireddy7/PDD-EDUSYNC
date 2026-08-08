@@ -278,17 +278,7 @@ on conflict do nothing;
 -- Resources
 insert into public.resources (id, title, subject, level, type, rating, downloads, trending, author, focus_domain) values
 ('res_1', 'Interactive CSS Flexbox Playground', 'Web Basics', 'Beginner', 'Notes', 4.9, 5200, true, 'EduSync AI Coach', 'Frontend'),
-('res_2', 'Next.js Core Web Vitals Optimization Guides', 'Performance', 'Advanced', 'PDF', 4.8, 4800, false, 'EduSync AI Coach', 'Frontend'),
-('res_3', 'Tailwind UI Layout Best Practices', 'Styling Systems', 'Intermediate', 'Slides', 4.7, 3400, false, 'EduSync AI Coach', 'Frontend'),
-('res_4', 'System Design Interview Cheat Sheet', 'System Design', 'Advanced', 'PDF', 4.9, 9800, true, 'EduSync AI Coach', 'Backend'),
-('res_5', 'PostgreSQL Window Functions Explained', 'Databases', 'Intermediate', 'Notes', 4.8, 6200, false, 'EduSync AI Coach', 'Backend'),
-('res_6', 'Docker Containerization Fundamentals', 'DevOps', 'Beginner', 'Project', 4.7, 4100, false, 'EduSync AI Coach', 'Backend'),
-('res_7', 'React Native Performance Debugging Tools', 'Cross-Platform', 'Intermediate', 'Notes', 4.9, 5800, true, 'EduSync AI Coach', 'Mobile'),
-('res_8', 'Expo Router Dynamic Linking Manual', 'App Flow', 'Beginner', 'PDF', 4.8, 4500, false, 'EduSync AI Coach', 'Mobile'),
-('res_9', 'iOS Native UI Optimization Principles', 'Native iOS', 'Advanced', 'Slides', 4.7, 3100, false, 'EduSync AI Coach', 'Mobile'),
-('res_10', 'Python OOP and Memory Structures', 'Python Dev', 'Beginner', 'Notes', 4.9, 7200, true, 'EduSync AI Coach', 'AI'),
-('res_11', 'Calculus behind SGD Backpropagation', 'Math Foundations', 'Intermediate', 'PDF', 4.8, 5100, false, 'EduSync AI Coach', 'AI'),
-('res_12', 'Hugging Face LLM Pipeline Integration Guides', 'LLM Systems', 'Advanced', 'Project', 4.7, 3900, false, 'EduSync AI Coach', 'AI')
+('res_4', 'System Design Interview Cheat Sheet', 'System Design', 'Advanced', 'PDF', 4.9, 9800, true, 'EduSync AI Coach', 'Backend')
 on conflict do nothing;
 
 -- Milestones

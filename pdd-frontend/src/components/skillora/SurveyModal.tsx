@@ -18,6 +18,25 @@ interface SurveyModalProps {
   isResurvey?: boolean;
 }
 
+const themeColors = {
+  light: { primary: "#64748b" },
+  indigo: { primary: "#6366f1" },
+  dark: { primary: "#0d9488" },
+};
+
+const themeGradients = {
+  light: ["#94a3b8", "#64748b"] as const,
+  indigo: ["#8b5cf6", "#6366f1"] as const,
+  dark: ["#14b8a6", "#0d9488"] as const,
+};
+
+function BootstrapIcon({ name, size, color, style }: { name: string; size: number; color: string; style?: any }) {
+  if (Platform.OS === "web") {
+    return <i className={`bi bi-${name}`} style={{ fontSize: size, color: color, display: "inline-block", lineHeight: 1, ...style }} />;
+  }
+  return <Feather name="help-circle" size={size} color={color} style={style} />;
+}
+
 const CONNECTING_QUESTIONS = {
   Frontend: {
     knowledgeOptions: [
@@ -86,6 +105,10 @@ export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
   const [existingKnowledge, setExistingKnowledge] = useState<string[]>([]);
   const [targetGoal, setTargetGoal] = useState<string>("");
 
+  const appTheme = store.appTheme || "indigo";
+  const currentColors = themeColors[appTheme] || themeColors.indigo;
+  const currentGradient = themeGradients[appTheme] || themeGradients.indigo;
+
   const handleDomainChange = (selectedDomain: "Frontend" | "Backend" | "Mobile" | "AI") => {
     setDomain(selectedDomain);
     setExistingKnowledge([]);
@@ -153,13 +176,13 @@ export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
         <Pressable style={styles.modalCard} onPress={(e) => e.stopPropagation()}>
           {/* Header Graphic */}
           <LinearGradient
-            colors={["#8b5cf6", "#6366f1"]}
+            colors={currentGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.modalHeader}
           >
             <View style={styles.sparkleRow}>
-              <Feather name="star" size={20} color="#ffffff" />
+              <BootstrapIcon name="star-fill" size={16} color="#ffffff" />
               <Text style={styles.headerSubtitle}>
                 {isResurvey ? "Weekly Check-In" : `Step ${step} of 3`}
               </Text>
@@ -195,15 +218,18 @@ export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
                           key={item.id}
                           activeOpacity={0.8}
                           onPress={() => handleDomainChange(item.id as any)}
-                          style={[styles.optionCard, isSelected && styles.optionCardSelected]}
+                          style={[
+                            styles.optionCard, 
+                            isSelected && { borderColor: currentColors.primary, backgroundColor: `${currentColors.primary}14` }
+                          ]}
                         >
-                          <Feather 
-                            name={item.icon as any} 
-                            size={18} 
-                            color={isSelected ? "#6366f1" : "#64748b"} 
+                          <BootstrapIcon 
+                            name={item.icon} 
+                            size={16} 
+                            color={isSelected ? currentColors.primary : "#64748b"} 
                             style={styles.optionIcon} 
                           />
-                          <Text style={[styles.optionLabel, isSelected && styles.optionLabelSelected]}>
+                          <Text style={[styles.optionLabel, isSelected && { color: currentColors.primary, fontWeight: "700" }]}>
                             {item.label}
                           </Text>
                         </TouchableOpacity>
@@ -227,11 +253,20 @@ export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
                           key={item.id}
                           activeOpacity={0.8}
                           onPress={() => setLevel(item.id as any)}
-                          style={[styles.tierCard, isSelected && styles.tierCardSelected]}
+                          style={[
+                            styles.tierCard, 
+                            isSelected && { borderColor: currentColors.primary, backgroundColor: `${currentColors.primary}14` }
+                          ]}
                         >
-                          <View style={[styles.radioDot, isSelected && styles.radioDotSelected]} />
+                          <View style={[
+                            styles.radioDot, 
+                            isSelected && { borderColor: currentColors.primary, backgroundColor: currentColors.primary }
+                          ]} />
                           <View style={styles.tierTextColumn}>
-                            <Text style={[styles.tierLabel, isSelected && styles.tierLabelSelected]}>
+                            <Text style={[
+                              styles.tierLabel, 
+                              isSelected && { color: currentColors.primary, fontWeight: "700" }
+                            ]}>
                               {item.label}
                             </Text>
                             <Text style={styles.tierDesc}>{item.desc}</Text>
@@ -257,13 +292,22 @@ export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
                           key={item.id}
                           activeOpacity={0.8}
                           onPress={() => handleToggleKnowledge(item.id)}
-                          style={[styles.tierCard, isChecked && styles.tierCardSelected]}
+                          style={[
+                            styles.tierCard, 
+                            isChecked && { borderColor: currentColors.primary, backgroundColor: `${currentColors.primary}14` }
+                          ]}
                         >
-                          <View style={[styles.checkbox, isChecked && styles.checkboxSelected]}>
-                            {isChecked && <Feather name="check" size={10} color="#ffffff" />}
+                          <View style={[
+                            styles.checkbox, 
+                            isChecked && { borderColor: currentColors.primary, backgroundColor: currentColors.primary }
+                          ]}>
+                            {isChecked && <BootstrapIcon name="check-lg" size={10} color="#ffffff" />}
                           </View>
                           <View style={styles.tierTextColumn}>
-                            <Text style={[styles.tierLabel, isChecked && styles.tierLabelSelected]}>
+                            <Text style={[
+                              styles.tierLabel, 
+                              isChecked && { color: currentColors.primary, fontWeight: "700" }
+                            ]}>
                               {item.label}
                             </Text>
                           </View>
@@ -284,11 +328,20 @@ export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
                           key={item.id}
                           activeOpacity={0.8}
                           onPress={() => setTargetGoal(item.id)}
-                          style={[styles.tierCard, isSelected && styles.tierCardSelected]}
+                          style={[
+                            styles.tierCard, 
+                            isSelected && { borderColor: currentColors.primary, backgroundColor: `${currentColors.primary}14` }
+                          ]}
                         >
-                          <View style={[styles.radioDot, isSelected && styles.radioDotSelected]} />
+                          <View style={[
+                            styles.radioDot, 
+                            isSelected && { borderColor: currentColors.primary, backgroundColor: currentColors.primary }
+                          ]} />
                           <View style={styles.tierTextColumn}>
-                            <Text style={[styles.tierLabel, isSelected && styles.tierLabelSelected]}>
+                            <Text style={[
+                              styles.tierLabel, 
+                              isSelected && { color: currentColors.primary, fontWeight: "700" }
+                            ]}>
                               {item.label}
                             </Text>
                           </View>
@@ -317,9 +370,15 @@ export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
                           key={item.val}
                           activeOpacity={0.8}
                           onPress={() => setHours(item.val)}
-                          style={[styles.hourPill, isSelected && styles.hourPillSelected]}
+                          style={[
+                            styles.hourPill, 
+                            isSelected && { borderColor: currentColors.primary, backgroundColor: `${currentColors.primary}14` }
+                          ]}
                         >
-                          <Text style={[styles.hourText, isSelected && styles.hourTextSelected]}>
+                          <Text style={[
+                            styles.hourText, 
+                            isSelected && { color: currentColors.primary, fontWeight: "700" }
+                          ]}>
                             {item.label}
                           </Text>
                         </TouchableOpacity>
@@ -339,7 +398,7 @@ export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
                 onPress={handleBack} 
                 style={styles.backButton}
               >
-                <Feather name="arrow-left" size={14} color="#64748b" style={{ marginRight: 4 }} />
+                <BootstrapIcon name="arrow-left" size={14} color="#64748b" style={{ marginRight: 6 }} />
                 <Text style={styles.backText}>Back</Text>
               </TouchableOpacity>
             ) : isResurvey ? (
@@ -348,6 +407,7 @@ export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
                 onPress={store.skipResurvey} 
                 style={styles.skipButton}
               >
+                <BootstrapIcon name="x-lg" size={12} color="#475569" style={{ marginRight: 6 }} />
                 <Text style={styles.skipText}>Skip</Text>
               </TouchableOpacity>
             ) : null}
@@ -358,7 +418,7 @@ export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
               style={[styles.submitButton, (step === 1 && !isResurvey) && { width: "100%", flex: 1 }]}
             >
               <LinearGradient
-                colors={["#8b5cf6", "#6366f1"]}
+                colors={currentGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={styles.gradientSubmit}
@@ -366,7 +426,7 @@ export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
                 <Text style={styles.submitText}>
                   {step === 3 ? (isResurvey ? "Apply Settings" : "Start Learning") : "Continue"}
                 </Text>
-                <Feather name={step === 3 ? "check" : "arrow-right"} size={16} color="#ffffff" />
+                <BootstrapIcon name={step === 3 ? "check-lg" : "arrow-right"} size={14} color="#ffffff" />
               </LinearGradient>
             </TouchableOpacity>
           </View>

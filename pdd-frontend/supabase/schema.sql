@@ -103,7 +103,8 @@ create table if not exists public.resources (
   course_title text,
   file_name text,
   file_type text,
-  file_content text
+  file_content text,
+  user_id uuid references auth.users on delete cascade
 );
 
 alter table public.resources enable row level security;
@@ -116,7 +117,7 @@ create policy "Anyone can insert resources" on public.resources for insert with 
 
 drop policy if exists "Authenticated users can delete resources" on public.resources;
 drop policy if exists "Anyone can delete resources" on public.resources;
-create policy "Anyone can delete resources" on public.resources for delete using (true);
+create policy "Anyone can delete resources" on public.resources for delete using (auth.uid() = user_id OR user_id IS NULL);
 
 -- 4. MILESTONES Table
 create table if not exists public.milestones (

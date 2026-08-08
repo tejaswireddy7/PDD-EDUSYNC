@@ -16,7 +16,53 @@ type Resource = {
   downloads: number;
   trending: boolean;
   author: string;
+  userId?: string;
 };
+
+function getResourceIcon(type: string): string {
+  switch (type) {
+    case "Notes":
+      return "file-earmark-text";
+    case "PDF":
+      return "file-earmark-pdf";
+    case "Slides":
+      return "file-earmark-slides";
+    case "Project":
+      return "folder";
+    default:
+      return "file-earmark";
+  }
+}
+
+function BootstrapIcon({ name, size, color, style }: { name: string; size: number; color: string; style?: any }) {
+  if (Platform.OS === "web") {
+    const className = name.startsWith("bi-") ? name : `bi-${name}`;
+    return (
+      <i 
+        className={`bi ${className}`} 
+        style={{ fontSize: size, color: color, display: "inline-block", lineHeight: 1, ...style }} 
+      />
+    );
+  }
+  // Native fallback
+  let nativeName: any = "help-circle";
+  if (name.includes("plus")) nativeName = "plus";
+  else if (name.includes("search")) nativeName = "search";
+  else if (name.includes("x") || name.includes("close")) nativeName = "x";
+  else if (name.includes("sliders") || name.includes("filter")) nativeName = "sliders";
+  else if (name.includes("bookmark")) nativeName = "bookmark";
+  else if (name.includes("trash")) nativeName = "trash-2";
+  else if (name.includes("paperclip") || name.includes("attach")) nativeName = "paperclip";
+  else if (name.includes("download")) nativeName = "download";
+  else if (name.includes("star")) nativeName = "star";
+  else if (name.includes("trending") || name.includes("graph")) nativeName = "trending-up";
+  else if (name.includes("file-earmark-text")) nativeName = "file-text";
+  else if (name.includes("file-earmark-pdf") || name.includes("pdf")) nativeName = "file-text";
+  else if (name.includes("file-earmark-slides") || name.includes("slides")) nativeName = "image";
+  else if (name.includes("folder") || name.includes("project")) nativeName = "folder";
+  
+  return <Feather name={nativeName} size={size} color={color} style={style} />;
+}
 
 const SUBJECTS = ["All", "Frontend", "Backend", "Mobile", "AI", "General"];
 const LEVELS = ["All levels", "Beginner", "Intermediate", "Advanced"];
@@ -87,6 +133,17 @@ export default function ResourcesScreen() {
 
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeUserId, setActiveUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function getActiveUser() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setActiveUserId(user.id);
+      }
+    }
+    getActiveUser();
+  }, []);
 
   // Video Player States
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
@@ -167,7 +224,8 @@ export default function ResourcesScreen() {
         author: x.author || "Anonymous",
         fileName: x.file_name,
         fileType: x.file_type,
-        fileContent: x.file_content
+        fileContent: x.file_content,
+        userId: x.user_id
       }));
       setResources(mapped as any);
     } catch (err) {
@@ -234,7 +292,8 @@ export default function ResourcesScreen() {
       courseTitle: selectedCourse,
       fileName: newFileName,
       fileType: selectedFileType,
-      fileContent: selectedFileContent
+      fileContent: selectedFileContent,
+      userId: activeUserId
     };
 
     setResources((prev) => [uploadedResource, ...prev]);
@@ -262,7 +321,8 @@ export default function ResourcesScreen() {
         course_title: uploadedResource.courseTitle,
         file_name: uploadedResource.fileName,
         file_type: uploadedResource.fileType,
-        file_content: uploadedResource.fileContent
+        file_content: uploadedResource.fileContent,
+        user_id: activeUserId
       });
       if (error) {
         console.error("Database insert error:", error);
@@ -311,7 +371,7 @@ export default function ResourcesScreen() {
             onPress={() => setShowUploadModal(true)}
             style={styles.uploadBtn}
           >
-            <Feather name="plus" size={14} color="#ffffff" style={{ marginRight: 4 }} />
+            <BootstrapIcon name="plus-lg" size={14} color="#ffffff" style={{ marginRight: 4 }} />
             <Text style={styles.uploadBtnText}>Upload</Text>
           </TouchableOpacity>
         </View>
@@ -321,7 +381,7 @@ export default function ResourcesScreen() {
       <View style={styles.filterCard}>
         <View style={styles.searchRow}>
           <View style={styles.searchBar}>
-            <Feather name="search" size={14} color="#64748b" />
+            <BootstrapIcon name="search" size={14} color="#64748b" />
             <TextInput
               value={q}
               onChangeText={setQ}
@@ -331,7 +391,7 @@ export default function ResourcesScreen() {
             />
             {q !== "" && (
               <TouchableOpacity onPress={() => setQ("")}>
-                <Feather name="x" size={14} color="#64748b" />
+                <BootstrapIcon name="x-lg" size={14} color="#64748b" />
               </TouchableOpacity>
             )}
           </View>
@@ -339,7 +399,7 @@ export default function ResourcesScreen() {
             onPress={() => setShowFilters(!showFilters)}
             style={[styles.filterToggle, showFilters && styles.filterToggleActive]}
           >
-            <Feather name="sliders" size={14} color={showFilters ? "#6366f1" : "#64748b"} />
+            <BootstrapIcon name="sliders" size={14} color={showFilters ? "#6366f1" : "#64748b"} />
             {activeFiltersCount > 0 && (
               <View style={styles.badgeCount}>
                 <Text style={styles.badgeCountText}>{activeFiltersCount}</Text>
@@ -378,18 +438,17 @@ export default function ResourcesScreen() {
             >
               <View style={styles.resourceCardTop}>
                 <View style={styles.iconBox}>
-                  <Feather name="file-text" size={16} color="#6366f1" />
+                  <BootstrapIcon name={getResourceIcon(r.type)} size={16} color="#6366f1" />
                 </View>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                   <TouchableOpacity onPress={() => toggleBookmark(r.id)}>
-                    <Feather 
-                      name="bookmark" 
+                    <BootstrapIcon 
+                      name={isBookmarked ? "bookmark-fill" : "bookmark"} 
                       size={16} 
                       color={isBookmarked ? "#6366f1" : "#64748b"} 
-                      style={isBookmarked && styles.fillIcon}
                     />
                   </TouchableOpacity>
-                  {r.id.startsWith("uploaded_") && (
+                  {r.userId === activeUserId && (
                     <TouchableOpacity 
                       onPress={(e) => {
                         e.stopPropagation();
@@ -398,7 +457,7 @@ export default function ResourcesScreen() {
                       style={styles.deleteResourceBtn}
                       activeOpacity={0.7}
                     >
-                      <Feather name="trash-2" size={14} color="#ef4444" />
+                      <BootstrapIcon name="trash" size={14} color="#ef4444" />
                     </TouchableOpacity>
                   )}
                 </View>
@@ -416,7 +475,7 @@ export default function ResourcesScreen() {
                 </View>
                 {r.trending && (
                   <View style={[styles.badge, styles.bgMint]}>
-                    <Feather name="trending-up" size={10} color="#0d9488" />
+                    <BootstrapIcon name="graph-up-arrow" size={10} color="#0d9488" />
                     <Text style={[styles.badgeText, styles.textMint]}>Trending</Text>
                   </View>
                 )}
@@ -430,11 +489,11 @@ export default function ResourcesScreen() {
                 <Text style={styles.author} numberOfLines={1}>by {r.author}</Text>
                 <View style={styles.stats}>
                   <View style={styles.statItem}>
-                    <FontAwesome name="star" size={10} color="#0d9488" />
+                    <BootstrapIcon name="star-fill" size={10} color="#0d9488" />
                     <Text style={styles.statText}>{r.rating}</Text>
                   </View>
                   <View style={styles.statItem}>
-                    <Feather name="download" size={10} color="#64748b" />
+                    <BootstrapIcon name="download" size={10} color="#64748b" />
                     <Text style={styles.statText}>{r.downloads}</Text>
                   </View>
                 </View>
@@ -445,7 +504,7 @@ export default function ResourcesScreen() {
 
         {results.length === 0 && (
           <View style={styles.emptyCard}>
-            <Feather name="file" size={24} color="#94a3b8" style={styles.emptyIcon} />
+            <BootstrapIcon name="file-earmark-x" size={24} color="#94a3b8" style={styles.emptyIcon} />
             <Text style={styles.emptyText}>No matching study resources found for your filter criteria.</Text>
           </View>
         )}
@@ -463,7 +522,7 @@ export default function ResourcesScreen() {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Upload Study Resource</Text>
               <TouchableOpacity onPress={() => setShowUploadModal(false)}>
-                <Feather name="x" size={18} color="#64748b" />
+                <BootstrapIcon name="x-lg" size={18} color="#64748b" />
               </TouchableOpacity>
             </View>
 
@@ -546,7 +605,7 @@ export default function ResourcesScreen() {
 
               <Text style={styles.inputLabel}>Attach Document</Text>
               <TouchableOpacity style={styles.attachBox} onPress={handleAttachClick}>
-                <Feather name="paperclip" size={16} color="#64748b" style={{ marginRight: 6 }} />
+                <BootstrapIcon name="paperclip" size={16} color="#64748b" style={{ marginRight: 6 }} />
                 <Text style={{ fontSize: 12, color: "#475569" }}>
                   {newFileName || "Choose image, PDF, or text notes file..."}
                 </Text>
@@ -597,7 +656,7 @@ export default function ResourcesScreen() {
             <View style={styles.videoHeader}>
               <Text style={styles.videoTitle} numberOfLines={1}>{videoTitle}</Text>
               <TouchableOpacity onPress={() => setVideoUrl(null)} style={styles.closeBtn}>
-                <Feather name="x" size={18} color="#ffffff" />
+                <BootstrapIcon name="x-lg" size={18} color="#ffffff" />
               </TouchableOpacity>
             </View>
             <View style={styles.videoPlayerContainer}>
@@ -639,7 +698,7 @@ export default function ResourcesScreen() {
                 </Text>
               </View>
               <TouchableOpacity onPress={() => setViewingResource(null)} style={styles.viewerCloseBtn}>
-                <Feather name="x" size={18} color="#ffffff" />
+                <BootstrapIcon name="x-lg" size={18} color="#ffffff" />
               </TouchableOpacity>
             </View>
 
@@ -660,7 +719,7 @@ export default function ResourcesScreen() {
                       />
                     ) : (
                       <View style={styles.pdfFallback}>
-                        <Feather name="file-text" size={48} color="#a5b4fc" />
+                        <BootstrapIcon name="file-earmark-pdf" size={48} color="#a5b4fc" />
                         <Text style={{ color: "#ffffff", marginTop: 12, textAlign: "center" }}>
                           PDF preview is only supported on Web.
                         </Text>

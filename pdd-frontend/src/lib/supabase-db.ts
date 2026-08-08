@@ -31,6 +31,7 @@ export interface DBResource {
   file_name?: string;
   file_type?: string;
   file_content?: string;
+  user_id?: string;
 }
 
 export interface DBMilestone {

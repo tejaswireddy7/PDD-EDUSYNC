@@ -27,6 +27,9 @@ export interface DBResource {
   downloads: number;
   trending: boolean;
   author: string;
+  file_name?: string;
+  file_type?: string;
+  file_content?: string;
 }
 
 export interface DBMilestone {
@@ -197,11 +200,14 @@ export async function fetchDBCourses(focusDomain: string, proficiency: string): 
 }
 
 // 4. Fetch Resources
-export async function fetchDBResources(focusDomain: string, proficiency: string): Promise<DBResource[]> {
+export async function fetchDBResources(focusDomain?: string, proficiency?: string): Promise<DBResource[]> {
   try {
-    let query = supabase.from("resources").select("*").eq("focus_domain", focusDomain);
+    let query = supabase.from("resources").select("*");
     
-    // If not "All levels", filter by specific proficiency
+    if (focusDomain && focusDomain !== "All") {
+      query = query.eq("focus_domain", focusDomain);
+    }
+    
     if (proficiency && proficiency !== "All levels") {
       query = query.eq("level", proficiency);
     }
@@ -214,7 +220,9 @@ export async function fetchDBResources(focusDomain: string, proficiency: string)
   }
 
   // Fallback to local getRecommendations resources
-  const local = getRecommendations(focusDomain as any, proficiency as any);
+  const domain = focusDomain || "Mobile";
+  const level = proficiency || "Beginner";
+  const local = getRecommendations(domain as any, level as any);
   return local.resources.map((res, index) => {
     const resType: DBResource["type"] = 
       (res.type.includes("Article") || res.type.includes("Manual")) ? "PDF" 
@@ -224,8 +232,8 @@ export async function fetchDBResources(focusDomain: string, proficiency: string)
     return {
       id: `fallback_res_${index}`,
       title: res.title,
-      subject: focusDomain,
-      level: proficiency,
+      subject: domain,
+      level: level,
       type: resType,
       rating: parseFloat((4.8 + (index * 0.05)).toFixed(1)),
       downloads: 4800 + (index * 1400),

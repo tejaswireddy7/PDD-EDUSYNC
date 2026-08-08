@@ -147,11 +147,22 @@ export default function ResourcesScreen() {
     async function loadResources() {
       setLoading(true);
       try {
-        const dbRes = await fetchDBResources(focusDomain, userProficiency);
-        const dynamicDBRes = dbRes.filter((x: any) => !x.id.startsWith("res_"));
-        const local = localStorage.getItem("uploaded_resources");
-        const localItems = local ? JSON.parse(local) : [];
-        setResources([...localItems, ...dynamicDBRes] as any);
+        const dbRes = await fetchDBResources();
+        const mapped = dbRes.map((x: any) => ({
+          id: x.id,
+          title: x.title,
+          subject: x.subject,
+          level: x.level,
+          type: x.type,
+          rating: x.rating || 5.0,
+          downloads: x.downloads || 0,
+          trending: x.trending || false,
+          author: x.author || "Anonymous",
+          fileName: x.file_name,
+          fileType: x.file_type,
+          fileContent: x.file_content
+        }));
+        setResources(mapped as any);
       } catch (err) {
         console.warn("Failed to load resources from Supabase:", err);
         const local = localStorage.getItem("uploaded_resources");
@@ -162,7 +173,7 @@ export default function ResourcesScreen() {
       }
     }
     loadResources();
-  }, [focusDomain, userProficiency]);
+  }, []);
 
   const [q, setQ] = useState("");
   const [subject, setSubject] = useState("All");
@@ -238,7 +249,10 @@ export default function ResourcesScreen() {
           trending: uploadedResource.trending,
           author: uploadedResource.author,
           focus_domain: uploadedResource.subject,
-          course_title: uploadedResource.courseTitle
+          course_title: uploadedResource.courseTitle,
+          file_name: uploadedResource.fileName,
+          file_type: uploadedResource.fileType,
+          file_content: uploadedResource.fileContent
         });
       }
     } catch (e) {

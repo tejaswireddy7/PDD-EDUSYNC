@@ -99,12 +99,21 @@ create table if not exists public.resources (
   downloads integer default 0,
   trending boolean default false,
   author text default 'EduSync AI Coach',
-  focus_domain text not null
+  focus_domain text not null,
+  file_name text,
+  file_type text,
+  file_content text
 );
 
 alter table public.resources enable row level security;
 drop policy if exists "Anyone can view resources" on public.resources;
 create policy "Anyone can view resources" on public.resources for select using (true);
+
+drop policy if exists "Authenticated users can insert resources" on public.resources;
+create policy "Authenticated users can insert resources" on public.resources for insert with check (auth.role() = 'authenticated');
+
+drop policy if exists "Authenticated users can delete resources" on public.resources;
+create policy "Authenticated users can delete resources" on public.resources for delete using (auth.role() = 'authenticated');
 
 -- 4. MILESTONES Table
 create table if not exists public.milestones (

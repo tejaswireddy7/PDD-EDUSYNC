@@ -106,6 +106,14 @@ export default function ResourcesScreen() {
   const [selectedFileType, setSelectedFileType] = useState<string | null>(null);
   const [viewingResource, setViewingResource] = useState<any | null>(null);
 
+  const showNotice = (title: string, message: string) => {
+    if (Platform.OS === "web") {
+      alert(`${title}: ${message}`);
+    } else {
+      Alert.alert(title, message);
+    }
+  };
+
   const handleDeleteResource = async (id: string) => {
     setResources((prev) => prev.filter((x) => x.id !== id));
     const local = localStorage.getItem("uploaded_resources");
@@ -119,7 +127,7 @@ export default function ResourcesScreen() {
     } catch (e) {
       console.warn("Failed to delete remote resource:", e);
     }
-    Alert.alert("Success", "Your uploaded resource has been deleted successfully.");
+    showNotice("Success", "Your uploaded resource has been deleted successfully.");
   };
 
   const handleAttachClick = () => {
@@ -135,7 +143,7 @@ export default function ResourcesScreen() {
   const handleOpenResource = (r: any) => {
     store.cacheMaterial(r.title, "https://developer.mozilla.org/en-US/");
     if (store.lowDataMode) {
-      Alert.alert(
+      showNotice(
         "Low-Data Cache Success",
         `"${r.title}" has been saved in local cache memory for offline revisiting without internet access.`
       );
@@ -238,36 +246,34 @@ export default function ResourcesScreen() {
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { error } = await supabase.from("resources").insert({
-          id: uploadedResource.id,
-          title: uploadedResource.title,
-          subject: uploadedResource.subject,
-          level: uploadedResource.level,
-          type: uploadedResource.type,
-          rating: uploadedResource.rating,
-          downloads: uploadedResource.downloads,
-          trending: uploadedResource.trending,
-          author: uploadedResource.author,
-          focus_domain: uploadedResource.subject,
-          course_title: uploadedResource.courseTitle,
-          file_name: uploadedResource.fileName,
-          file_type: uploadedResource.fileType,
-          file_content: uploadedResource.fileContent
-        });
-        if (error) {
-          console.error("Database insert error:", error);
-          Alert.alert("Database Error", `Failed to save resource to database: ${error.message}`);
-        } else {
-          Alert.alert("Success", "Resource has been successfully published to the database!");
-          loadResources();
-        }
+      const authorName = user?.user_metadata?.full_name || store.user?.name || "Anonymous Learner";
+      
+      const { error } = await supabase.from("resources").insert({
+        id: uploadedResource.id,
+        title: uploadedResource.title,
+        subject: uploadedResource.subject,
+        level: uploadedResource.level,
+        type: uploadedResource.type,
+        rating: uploadedResource.rating,
+        downloads: uploadedResource.downloads,
+        trending: uploadedResource.trending,
+        author: authorName,
+        focus_domain: uploadedResource.subject,
+        course_title: uploadedResource.courseTitle,
+        file_name: uploadedResource.fileName,
+        file_type: uploadedResource.fileType,
+        file_content: uploadedResource.fileContent
+      });
+      if (error) {
+        console.error("Database insert error:", error);
+        showNotice("Database Error", `Failed to save resource to database: ${error.message}`);
       } else {
-        Alert.alert("Auth Error", "You must be signed in to publish study resources.");
+        showNotice("Success", "Resource has been successfully published to the database!");
+        loadResources();
       }
     } catch (e: any) {
       console.warn("Failed to upload resource to Supabase:", e);
-      Alert.alert("Upload Error", e.message || "Failed to upload resource.");
+      showNotice("Upload Error", e.message || "Failed to upload resource.");
     }
 
     // Reset fields and close modal

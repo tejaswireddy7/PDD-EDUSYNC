@@ -111,10 +111,12 @@ drop policy if exists "Anyone can view resources" on public.resources;
 create policy "Anyone can view resources" on public.resources for select using (true);
 
 drop policy if exists "Authenticated users can insert resources" on public.resources;
-create policy "Authenticated users can insert resources" on public.resources for insert with check (auth.role() = 'authenticated');
+drop policy if exists "Anyone can insert resources" on public.resources;
+create policy "Anyone can insert resources" on public.resources for insert with check (true);
 
 drop policy if exists "Authenticated users can delete resources" on public.resources;
-create policy "Authenticated users can delete resources" on public.resources for delete using (auth.role() = 'authenticated');
+drop policy if exists "Anyone can delete resources" on public.resources;
+create policy "Anyone can delete resources" on public.resources for delete using (true);
 
 -- 4. MILESTONES Table
 create table if not exists public.milestones (

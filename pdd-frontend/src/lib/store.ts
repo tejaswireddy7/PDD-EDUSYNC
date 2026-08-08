@@ -48,6 +48,7 @@ export interface DashboardState {
   isLoadingProfile: boolean;
   lowDataMode: boolean;
   cachedMaterials: Array<{ title: string; url: string; cachedAt: number }>;
+  appTheme: "light" | "indigo" | "dark";
 }
 
 // Default initial state
@@ -67,6 +68,7 @@ const DEFAULT_STATE: DashboardState = {
   isLoadingProfile: true,
   lowDataMode: false,
   cachedMaterials: [],
+  appTheme: "indigo",
 };
 
 // Internal store variables
@@ -76,6 +78,22 @@ let state: DashboardState = { ...DEFAULT_STATE };
 if (typeof window !== "undefined" && window.localStorage) {
   const lastUserId = window.localStorage.getItem("last_logged_in_user_id");
   const savedToken = window.localStorage.getItem("supabase_session_token");
+  const savedTheme = (window.localStorage.getItem("app-theme") || "indigo") as "light" | "indigo" | "dark";
+  state.appTheme = savedTheme;
+  
+  // Apply theme immediately
+  const root = document.documentElement;
+  if (savedTheme === "light") {
+    root.style.setProperty("--primary", "oklch(0.60 0.05 252)");
+    root.style.setProperty("--ring", "oklch(0.60 0.05 252)");
+  } else if (savedTheme === "indigo") {
+    root.style.setProperty("--primary", "oklch(0.62 0.2 255)");
+    root.style.setProperty("--ring", "oklch(0.62 0.2 255)");
+  } else if (savedTheme === "dark") {
+    root.style.setProperty("--primary", "oklch(0.72 0.15 165)");
+    root.style.setProperty("--ring", "oklch(0.72 0.15 165)");
+  }
+
   if (lastUserId && savedToken) {
     const savedProfile = window.localStorage.getItem(`user_profile_${lastUserId}`);
     if (savedProfile) {
@@ -161,6 +179,7 @@ export function useDashboardStore() {
       updateState({
         lowDataMode: mode === "true",
         cachedMaterials: cached ? JSON.parse(cached) : [],
+        appTheme: (window.localStorage.getItem("app-theme") || "indigo") as any,
         ...(hydratedUser ? {
           user: hydratedUser,
           token: hydratedToken,
@@ -1030,6 +1049,26 @@ export function useDashboardStore() {
       updateState({
         surveyCompleted: false
       });
+    },
+
+    setAppTheme: (themeKey: "light" | "indigo" | "dark") => {
+      updateState({ appTheme: themeKey });
+      if (typeof window !== "undefined" && window.localStorage) {
+        window.localStorage.setItem("app-theme", themeKey);
+      }
+      if (typeof window !== "undefined") {
+        const root = document.documentElement;
+        if (themeKey === "light") {
+          root.style.setProperty("--primary", "oklch(0.60 0.05 252)");
+          root.style.setProperty("--ring", "oklch(0.60 0.05 252)");
+        } else if (themeKey === "indigo") {
+          root.style.setProperty("--primary", "oklch(0.62 0.2 255)");
+          root.style.setProperty("--ring", "oklch(0.62 0.2 255)");
+        } else if (themeKey === "dark") {
+          root.style.setProperty("--primary", "oklch(0.72 0.15 165)");
+          root.style.setProperty("--ring", "oklch(0.72 0.15 165)");
+        }
+      }
     }
   };
 }

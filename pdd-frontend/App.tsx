@@ -27,29 +27,36 @@ const queryClient = new QueryClient({
   },
 });
 
-// Custom Theme matching Skillora's premium color scheme
-const theme = {
-  ...MD3LightTheme,
-  colors: {
-    ...MD3LightTheme.colors,
-    primary: '#6366f1', // Indigo-500
-    secondary: '#06b6d4', // Cyan-500
-    background: '#f8fafc', // Slate-50
-    surface: '#ffffff',
-    error: '#ef4444',
-  },
-};
-
 const Tab = createBottomTabNavigator();
 
 export default function App() {
   const store = useDashboardStore();
   const isAuthenticated = store.user !== null;
 
+  const themeColors = {
+    light: "#64748b",
+    indigo: "#6366f1",
+    dark: "#0d9488",
+  };
+
+  const currentThemeColor = themeColors[store.appTheme || "indigo"] || themeColors.indigo;
+
+  const dynamicTheme = {
+    ...MD3LightTheme,
+    colors: {
+      ...MD3LightTheme.colors,
+      primary: currentThemeColor,
+      secondary: '#06b6d4',
+      background: '#f8fafc',
+      surface: '#ffffff',
+      error: '#ef4444',
+    },
+  };
+
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
-        <PaperProvider theme={theme}>
+        <PaperProvider theme={dynamicTheme}>
           {!isAuthenticated ? (
             <AuthScreen onSuccess={() => {}} />
           ) : (
@@ -75,7 +82,7 @@ export default function App() {
 
                     return <MaterialCommunityIcons name={iconName} size={size} color={color} />;
                   },
-                  tabBarActiveTintColor: '#6366f1', // Skillora Indigo Accent
+                  tabBarActiveTintColor: currentThemeColor,
                   tabBarInactiveTintColor: '#64748b', // Slate Gray
                   tabBarStyle: styles.tabBar,
                   tabBarLabelStyle: styles.tabBarLabel,

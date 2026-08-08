@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, Pl
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useDashboardStore } from "../lib/store";
 import { supabase } from "../lib/supabase";
+import { SurveyModal } from "../components/skillora/SurveyModal";
 
 const themeColors = {
   light: { primary: "#64748b" },
@@ -37,40 +38,7 @@ export default function ProfileScreen() {
 
   // Settings States
   const [pushNotifs, setPushNotifs] = useState(true);
-  const [appTheme, setAppTheme] = useState<"light" | "indigo" | "dark">("indigo");
-
-  useEffect(() => {
-    if (typeof window !== "undefined" && window.localStorage) {
-      const savedTheme = (window.localStorage.getItem("app-theme") || "indigo") as "light" | "indigo" | "dark";
-      setAppTheme(savedTheme);
-      applyTheme(savedTheme);
-    }
-  }, []);
-
-  const applyTheme = (themeKey: "light" | "indigo" | "dark") => {
-    if (typeof window !== "undefined") {
-      const root = document.documentElement;
-      if (themeKey === "light") {
-        root.style.setProperty("--primary", "oklch(0.60 0.05 252)");
-        root.style.setProperty("--ring", "oklch(0.60 0.05 252)");
-      } else if (themeKey === "indigo") {
-        root.style.setProperty("--primary", "oklch(0.62 0.2 255)");
-        root.style.setProperty("--ring", "oklch(0.62 0.2 255)");
-      } else if (themeKey === "dark") {
-        root.style.setProperty("--primary", "oklch(0.72 0.15 165)");
-        root.style.setProperty("--ring", "oklch(0.72 0.15 165)");
-      }
-    }
-  };
-
-  const handleThemeChange = (themeKey: "light" | "indigo" | "dark") => {
-    setAppTheme(themeKey);
-    if (typeof window !== "undefined" && window.localStorage) {
-      window.localStorage.setItem("app-theme", themeKey);
-      applyTheme(themeKey);
-    }
-  };
-
+  const appTheme = store.appTheme || "indigo";
   const currentColors = themeColors[appTheme] || themeColors.indigo;
 
   // Password Reset States
@@ -429,7 +397,7 @@ export default function ProfileScreen() {
                 <TouchableOpacity 
                   key={th.key} 
                   style={[styles.themeBtn, selected && { borderColor: th.color, backgroundColor: `${th.color}08` }]} 
-                  onPress={() => handleThemeChange(th.key)}
+                  onPress={() => store.setAppTheme(th.key)}
                   activeOpacity={0.8}
                 >
                   <View style={[styles.themeDot, { backgroundColor: th.color }]} />
@@ -486,6 +454,7 @@ export default function ProfileScreen() {
           <Text style={styles.logoutBtnText}>Logout</Text>
         </TouchableOpacity>
       </View>
+      <SurveyModal visible={!store.surveyCompleted} isResurvey={true} />
     </ScrollView>
   );
 }

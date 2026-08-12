@@ -44,14 +44,64 @@ const tintTextByStatus: Record<Status, string> = {
   submitted: "textMint",
 };
 
-const isLate = (a: { status: string; due_date?: string }) => {
-  if (a.status === "submitted" || !a.due_date) return false;
-  return new Date() > new Date(a.due_date);
+function parseDeadline(deadline: string): Date | null {
+  try {
+    const cleaned = deadline.replace("·", "").replace(/\s+/g, " ").trim();
+    const parts = cleaned.split(" ");
+    const monthStr = parts[1];
+    const dayStr = parts[2];
+    
+    if (monthStr && dayStr) {
+      const monthNames = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+      const cleanMonth = monthStr.replace(/[^a-zA-Z]/g, "").toLowerCase().substring(0, 3);
+      const monthIdx = monthNames.indexOf(cleanMonth);
+      const cleanDay = parseInt(dayStr.replace(/[^0-9]/g, ""));
+      
+      if (monthIdx !== -1 && !isNaN(cleanDay)) {
+        const timePart = parts[3] || "12:00";
+        const ampmPart = parts[4] || "AM";
+        
+        let hours = 12;
+        let minutes = 0;
+        const timeMatch = timePart.match(/(\d+):(\d+)/);
+        if (timeMatch) {
+          hours = parseInt(timeMatch[1]);
+          minutes = parseInt(timeMatch[2]);
+        }
+        
+        if (ampmPart.toLowerCase().includes("pm") && hours < 12) {
+          hours += 12;
+        } else if (ampmPart.toLowerCase().includes("am") && hours === 12) {
+          hours = 0;
+        }
+        
+        return new Date(2026, monthIdx, cleanDay, hours, minutes);
+      }
+    }
+  } catch (e) {}
+  return null;
+}
+
+const getDueDate = (a: { due_date?: string; deadline?: string }) => {
+  if (a.due_date) return new Date(a.due_date);
+  if (a.deadline) {
+    const parsed = parseDeadline(a.deadline);
+    if (parsed) return parsed;
+  }
+  return null;
 };
 
-const getXpLost = (a: { status: string; due_date?: string }) => {
-  if (a.status === "submitted" || !a.due_date) return 0;
-  const dueDate = new Date(a.due_date);
+const isLate = (a: { status: string; due_date?: string; deadline?: string }) => {
+  if (a.status === "submitted") return false;
+  const dueDate = getDueDate(a);
+  if (!dueDate) return false;
+  return new Date() > dueDate;
+};
+
+const getXpLost = (a: { status: string; due_date?: string; deadline?: string }) => {
+  if (a.status === "submitted") return 0;
+  const dueDate = getDueDate(a);
+  if (!dueDate) return 0;
   const now = new Date();
   if (now <= dueDate) return 0;
   const msLate = now.getTime() - dueDate.getTime();

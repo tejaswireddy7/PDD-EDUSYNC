@@ -17,6 +17,44 @@ import {
   saveDBRecommendations
 } from "./supabase-db";
 
+function parseDeadline(deadline: string): Date | null {
+  try {
+    const cleaned = deadline.replace("·", "").replace(/\s+/g, " ").trim();
+    const parts = cleaned.split(" ");
+    const monthStr = parts[1];
+    const dayStr = parts[2];
+    
+    if (monthStr && dayStr) {
+      const monthNames = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+      const cleanMonth = monthStr.replace(/[^a-zA-Z]/g, "").toLowerCase().substring(0, 3);
+      const monthIdx = monthNames.indexOf(cleanMonth);
+      const cleanDay = parseInt(dayStr.replace(/[^0-9]/g, ""));
+      
+      if (monthIdx !== -1 && !isNaN(cleanDay)) {
+        const timePart = parts[3] || "12:00";
+        const ampmPart = parts[4] || "AM";
+        
+        let hours = 12;
+        let minutes = 0;
+        const timeMatch = timePart.match(/(\d+):(\d+)/);
+        if (timeMatch) {
+          hours = parseInt(timeMatch[1]);
+          minutes = parseInt(timeMatch[2]);
+        }
+        
+        if (ampmPart.toLowerCase().includes("pm") && hours < 12) {
+          hours += 12;
+        } else if (ampmPart.toLowerCase().includes("am") && hours === 12) {
+          hours = 0;
+        }
+        
+        return new Date(2026, monthIdx, cleanDay, hours, minutes);
+      }
+    }
+  } catch (e) {}
+  return null;
+}
+
 async function getNextAssessmentTitle(userId: string, focusDomain: string, proficiency: string): Promise<string> {
   try {
     const assessments = await fetchDBAssessments(userId, focusDomain, proficiency);
@@ -220,8 +258,9 @@ export function useDashboardStore() {
       let xpDeducted = 0;
       
       const updatedAssessments = await Promise.all(assessments.map(async (ass) => {
-        if (ass.status !== "submitted" && ass.due_date) {
-          const dueDate = new Date(ass.due_date);
+        const dueDateStr = ass.due_date || (ass.deadline ? parseDeadline(ass.deadline)?.toISOString() : null);
+        if (ass.status !== "submitted" && dueDateStr) {
+          const dueDate = new Date(dueDateStr);
           if (now > dueDate) {
             const lastPenalized = ass.last_penalized_at ? new Date(ass.last_penalized_at) : dueDate;
             const msLate = now.getTime() - lastPenalized.getTime();
@@ -232,10 +271,26 @@ export function useDashboardStore() {
               xpDeducted += penalty;
               const nextPenalizedDate = new Date(lastPenalized.getTime() + daysLate * 24 * 60 * 60 * 1000).toISOString();
               
-              await updateDBAssessment(userId, ass.id, { last_penalized_at: nextPenalizedDate });
+              await updateDBAssessment(userId, ass.id, { 
+                start_date: ass.start_date || new Date(dueDate.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+                due_date: dueDateStr,
+                last_penalized_at: nextPenalizedDate 
+              });
               
-              return { ...ass, last_penalized_at: nextPenalizedDate };
+              return { ...ass, start_date: ass.start_date || new Date(dueDate.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString(), due_date: dueDateStr, last_penalized_at: nextPenalizedDate };
+            } else if (!ass.due_date) {
+              await updateDBAssessment(userId, ass.id, {
+                start_date: ass.start_date || new Date(dueDate.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+                due_date: dueDateStr,
+                last_penalized_at: ass.last_penalized_at || dueDateStr
+              });
             }
+          } else if (!ass.due_date) {
+            await updateDBAssessment(userId, ass.id, {
+              start_date: ass.start_date || new Date(dueDate.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+              due_date: dueDateStr,
+              last_penalized_at: ass.last_penalized_at || dueDateStr
+            });
           }
         }
         return ass;

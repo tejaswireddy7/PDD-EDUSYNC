@@ -1142,21 +1142,19 @@ export async function fetchDBEvaluation(
 
     let shouldUpdateDB = false;
     if (existingEval) {
-      if (assessment && Array.isArray(assessment.questions) && assessment.questions.length > 0) {
-        const qLen = assessment.questions.length;
-        if (existingEval.max_score !== qLen) {
-          shouldUpdateDB = true;
-        } else {
-          if (typeof window !== "undefined" && window.localStorage) {
-            const cacheKey = `evaluations_${userId}`;
-            const cached = window.localStorage.getItem(cacheKey);
-            let list = cached ? JSON.parse(cached) : [];
-            list = list.filter((e: any) => e.assessment_id !== assessmentId);
-            list.push(existingEval);
-            window.localStorage.setItem(cacheKey, JSON.stringify(list));
-          }
-          return existingEval as DBEvaluation;
+      let qLen = 6;
+      if (assessment) {
+        let assIndex = 1;
+        if (assessment.id.includes("_ass_")) {
+          assIndex = parseInt(assessment.id.split("_ass_")[1]) || 1;
         }
+        const resolvedQuestions = (assessment.questions && assessment.questions.length > 0)
+          ? assessment.questions
+          : getQuestionsForCourseAssessment(focusDomain, assIndex);
+        qLen = resolvedQuestions.length;
+      }
+      if (existingEval.max_score !== qLen || existingEval.max_score === 15 || existingEval.max_score === 16) {
+        shouldUpdateDB = true;
       } else {
         if (typeof window !== "undefined" && window.localStorage) {
           const cacheKey = `evaluations_${userId}`;
@@ -1174,7 +1172,13 @@ export async function fetchDBEvaluation(
 
     if (assessment) {
       const responses = assessment.responses || {};
-      const questions = assessment.questions || [];
+      let assIndex = 1;
+      if (assessment.id.includes("_ass_")) {
+        assIndex = parseInt(assessment.id.split("_ass_")[1]) || 1;
+      }
+      const questions = (assessment.questions && assessment.questions.length > 0)
+        ? assessment.questions
+        : getQuestionsForCourseAssessment(focusDomain, assIndex);
       const isQuiz = Array.isArray(questions) && questions.length > 0;
 
       const focusSubjectsMap: Record<string, string[]> = {

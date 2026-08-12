@@ -19,6 +19,7 @@ export default function EvaluationScreen() {
   const [submittedId, setSubmittedId] = useState<string | null>(store.submittedAssessmentId);
   const [submittedTitle, setSubmittedTitle] = useState<string>(assessmentTitle);
   const [submissionNumber, setSubmissionNumber] = useState<number>(1);
+  const [submittedAssessments, setSubmittedAssessments] = useState<any[]>([]);
 
   useEffect(() => {
     async function checkSubmissions() {
@@ -28,8 +29,11 @@ export default function EvaluationScreen() {
           const { fetchDBAssessments } = await import("../lib/supabase-db");
           const dbAssessments = await fetchDBAssessments(user.id, focusDomain, userProficiency);
           
+          const submitted = dbAssessments.filter((a) => a.status === "submitted");
+          setSubmittedAssessments(submitted);
+
           // Compute the submission number based on the order of assessments sorted by ID
-          const sorted = [...dbAssessments].sort((a, b) => a.id.localeCompare(b.id));
+          const sorted = [...submitted].sort((a, b) => a.id.localeCompare(b.id));
 
           if (store.submittedAssessmentId) {
             setSubmittedId(store.submittedAssessmentId);
@@ -40,12 +44,11 @@ export default function EvaluationScreen() {
             const idx = sorted.findIndex(a => a.id === store.submittedAssessmentId);
             setSubmissionNumber(idx !== -1 ? idx + 1 : 1);
           } else {
-            const submitted = dbAssessments.find((a) => a.status === "submitted");
-            if (submitted) {
-              setSubmittedId(submitted.id);
-              setSubmittedTitle(submitted.title);
-              const idx = sorted.findIndex(a => a.id === submitted.id);
-              setSubmissionNumber(idx !== -1 ? idx + 1 : 1);
+            const firstSubmitted = submitted[0];
+            if (firstSubmitted) {
+              setSubmittedId(firstSubmitted.id);
+              setSubmittedTitle(firstSubmitted.title);
+              setSubmissionNumber(1);
             }
           }
         }
@@ -126,6 +129,33 @@ export default function EvaluationScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
       <Header hideSurvey={true} />
+
+      {/* Selector Row */}
+      {submittedAssessments.length > 1 && (
+        <View style={styles.selectorCard}>
+          <Text style={styles.selectorLabel}>Select Assessment Analytics:</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.selectorScroll}>
+            {submittedAssessments.map((a, idx) => {
+              const isSel = a.id === submittedId;
+              return (
+                <TouchableOpacity
+                  key={a.id}
+                  onPress={() => {
+                    setSubmittedId(a.id);
+                    setSubmittedTitle(a.title);
+                    setSubmissionNumber(idx + 1);
+                  }}
+                  style={[styles.selectorPill, isSel && styles.activeSelectorPill]}
+                >
+                  <Text style={[styles.selectorPillText, isSel && styles.activeSelectorPillText]}>
+                    {a.title}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+      )}
 
       {/* Main Score Overview Card */}
       <View style={styles.scoreCard}>
@@ -665,5 +695,46 @@ const styles: any = StyleSheet.create({
     textAlign: "center",
     lineHeight: 18,
     maxWidth: 290,
+  },
+  selectorCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    padding: 16,
+    marginBottom: 16,
+  },
+  selectorLabel: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#64748b",
+    marginBottom: 10,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  selectorScroll: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  selectorPill: {
+    backgroundColor: "#f1f5f9",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 99,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  activeSelectorPill: {
+    backgroundColor: "rgba(99, 102, 241, 0.08)",
+    borderColor: "#6366f1",
+  },
+  selectorPillText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#64748b",
+  },
+  activeSelectorPillText: {
+    color: "#6366f1",
+    fontWeight: "700",
   },
 });

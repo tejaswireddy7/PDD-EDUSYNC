@@ -754,8 +754,7 @@ export default function CourseLearnScreen() {
       setFifteenMinQuizFeedback("Good job! You answered 1 out of 2 correctly. Course marked as completed. You earned +100 XP!");
       store.completeCourse(courseTitle);
     } else {
-      setFifteenMinQuizFeedback("You got 0 out of 2 correctly. We recommend re-watching sections, but course progress is updated. You earned +100 XP!");
-      store.completeCourse(courseTitle);
+      setFifteenMinQuizFeedback("Failed checkpoint! You answered 0 out of 2 questions correctly. Re-watch the video sections and try again!");
     }
   };
 
@@ -939,20 +938,6 @@ export default function CourseLearnScreen() {
                 Watch Progress: {Math.floor(watchedTime / 60)}m {Math.floor(watchedTime % 60)}s / {Math.floor(videoDuration / 60)}m {Math.floor(videoDuration % 60)}s
               </Text>
             </View>
-            <TouchableOpacity
-              onPress={() => {
-                const targetTime = Math.max(0, videoDuration - 5);
-                setWatchedTime(targetTime);
-                if (typeof window !== "undefined" && window.localStorage) {
-                  const cacheKey = `video_progress_${courseTitle}_${store.user?.email || "guest"}`;
-                  window.localStorage.setItem(cacheKey, targetTime.toString());
-                }
-              }}
-              style={styles.simulateBtn}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.simulateBtnText}>⚡ Simulate Watch</Text>
-            </TouchableOpacity>
           </View>
 
           <View style={styles.videoFooterRow}>
@@ -1420,7 +1405,7 @@ export default function CourseLearnScreen() {
                   </View>
                 ) : (
                   <View style={{ flexDirection: "column", gap: 10 }}>
-                    {fifteenMinScore < 2 && (
+                    {fifteenMinScore < 1 ? (
                       <TouchableOpacity
                         style={[styles.fifteenSubmitBtn, { backgroundColor: "#ef4444" }]}
                         onPress={() => {
@@ -1435,17 +1420,34 @@ export default function CourseLearnScreen() {
                       >
                         <Text style={styles.fifteenSubmitText}>🔄 Try Again / Go Back to Lesson</Text>
                       </TouchableOpacity>
+                    ) : (
+                      <>
+                        {fifteenMinScore < 2 && (
+                          <TouchableOpacity
+                            style={[styles.fifteenSubmitBtn, { backgroundColor: "#ea580c" }]}
+                            onPress={() => {
+                              setQ1Answer(null);
+                              setQ2Answer(null);
+                              setFifteenMinScore(null);
+                              setFifteenMinQuizFeedback(null);
+                            }}
+                            activeOpacity={0.8}
+                          >
+                            <Text style={styles.fifteenSubmitText}>🔄 Retry for Perfect Score</Text>
+                          </TouchableOpacity>
+                        )}
+                        <TouchableOpacity
+                          style={[styles.fifteenSubmitBtn, { backgroundColor: "#6366f1" }]}
+                          onPress={() => {
+                            setShowFifteenMinQuiz(false);
+                            closeWindow();
+                          }}
+                          activeOpacity={0.8}
+                        >
+                          <Text style={styles.fifteenSubmitText}>Complete & Close</Text>
+                        </TouchableOpacity>
+                      </>
                     )}
-                    <TouchableOpacity
-                      style={[styles.fifteenSubmitBtn, { backgroundColor: "#6366f1" }]}
-                      onPress={() => {
-                        setShowFifteenMinQuiz(false);
-                        closeWindow();
-                      }}
-                      activeOpacity={0.8}
-                    >
-                      <Text style={styles.fifteenSubmitText}>Complete & Close</Text>
-                    </TouchableOpacity>
                   </View>
                 )}
               </View>

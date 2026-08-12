@@ -44,6 +44,21 @@ const tintTextByStatus: Record<Status, string> = {
   submitted: "textMint",
 };
 
+const isLate = (a: { status: string; due_date?: string }) => {
+  if (a.status === "submitted" || !a.due_date) return false;
+  return new Date() > new Date(a.due_date);
+};
+
+const getXpLost = (a: { status: string; due_date?: string }) => {
+  if (a.status === "submitted" || !a.due_date) return 0;
+  const dueDate = new Date(a.due_date);
+  const now = new Date();
+  if (now <= dueDate) return 0;
+  const msLate = now.getTime() - dueDate.getTime();
+  const daysLate = Math.floor(msLate / (24 * 60 * 60 * 1000));
+  return Math.max(50, daysLate * 50);
+};
+
 export default function AssessmentsScreen() {
   const store = useDashboardStore();
   const focusDomain = store.surveyAnswers?.focusDomain || "Mobile";
@@ -411,8 +426,10 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
     }, 150);
   };
 
-  const statusBg = tintByStatus[assessment.status];
-  const statusText = tintTextByStatus[assessment.status];
+  const isLateAssessment = isLate(assessment);
+  const statusBg = isLateAssessment ? "bgRed" : tintByStatus[assessment.status];
+  const statusText = isLateAssessment ? "textRed" : tintTextByStatus[assessment.status];
+  const statusLabel = isLateAssessment ? "LATE" : (assessment.status === "in-progress" ? "in progress" : assessment.status);
 
   // SUBMITTED STATE VIEW
   if (assessment.status === "submitted" && progress === 0) {
@@ -457,7 +474,7 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
         </View>
         <View style={[styles.statusBadge, styles[statusBg as keyof typeof styles]]}>
           <Text style={[styles.statusBadgeText, styles[statusText as keyof typeof styles]]}>
-            {assessment.status === "in-progress" ? "in progress" : assessment.status}
+            {statusLabel}
           </Text>
         </View>
       </View>
@@ -473,11 +490,21 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
         </View>
       </View>
 
-      <View style={styles.deadlineBox}>
-        <Feather name="clock" size={14} color="#6366f1" />
-        <View>
+      <View style={[
+        styles.deadlineBox, 
+        isLateAssessment && { backgroundColor: '#fef2f2', borderColor: '#fee2e2', borderWidth: 1 }
+      ]}>
+        <Feather name="clock" size={14} color={isLateAssessment ? "#ef4444" : "#6366f1"} />
+        <View style={{ flex: 1 }}>
           <Text style={styles.deadlineLabel}>Deadline</Text>
-          <Text style={styles.deadlineValue}>{assessment.deadline}</Text>
+          <Text style={[styles.deadlineValue, isLateAssessment && { color: '#ef4444', fontWeight: 'bold' }]}>
+            {assessment.deadline}
+          </Text>
+          {isLateAssessment && (
+            <Text style={{ color: '#ef4444', fontSize: 11, fontWeight: 'bold', marginTop: 2 }}>
+              Late Penalty: -{getXpLost(assessment)} XP
+            </Text>
+          )}
         </View>
       </View>
 
@@ -660,12 +687,14 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
   );
 }
 
-// 3. Filterable Assessments List Component
 function AssessmentList({ items, activeId, onPick }: { items: Assessment[]; activeId: string; onPick: (a: Assessment) => void }) {
-  const [filter, setFilter] = useState<"all" | Status>("all");
-  const filtered = filter === "all" ? items : items.filter((i) => i.status === filter);
-  const tabs: Array<{ k: "all" | Status; label: string }> = [
-    { k: "all", label: "All" }, { k: "open", label: "Open" }, { k: "in-progress", label: "In progress" }, { k: "submitted", label: "Submitted" },
+  const [filter, setFilter] = useState<"all" | Status | "late">("all");
+  const filtered = filter === "all" ? items 
+    : filter === "late" ? items.filter(i => isLate(i))
+    : filter === "open" ? items.filter(i => i.status === "open" && !isLate(i))
+    : items.filter((i) => i.status === filter);
+  const tabs: Array<{ k: "all" | Status | "late"; label: string }> = [
+    { k: "all", label: "All" }, { k: "open", label: "Open" }, { k: "late", label: "Late" }, { k: "submitted", label: "Submitted" },
   ];
 
   return (
@@ -692,13 +721,21 @@ function AssessmentList({ items, activeId, onPick }: { items: Assessment[]; acti
         {filtered.map((a) => {
           const icon = typeIcon[a.type] || "file";
           const isActive = a.id === activeId;
-          const statusBg = tintByStatus[a.status];
-          const statusText = tintTextByStatus[a.status];
+          const isLateAssessment = isLate(a);
+          const statusBg = isLateAssessment ? "bgRed" : tintByStatus[a.status];
+          const statusText = isLateAssessment ? "textRed" : tintTextByStatus[a.status];
+          const statusLabel = isLateAssessment ? "LATE" : (a.status === "in-progress" ? "in progress" : a.status);
           return (
             <TouchableOpacity
               key={a.id}
               onPress={() => onPick(a)}
-              style={[styles.listItem, isActive ? styles.activeListItem : styles.inactiveListItem]}
+              style={[
+                styles.listItem, 
+                isActive ? styles.activeListItem : styles.inactiveListItem,
+                isLateAssessment && { backgroundColor: '#fff5f5' },
+                isLateAssessment && isActive && { borderColor: '#ef4444' },
+                isLateAssessment && !isActive && { borderColor: '#fca5a5' }
+              ]}
             >
               <View style={styles.listItemIconBox}>
                 <Feather name={icon as any} size={16} color="#6366f1" />
@@ -708,7 +745,7 @@ function AssessmentList({ items, activeId, onPick }: { items: Assessment[]; acti
                   <Text style={styles.listItemTitle} numberOfLines={1}>{a.title}</Text>
                   <View style={[styles.statusBadge, styles[statusBg as keyof typeof styles]]}>
                     <Text style={[styles.statusBadgeText, styles[statusText as keyof typeof styles]]}>
-                      {a.status === "in-progress" ? "in progress" : a.status}
+                      {statusLabel}
                     </Text>
                   </View>
                 </View>
@@ -717,9 +754,23 @@ function AssessmentList({ items, activeId, onPick }: { items: Assessment[]; acti
                   <View style={styles.dot} />
                   <Text style={styles.listItemMetaText}>{a.difficulty}</Text>
                   <View style={styles.dot} />
-                  <Feather name="clock" size={10} color="#94a3b8" />
-                  <Text style={styles.listItemMetaText} numberOfLines={1}>{a.deadline}</Text>
+                  <Feather name="clock" size={10} color={isLateAssessment ? "#ef4444" : "#94a3b8"} />
+                  <Text style={[
+                    styles.listItemMetaText, 
+                    isLateAssessment && { color: '#ef4444', fontWeight: 'bold' }
+                  ]} numberOfLines={1}>
+                    {a.deadline}
+                  </Text>
                 </View>
+
+                {isLateAssessment && (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                    <Feather name="alert-triangle" size={12} color="#ef4444" style={{ marginRight: 4 }} />
+                    <Text style={{ color: '#ef4444', fontSize: 11, fontWeight: 'bold' }}>
+                      Overdue Penalty: -{getXpLost(a)} XP
+                    </Text>
+                  </View>
+                )}
 
                 {/* Mobile progress display */}
                 <View style={styles.listItemProgressRow}>
@@ -850,6 +901,12 @@ const styles: any = StyleSheet.create({
   },
   textGray: {
     color: "#64748b",
+  },
+  bgRed: {
+    backgroundColor: "rgba(239, 68, 68, 0.1)",
+  },
+  textRed: {
+    color: "#ef4444",
   },
   panelCard: {
     backgroundColor: "#ffffff",

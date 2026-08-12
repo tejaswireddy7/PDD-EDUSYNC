@@ -5,23 +5,49 @@ import { useDashboardStore } from "../lib/store";
 import { supabase } from "../lib/supabase";
 
 const COURSE_VIDEOS: Record<string, string> = {
-  "HTML5, CSS3, & Modern Grid": "https://www.youtube.com/embed/Dp3c7G1Qhgo",
+  // Frontend
+  "HTML5, CSS3, & Modern Grid": "https://www.youtube.com/embed/0xMQfnTU6oo",
   "JavaScript Fundamentals & DOM": "https://www.youtube.com/embed/hdI2bqOjy3c",
   "Intro to React & Component States": "https://www.youtube.com/embed/Ke90Tje7VS0",
-  "Intro to Node.js & REST API": "https://www.youtube.com/embed/Oe421EPjeBE",
-  "SQL Fundamentals & Relational DBs": "https://www.youtube.com/embed/HXTt1AjbTtc",
-  "React Native & Expo Ecosystem": "https://www.youtube.com/embed/0-S5a0eXPoc",
-  "Python Fundamentals & Packages": "https://www.youtube.com/embed/_uQrJ0TkZlc",
-  "Neural Networks with PyTorch": "https://www.youtube.com/embed/V_xro1bcAuA",
-  "React Router & Global Context": "https://www.youtube.com/embed/59IXY5IDYbA",
+  "React Router & Global Context": "https://www.youtube.com/embed/Ul3y1LXxzdU",
   "Tailwind CSS & Responsive Layouts": "https://www.youtube.com/embed/m7OWXtbiXX8",
-  "TypeScript Essentials for Web": "https://www.youtube.com/embed/zQnOB4tV3MC",
+  "TypeScript Essentials for Web": "https://www.youtube.com/embed/d56mG7DezGs",
+  "Next.js 14 App Router Mastery": "https://www.youtube.com/embed/wm5gMKuwSYk",
+  "Web Performance & Core Web Vitals": "https://www.youtube.com/embed/t5fjIW3tB00",
+  "Module Federation & Micro-Frontends": "https://www.youtube.com/embed/ICeH3uBGGeo",
+
+  // Backend
+  "Intro to Node.js & REST API": "https://www.youtube.com/embed/Oe421EPjeBE",
+  "SQL Fundamentals & Relational DBs": "https://www.youtube.com/embed/7S_tz1z_5bA",
+  "Basics of Routing & HTTP Methods": "https://www.youtube.com/embed/iYM2zFP3Zn0",
   "Java Spring Boot Microservices": "https://www.youtube.com/embed/35EQXmHKZYs",
-  "PostgreSQL Queries & Optimization": "https://www.youtube.com/embed/7VfZYMXZmeI",
-  "SwiftUI Mastery for iOS Platforms": "https://www.youtube.com/embed/F2CznepmCg4",
-  "Kotlin & Android Jetpack UI": "https://www.youtube.com/embed/Ch5QqJmOzCQ",
+  "PostgreSQL Queries & Optimization": "https://www.youtube.com/embed/qw--VYLpxG4",
+  "Redis Caching & Task Queues": "https://www.youtube.com/embed/jgpVdJB2sKQ",
+  "Distributed Systems & Scalability": "https://www.youtube.com/embed/oSkTPzOGMuw",
+  "Docker & Kubernetes Orchestration": "https://www.youtube.com/embed/rjjES5IsPdg",
+  "Go Concurrency & Channels Deep-Dive": "https://www.youtube.com/embed/un6ZyFkqFKo",
+
+  // Mobile
+  "React Native & Expo Ecosystem": "https://www.youtube.com/embed/0-S5a0eXPoc",
+  "Flexbox Layouts in Mobile Screens": "https://www.youtube.com/embed/Hf2esGA7vCc",
+  "Navigation Containers & Tabs": "https://www.youtube.com/embed/ur6I5m2nTvk",
+  "Advanced React Navigation v6": "https://www.youtube.com/embed/UVUPEokN8Mw",
+  "Native Features: Camera, GPS & Audio": "https://www.youtube.com/embed/0-S5a0eXPoc",
+  "State Management in Native Apps": "https://www.youtube.com/embed/0-S5a0eXPoc",
+  "SwiftUI Mastery for iOS Platforms": "https://www.youtube.com/embed/HXoVSbwWUIk",
+  "Kotlin & Android Jetpack UI": "https://www.youtube.com/embed/6_wK_Ud8--0",
+  "Native Bridges & Performance Tuning": "https://www.youtube.com/embed/0-S5a0eXPoc",
+
+  // AI
+  "Python Fundamentals & Packages": "https://www.youtube.com/embed/_uQrJ0TkZlc",
   "Pandas & Numpy Data Wrangling": "https://www.youtube.com/embed/F6kmIpWWEdU",
-  "Basics of Routing & HTTP Methods": "https://www.youtube.com/embed/yQleTeoUskc",
+  "Basic Statistics & Probability": "https://www.youtube.com/embed/xxpc-HPKN28",
+  "Neural Networks with PyTorch": "https://www.youtube.com/embed/V_xro1bcAuA",
+  "Natural Language Processing (NLP)": "https://www.youtube.com/embed/dIUTsFT2MeQ",
+  "Data Visualization with Recharts": "https://www.youtube.com/embed/F6kmIpWWEdU",
+  "Fine-Tuning Generative AI Models": "https://www.youtube.com/embed/V_xro1bcAuA",
+  "MLOps: CI/CD Pipeline for Models": "https://www.youtube.com/embed/V_xro1bcAuA",
+  "Transformer Architectures & Attention": "https://www.youtube.com/embed/V_xro1bcAuA"
 };
 
 const COURSE_MATERIALS: Record<string, Array<{ label: string; url: string; type: "doc" | "tutorial" | "article" }>> = {
@@ -583,7 +609,7 @@ export default function CourseLearnScreen() {
   const courseTitle = params.get("course") || "React Native & Expo Ecosystem";
   const normalizedTitle = normalizeCourseTitle(courseTitle);
 
-  const videoUrl = COURSE_VIDEOS[normalizedTitle] || "https://www.youtube.com/embed/Dp3c7G1Qhgo";
+  const videoUrl = COURSE_VIDEOS[normalizedTitle] || "https://www.youtube.com/embed/hdI2bqOjy3c";
 
   // Timeline and Quiz States
   const [activeStartSec, setActiveStartSec] = useState<number>(0);

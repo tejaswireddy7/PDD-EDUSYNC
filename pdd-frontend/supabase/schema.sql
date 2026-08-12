@@ -258,7 +258,7 @@ insert into public.courses (title, subject, progress, time, difficulty, ai, colo
 ('Go Concurrency & Channels Deep-Dive', 'Backend Go', 0, '24 hrs', 'Advanced', true, array['#0d9488', '#2dd4bf'], 'https://www.youtube.com/embed/un6ZyFkqFKo', 'Backend'),
 
 ('React Native & Expo Ecosystem', 'Cross-Platform', 0, '18 hrs', 'Beginner', true, array['#6366f1', '#818cf8'], 'https://www.youtube.com/embed/0-S5a0eXPoc', 'Mobile'),
-('Flexbox Layouts in Mobile Screens', 'UI Design', 0, '8 hrs', 'Beginner', false, array['#ec4899', '#f472b6'], 'https://www.youtube.com/embed/Hf2esGA7vCc', 'Mobile'),
+('Flexbox Layouts in Mobile Screens', 'UI Design', 0, '8 hrs', 'Beginner', false, array['#ec4899', '#f472b6'], 'https://www.youtube.com/embed/kGtEax1WQFg', 'Mobile'),
 ('Navigation Containers & Tabs', 'App Flow', 0, '12 hrs', 'Beginner', true, array['#2563eb', '#60a5fa'], 'https://www.youtube.com/embed/ur6I5m2nTvk', 'Mobile'),
 ('Advanced React Navigation v6', 'App Flow', 0, '16 hrs', 'Intermediate', true, array['#6366f1', '#818cf8'], 'https://www.youtube.com/embed/UVUPEokN8Mw', 'Mobile'),
 ('Native Features: Camera, GPS & Audio', 'Hardware APIs', 0, '22 hrs', 'Intermediate', false, array['#0d9488', '#2dd4bf'], 'https://www.youtube.com/embed/0-S5a0eXPoc', 'Mobile'),
@@ -531,4 +531,6 @@ drop policy if exists "Users can insert their own enrollments" on public.user_en
 create policy "Users can insert their own enrollments" on public.user_enrollments for insert with check (auth.uid() = user_id);
 drop policy if exists "Users can update their own enrollments" on public.user_enrollments;
 create policy "Users can update their own enrollments" on public.user_enrollments for update using (auth.uid() = user_id);
+drop policy if exists "Users can delete their own enrollments" on public.user_enrollments;
+create policy "Users can delete their own enrollments" on public.user_enrollments for delete using (auth.uid() = user_id);
 

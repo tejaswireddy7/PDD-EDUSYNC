@@ -32,7 +32,7 @@ const COURSE_VIDEOS: Record<string, string> = {
 
   // Mobile
   "React Native & Expo Ecosystem": "https://www.youtube.com/embed/0-S5a0eXPoc",
-  "Flexbox Layouts in Mobile Screens": "https://www.youtube.com/embed/Hf2esGA7vCc",
+  "Flexbox Layouts in Mobile Screens": "https://www.youtube.com/embed/kGtEax1WQFg",
   "Navigation Containers & Tabs": "https://www.youtube.com/embed/ur6I5m2nTvk",
   "Advanced React Navigation v6": "https://www.youtube.com/embed/UVUPEokN8Mw",
   "Native Features: Camera, GPS & Audio": "https://www.youtube.com/embed/0-S5a0eXPoc",

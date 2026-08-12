@@ -29,7 +29,7 @@ const COURSE_VIDEOS: Record<string, string> = {
 
   // Mobile
   "React Native & Expo Ecosystem": "https://www.youtube.com/embed/0-S5a0eXPoc",
-  "Flexbox Layouts in Mobile Screens": "https://www.youtube.com/embed/Hf2esGA7vCc",
+  "Flexbox Layouts in Mobile Screens": "https://www.youtube.com/embed/kGtEax1WQFg",
   "Navigation Containers & Tabs": "https://www.youtube.com/embed/ur6I5m2nTvk",
   "Advanced React Navigation v6": "https://www.youtube.com/embed/UVUPEokN8Mw",
   "Native Features: Camera, GPS & Audio": "https://www.youtube.com/embed/0-S5a0eXPoc",
@@ -929,15 +929,6 @@ export default function CourseLearnScreen() {
                 <Text style={{ color: "#fff" }}>Playback only supported on Web version.</Text>
               </View>
             )}
-          </View>
-
-          <View style={styles.timerRow}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-              <MaterialCommunityIcons name="timer-outline" size={16} color="#6366f1" />
-              <Text style={styles.timerText}>
-                Watch Progress: {Math.floor(watchedTime / 60)}m {Math.floor(watchedTime % 60)}s / {Math.floor(videoDuration / 60)}m {Math.floor(videoDuration % 60)}s
-              </Text>
-            </View>
           </View>
 
           <View style={styles.videoFooterRow}>

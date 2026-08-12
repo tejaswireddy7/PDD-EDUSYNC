@@ -9,6 +9,7 @@ import {
   fetchDBResources, 
   fetchDBMilestones,
   fetchDBAssessments,
+  updateDBAssessment,
   fetchDBRecommendations,
   saveDBCourseProgress,
   fetchDBUserEnrollments,
@@ -204,9 +205,80 @@ export function useDashboardStore() {
     current.surveyCompleted &&
     (current.forceResurveyTriggered || allCoursesCompleted);
 
+  const applyLateAssessmentXPCheck = async () => {
+    const prevUser = state.user;
+    if (!prevUser) return;
+    
+    const sessionData = await supabase.auth.getSession();
+    const session = sessionData.data.session;
+    const userId = session?.user?.id;
+    if (!userId) return;
+
+    try {
+      const assessments = await fetchDBAssessments(userId, state.surveyAnswers?.focusDomain || "Mobile", state.surveyAnswers?.proficiency || "Beginner");
+      const now = new Date();
+      let xpDeducted = 0;
+      
+      const updatedAssessments = await Promise.all(assessments.map(async (ass) => {
+        if (ass.status !== "submitted" && ass.due_date) {
+          const dueDate = new Date(ass.due_date);
+          if (now > dueDate) {
+            const lastPenalized = ass.last_penalized_at ? new Date(ass.last_penalized_at) : dueDate;
+            const msLate = now.getTime() - lastPenalized.getTime();
+            const daysLate = Math.floor(msLate / (24 * 60 * 60 * 1000));
+            
+            if (daysLate >= 1) {
+              const penalty = daysLate * 50;
+              xpDeducted += penalty;
+              const nextPenalizedDate = new Date(lastPenalized.getTime() + daysLate * 24 * 60 * 60 * 1000).toISOString();
+              
+              await updateDBAssessment(userId, ass.id, { last_penalized_at: nextPenalizedDate });
+              
+              return { ...ass, last_penalized_at: nextPenalizedDate };
+            }
+          }
+        }
+        return ass;
+      }));
+
+      if (xpDeducted > 0) {
+        const nextXp = Math.max(0, (prevUser.xp || 0) - xpDeducted);
+        const nextUser = { ...prevUser, xp: nextXp };
+        
+        updateState({ user: nextUser });
+        
+        if (typeof window !== "undefined" && window.localStorage) {
+          const saved = window.localStorage.getItem(`user_profile_${userId}`);
+          const profile = saved ? JSON.parse(saved) : {};
+          profile.xp = nextXp;
+          window.localStorage.setItem(`user_profile_${userId}`, JSON.stringify(profile));
+        }
+
+        await saveDBProfile(userId, {
+          name: nextUser.name,
+          email: nextUser.email,
+          focusDomain: state.surveyAnswers?.focusDomain || "Mobile",
+          proficiency: state.surveyAnswers?.proficiency || "Beginner",
+          learningHours: state.surveyAnswers?.learningHours || 5,
+          streak: nextUser.streak ?? 0,
+          coursesCompleted: nextUser.coursesCompleted ?? 0,
+          careerFitScore: nextUser.careerFitScore ?? 0,
+          xp: nextXp
+        });
+
+        if (typeof window !== "undefined") {
+          alert(`Oops! You have late assessments. Deducted ${xpDeducted} XP! Complete them to stop further deductions.`);
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to check late assessments XP penalty:", err);
+    }
+  };
+
   return {
     ...current,
     isResurveyDue,
+    applyLateAssessmentXPCheck,
     
     // Action methods
     setAuth: (user: any, token: string) => {
@@ -434,6 +506,7 @@ export function useDashboardStore() {
     },
 
     fetchRecommendations: async () => {
+      await applyLateAssessmentXPCheck();
       const answers = state.surveyAnswers;
       updateState({ isLoadingRecommendations: true });
 

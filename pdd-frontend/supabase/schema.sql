@@ -146,6 +146,9 @@ create table if not exists public.assessments (
   status text not null, -- open, in-progress, submitted
   questions jsonb,
   responses jsonb,
+  start_date timestamp with time zone,
+  due_date timestamp with time zone,
+  last_penalized_at timestamp with time zone,
   primary key (id, user_id)
 );
 
@@ -533,4 +536,10 @@ drop policy if exists "Users can update their own enrollments" on public.user_en
 create policy "Users can update their own enrollments" on public.user_enrollments for update using (auth.uid() = user_id);
 drop policy if exists "Users can delete their own enrollments" on public.user_enrollments;
 create policy "Users can delete their own enrollments" on public.user_enrollments for delete using (auth.uid() = user_id);
+
+-- Alter assessments table to add columns if they do not exist
+alter table public.assessments add column if not exists start_date timestamp with time zone;
+alter table public.assessments add column if not exists due_date timestamp with time zone;
+alter table public.assessments add column if not exists last_penalized_at timestamp with time zone;
+
 

@@ -20,6 +20,9 @@ type Assessment = {
   status: Status;
   questions?: Array<{ question: string; options: string[]; correctAnswer: number }> | null;
   responses?: any;
+  start_date?: string;
+  due_date?: string;
+  last_penalized_at?: string;
 };
 
 const typeIcon = {

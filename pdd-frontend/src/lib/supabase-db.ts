@@ -52,6 +52,9 @@ export interface DBAssessment {
   status: "open" | "in-progress" | "submitted";
   questions?: Array<{ question: string; options: string[]; correctAnswer: number }> | null;
   responses?: any;
+  start_date?: string;
+  due_date?: string;
+  last_penalized_at?: string;
 }
 
 export interface DBContact {
@@ -437,58 +440,219 @@ function getQuestionsForAssessment(title: string, subject: string): Array<{ ques
   return ASSESSMENT_QUESTION_BANK["React State & Styling Quiz"];
 }
 
+export function getDomainFromCourse(courseTitle: string): string {
+  const lower = courseTitle.toLowerCase();
+  if (lower.includes("node") || lower.includes("sql") || lower.includes("routing") || lower.includes("spring boot") || lower.includes("postgres") || lower.includes("redis") || lower.includes("distributed") || lower.includes("docker") || lower.includes("go ")) {
+    return "Backend";
+  }
+  if (lower.includes("native") || lower.includes("expo") || lower.includes("flexbox layouts in mobile") || lower.includes("navigation") || lower.includes("swiftui") || lower.includes("kotlin") || lower.includes("android")) {
+    return "Mobile";
+  }
+  if (lower.includes("python") || lower.includes("pandas") || lower.includes("numpy") || lower.includes("pytorch") || lower.includes("statistics") || lower.includes("neural") || lower.includes("nlp") || lower.includes("transformer") || lower.includes("generative")) {
+    return "AI";
+  }
+  return "Frontend";
+}
+
+export function getQuestionsForCourseAssessment(domain: string, index: number): Array<{ question: string; options: string[]; correctAnswer: number }> {
+  if (domain === "Mobile") {
+    if (index === 1) return ASSESSMENT_QUESTION_BANK["App Navigation & Screen Mapping"];
+    if (index === 2) return ASSESSMENT_QUESTION_BANK["Visual Mobile Layout Challenge"];
+    return ASSESSMENT_QUESTION_BANK["Comprehensive Mobile Fundamentals Quiz"];
+  }
+  if (domain === "Backend") {
+    if (index === 1) return ASSESSMENT_QUESTION_BANK["Dockerized Server Setup Challenge"];
+    if (index === 2) return ASSESSMENT_QUESTION_BANK["Visual Backend Layout Challenge"];
+    return ASSESSMENT_QUESTION_BANK["Comprehensive Backend Fundamentals Quiz"];
+  }
+  if (domain === "AI") {
+    if (index === 1) return ASSESSMENT_QUESTION_BANK["PyTorch Data Loading & Gradient descent"];
+    if (index === 2) return ASSESSMENT_QUESTION_BANK["Visual AI Layout Challenge"];
+    return ASSESSMENT_QUESTION_BANK["Comprehensive AI Fundamentals Quiz"];
+  }
+  if (index === 1) return ASSESSMENT_QUESTION_BANK["React State & Styling Quiz"];
+  if (index === 2) return ASSESSMENT_QUESTION_BANK["Visual Frontend Layout Challenge"];
+  return ASSESSMENT_QUESTION_BANK["Comprehensive Frontend Fundamentals Quiz"];
+}
+
 // 7. Fetch User Assessments
 export async function fetchDBAssessments(userId: string, focusDomain: string, proficiency: string): Promise<DBAssessment[]> {
-  const nextTitle = focusDomain === "Frontend" ? "React State & Styling Quiz"
-    : focusDomain === "Backend" ? "Dockerized Server Setup Challenge"
-      : focusDomain === "Mobile" ? "App Navigation & Screen Mapping"
-        : "PyTorch Data Loading & Gradient descent";
-
-  const fallbackSeed: DBAssessment[] = [
-    { id: "a1", title: nextTitle, type: "Coding", subject: focusDomain, difficulty: proficiency as any, deadline: "Tue, Aug 4 · 9:00 AM", skills: [focusDomain, "Interactive"], progress: 0, status: "open", questions: getQuestionsForAssessment(nextTitle, focusDomain) },
-    { id: "a2", title: `Visual ${focusDomain} Layout Challenge`, type: "Project", subject: focusDomain, difficulty: proficiency as any, deadline: "Thu, Aug 6 · 6:00 PM", skills: [focusDomain, "Architecture"], progress: 0, status: "open", questions: getQuestionsForAssessment(`Visual ${focusDomain} Layout Challenge`, focusDomain) },
-    { id: "a3", title: `Comprehensive ${focusDomain} Fundamentals Quiz`, type: "Essay", subject: focusDomain, difficulty: proficiency as any, deadline: "Sat, Aug 8 · 11:59 PM", skills: [focusDomain, "Theory"], progress: 0, status: "open", questions: getQuestionsForAssessment(`Comprehensive ${focusDomain} Fundamentals Quiz`, focusDomain) },
-  ];
-
   try {
-    const { data, error } = await supabase
+    // 1. Fetch user's enrolled courses
+    const enrollments = await fetchDBUserEnrollments(userId);
+    
+    // 2. Fetch existing assessments for user
+    const { data: existing, error } = await supabase
       .from("assessments")
       .select("*")
       .eq("user_id", userId);
-
+    
     if (error) throw error;
-    if (data && data.length > 0) {
-      // Ensure all assessments have questions populated and dynamic August 2026 deadlines
-      const updatedData = await Promise.all(data.map(async (item: any) => {
+    
+    const dbAssessments = (existing || []) as DBAssessment[];
+    const now = new Date();
+
+    // 3. If user has enrolled courses, manage assessments based on them
+    if (enrollments && enrollments.length > 0) {
+      const generated: DBAssessment[] = [];
+      
+      for (const enc of enrollments) {
+        const course = enc.courses;
+        if (!course) continue;
+        
+        const courseTitle = course.title;
+        const courseId = enc.course_id;
+        const courseDomain = course.focus_domain || getDomainFromCourse(courseTitle);
+        const courseDifficulty = course.level || "Beginner";
+        
+        // Find existing assessments for this specific course by prefix
+        const courseAssessments = dbAssessments.filter(a => a.id.startsWith(`course_${courseId}_ass_`));
+        
+        // Sort course assessments by index
+        courseAssessments.sort((a, b) => {
+          const idxA = parseInt(a.id.split("_ass_")[1]) || 1;
+          const idxB = parseInt(b.id.split("_ass_")[1]) || 1;
+          return idxA - idxB;
+        });
+
+        if (courseAssessments.length === 0) {
+          // Generate first assessment: Quiz (Index 1)
+          const newAssId = `course_${courseId}_ass_1`;
+          const title = `${courseTitle} Basics Quiz`;
+          const startDate = now.toISOString();
+          const dueDate = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString();
+          const questions = getQuestionsForCourseAssessment(courseDomain, 1);
+          
+          const newAss: DBAssessment = {
+            id: newAssId,
+            title,
+            type: "Coding",
+            subject: courseTitle,
+            difficulty: courseDifficulty as any,
+            deadline: formatDeadline(dueDate),
+            skills: [courseDomain, "Basics"],
+            progress: 0,
+            status: "open",
+            questions,
+            start_date: startDate,
+            due_date: dueDate,
+            last_penalized_at: dueDate
+          };
+          
+          const { error: insErr } = await supabase
+            .from("assessments")
+            .insert({ ...newAss, user_id: userId });
+          
+          if (!insErr) {
+            generated.push(newAss);
+          } else {
+            console.warn("Failed to insert assessment:", insErr);
+          }
+        } else {
+          generated.push(...courseAssessments);
+          
+          // Check if we need to unlock the next assessment in sequence
+          const latest = courseAssessments[courseAssessments.length - 1];
+          const latestIdx = parseInt(latest.id.split("_ass_")[1]) || 1;
+          
+          if (latest.status === "submitted" && latestIdx < 3) {
+            const latestDueDate = new Date(latest.due_date || latest.deadline);
+            
+            // Generate next if current time is past the due date of the completed one
+            if (now >= latestDueDate) {
+              const nextIdx = latestIdx + 1;
+              const newAssId = `course_${courseId}_ass_${nextIdx}`;
+              
+              if (!dbAssessments.some(a => a.id === newAssId)) {
+                const nextType = nextIdx === 2 ? "Project" : "Essay";
+                const typeLabel = nextIdx === 2 ? "Layout Challenge" : "Comprehensive Exam";
+                const title = `${courseTitle} ${typeLabel}`;
+                const startDate = now.toISOString();
+                const dueDate = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString();
+                const questions = getQuestionsForCourseAssessment(courseDomain, nextIdx);
+                
+                const newAss: DBAssessment = {
+                  id: newAssId,
+                  title,
+                  type: nextType,
+                  subject: courseTitle,
+                  difficulty: courseDifficulty as any,
+                  deadline: formatDeadline(dueDate),
+                  skills: [courseDomain, nextIdx === 2 ? "Layout" : "Theory"],
+                  progress: 0,
+                  status: "open",
+                  questions,
+                  start_date: startDate,
+                  due_date: dueDate,
+                  last_penalized_at: dueDate
+                };
+                
+                const { error: insErr } = await supabase
+                  .from("assessments")
+                  .insert({ ...newAss, user_id: userId });
+                
+                if (!insErr) {
+                  generated.push(newAss);
+                } else {
+                  console.warn("Failed to insert sequential assessment:", insErr);
+                }
+              }
+            }
+          }
+        }
+      }
+      
+      if (typeof window !== "undefined" && window.localStorage) {
+        window.localStorage.setItem(`assessments_${userId}_${focusDomain}`, JSON.stringify(generated));
+      }
+      return generated;
+    }
+
+    // 4. Fallback seeding if the user has no enrolled courses
+    if (dbAssessments.length > 0) {
+      const updated = await Promise.all(dbAssessments.map(async (item) => {
         let deadline = item.deadline;
+        let start_date = item.start_date || new Date().toISOString();
+        let due_date = item.due_date || new Date(new Date().getTime() + 3 * 24 * 60 * 60 * 1000).toISOString();
+        let last_penalized_at = item.last_penalized_at || due_date;
+
         if (item.id === "a1") deadline = "Tue, Aug 4 · 9:00 AM";
         if (item.id === "a2") deadline = "Thu, Aug 6 · 6:00 PM";
         if (item.id === "a3") deadline = "Sat, Aug 8 · 11:59 PM";
-
-        if (!item.questions || item.questions.length === 0) {
-          const generatedQuestions = getQuestionsForAssessment(item.title, item.subject);
-          const updatedItem = { ...item, deadline, questions: generatedQuestions };
-          // Attempt to update database asynchronously
-          supabase
+        
+        let questions = item.questions;
+        if (!questions || questions.length === 0) {
+          questions = getQuestionsForAssessment(item.title, item.subject);
+          await supabase
             .from("assessments")
-            .update({ questions: generatedQuestions })
+            .update({ questions, start_date, due_date, last_penalized_at })
             .eq("user_id", userId)
-            .eq("id", item.id)
-            .then(({ error: updateErr }) => {
-              if (updateErr) console.warn("Failed to auto-populate assessment questions in Supabase:", updateErr);
-            });
-          return updatedItem;
+            .eq("id", item.id);
         }
-        return { ...item, deadline };
+        
+        return { ...item, deadline, start_date, due_date, last_penalized_at, questions };
       }));
 
       if (typeof window !== "undefined" && window.localStorage) {
-        window.localStorage.setItem(`assessments_${userId}_${focusDomain}`, JSON.stringify(updatedData));
+        window.localStorage.setItem(`assessments_${userId}_${focusDomain}`, JSON.stringify(updated));
       }
-      return updatedData as DBAssessment[];
+      return updated;
     }
 
-    // Insert fallback seed into Supabase to bootstrap
+    const nextTitle = focusDomain === "Frontend" ? "React State & Styling Quiz"
+      : focusDomain === "Backend" ? "Dockerized Server Setup Challenge"
+        : focusDomain === "Mobile" ? "App Navigation & Screen Mapping"
+          : "PyTorch Data Loading & Gradient descent";
+
+    const defaultStartDate = now.toISOString();
+    const defaultDueDate = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString();
+
+    const fallbackSeed: DBAssessment[] = [
+      { id: "a1", title: nextTitle, type: "Coding", subject: focusDomain, difficulty: proficiency as any, deadline: "Tue, Aug 4 · 9:00 AM", skills: [focusDomain, "Interactive"], progress: 0, status: "open", questions: getQuestionsForAssessment(nextTitle, focusDomain), start_date: defaultStartDate, due_date: defaultDueDate, last_penalized_at: defaultDueDate },
+      { id: "a2", title: `Visual ${focusDomain} Layout Challenge`, type: "Project", subject: focusDomain, difficulty: proficiency as any, deadline: "Thu, Aug 6 · 6:00 PM", skills: [focusDomain, "Architecture"], progress: 0, status: "open", questions: getQuestionsForAssessment(`Visual ${focusDomain} Layout Challenge`, focusDomain), start_date: defaultStartDate, due_date: defaultDueDate, last_penalized_at: defaultDueDate },
+      { id: "a3", title: `Comprehensive ${focusDomain} Fundamentals Quiz`, type: "Essay", subject: focusDomain, difficulty: proficiency as any, deadline: "Sat, Aug 8 · 11:59 PM", skills: [focusDomain, "Theory"], progress: 0, status: "open", questions: getQuestionsForAssessment(`Comprehensive ${focusDomain} Fundamentals Quiz`, focusDomain), start_date: defaultStartDate, due_date: defaultDueDate, last_penalized_at: defaultDueDate },
+    ];
+
     const inserts = fallbackSeed.map(item => ({ ...item, user_id: userId }));
     const { data: insertedData, error: insertError } = await supabase
       .from("assessments")
@@ -497,17 +661,10 @@ export async function fetchDBAssessments(userId: string, focusDomain: string, pr
 
     if (insertError) throw insertError;
     if (insertedData) {
-      const mappedInserted = insertedData.map((item: any) => {
-        let deadline = item.deadline;
-        if (item.id === "a1") deadline = "Tue, Aug 4 · 9:00 AM";
-        if (item.id === "a2") deadline = "Thu, Aug 6 · 6:00 PM";
-        if (item.id === "a3") deadline = "Sat, Aug 8 · 11:59 PM";
-        return { ...item, deadline };
-      });
       if (typeof window !== "undefined" && window.localStorage) {
-        window.localStorage.setItem(`assessments_${userId}_${focusDomain}`, JSON.stringify(mappedInserted));
+        window.localStorage.setItem(`assessments_${userId}_${focusDomain}`, JSON.stringify(insertedData));
       }
-      return mappedInserted as DBAssessment[];
+      return insertedData as DBAssessment[];
     }
   } catch (e) {
     logError("fetchDBAssessments", e);
@@ -518,26 +675,22 @@ export async function fetchDBAssessments(userId: string, focusDomain: string, pr
     const cached = window.localStorage.getItem(`assessments_${userId}_${focusDomain}`);
     if (cached) {
       try {
-        const parsed = JSON.parse(cached);
-        const healed = parsed.map((item: any) => {
-          let deadline = item.deadline;
-          if (item.id === "a1") deadline = "Tue, Aug 4 · 9:00 AM";
-          if (item.id === "a2") deadline = "Thu, Aug 6 · 6:00 PM";
-          if (item.id === "a3") deadline = "Sat, Aug 8 · 11:59 PM";
-
-          if (!item.questions || item.questions.length === 0) {
-            item.questions = getQuestionsForAssessment(item.title, item.subject);
-          }
-          return { ...item, deadline };
-        });
-        return healed as DBAssessment[];
-      } catch (err) {
-        // Ignore
-      }
+        return JSON.parse(cached);
+      } catch (err) {}
     }
   }
 
-  return fallbackSeed;
+  return [];
+}
+
+export function formatDeadline(dateStr: string): string {
+  try {
+    const d = new Date(dateStr);
+    const options: Intl.DateTimeFormatOptions = { weekday: 'short', month: 'short', day: 'numeric' };
+    return d.toLocaleDateString('en-US', options) + " · 11:59 PM";
+  } catch (e) {
+    return "In 3 Days";
+  }
 }
 
 // 8. Update User Assessment
@@ -1667,7 +1820,9 @@ export async function fetchDBUserEnrollments(userId: string): Promise<any[]> {
       .select(`
         *,
         courses (
-          title
+          title,
+          level,
+          focus_domain
         )
       `)
       .eq("user_id", userId);

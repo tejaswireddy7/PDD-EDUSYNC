@@ -253,39 +253,7 @@ export default function EvaluationScreen() {
         </View>
       </View>
 
-      {/* Subject Performance Trends */}
-      <View style={styles.rubricBreakdownCard}>
-        <View style={styles.cardHeader}>
-          <Feather name="trending-up" size={16} color="#0d9488" />
-          <Text style={styles.cardTitle}>Subject Performance</Text>
-        </View>
-        <View style={styles.subjectsList}>
-          {dynamicSubjects.map((s) => {
-            const isUp = s.trend.startsWith("+");
-            return (
-              <View key={s.name} style={styles.subjectRow}>
-                <View style={styles.subjectMeta}>
-                  <Text style={styles.subjectName}>{s.name}</Text>
-                  <View style={styles.subjectRight}>
-                    <Text style={[styles.trendText, isUp ? styles.trendUp : styles.trendDown]}>
-                      {s.trend}
-                    </Text>
-                    <Text style={styles.subjectScore}>{s.score}%</Text>
-                  </View>
-                </View>
-                <View style={styles.subjectTrack}>
-                  <LinearGradient
-                    colors={s.score >= 80 ? ["#0d9488", "#2dd4bf"] : ["#6366f1", "#818cf8"]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={[styles.subjectBar, { width: `${s.score}%` }]}
-                  />
-                </View>
-              </View>
-            );
-          })}
-        </View>
-      </View>
+
       <View style={styles.spacer} />
     </ScrollView>
   );

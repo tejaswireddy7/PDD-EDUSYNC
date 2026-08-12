@@ -883,66 +883,15 @@ function generateDynamicRubric(
   const normTitle = title.toLowerCase();
   
   if (isQuiz) {
-    const criteriaList: Array<{ criterion: string; max: number; note: string; score: number }> = [];
-    const totalQuestions = questions.length || 3;
-    const correctRatio = correctCount / totalQuestions;
-    
-    const hasComponent = questions.some(q => q.question?.toLowerCase().includes("component") || q.question?.toLowerCase().includes("view"));
-    const hasState = questions.some(q => q.question?.toLowerCase().includes("state") || q.question?.toLowerCase().includes("hook") || q.question?.toLowerCase().includes("context"));
-    const hasLayout = questions.some(q => q.question?.toLowerCase().includes("flexbox") || q.question?.toLowerCase().includes("style") || q.question?.toLowerCase().includes("css"));
-    const hasBridge = questions.some(q => q.question?.toLowerCase().includes("bridge") || q.question?.toLowerCase().includes("native") || q.question?.toLowerCase().includes("hardware"));
-    
-    if (hasComponent || focusDomain === "Frontend" || focusDomain === "Mobile") {
-      criteriaList.push({
-        criterion: "UI Element Syntax",
-        max: 5,
-        score: Math.round(correctRatio * 5),
-        note: "Syntax and structure of standard UI elements and tags."
-      });
-    }
-    if (hasState) {
-      criteriaList.push({
-        criterion: "Data Flow Controls",
-        max: 5,
-        score: Math.round(Math.max(1, correctRatio * 5 + (rng > 0.5 ? -1 : 0))),
-        note: "State preservation, properties passing, and event variables."
-      });
-    }
-    if (hasLayout) {
-      criteriaList.push({
-        criterion: "Display Layout Rules",
-        max: 5,
-        score: Math.round(Math.max(1, correctRatio * 5 + (rng > 0.5 ? 0 : -1))),
-        note: "Flex alignments, grids, margins, and responsiveness."
-      });
-    }
-    if (hasBridge) {
-      criteriaList.push({
-        criterion: "Native API Interfaces",
-        max: 5,
-        score: Math.round(correctRatio * 5),
-        note: "Accessing native hardware bridge channels safely."
-      });
-    }
-    
-    if (criteriaList.length < 2) {
-      criteriaList.push(
-        {
-          criterion: "Recall Accuracy",
-          max: 5,
-          score: Math.round(correctRatio * 5),
-          note: "Recalling key factual concepts from course reading materials."
-        },
-        {
-          criterion: "Critical Evaluation",
-          max: 5,
-          score: Math.round(Math.max(1, correctRatio * 5 + (rng > 0.5 ? -1 : 0))),
-          note: "Selecting appropriate solutions under specified conditions."
-        }
-      );
-    }
-    
-    return criteriaList;
+    const totalQuestions = questions.length || 6;
+    return [
+      {
+        criterion: "Correctness",
+        max: totalQuestions,
+        score: correctCount,
+        note: `Answered ${correctCount} of ${totalQuestions} questions correctly.`
+      }
+    ];
   } else {
     const score1 = Math.floor(rng * 3) + 8; // 8 to 10
     const score2 = Math.floor(rng * 4) + 6; // 6 to 9
@@ -1180,19 +1129,8 @@ export async function fetchDBEvaluation(
       .maybeSingle();
 
     if (evalError) throw evalError;
-    if (existingEval) {
-      if (typeof window !== "undefined" && window.localStorage) {
-        const cacheKey = `evaluations_${userId}`;
-        const cached = window.localStorage.getItem(cacheKey);
-        let list = cached ? JSON.parse(cached) : [];
-        list = list.filter((e: any) => e.assessment_id !== assessmentId);
-        list.push(existingEval);
-        window.localStorage.setItem(cacheKey, JSON.stringify(list));
-      }
-      return existingEval as DBEvaluation;
-    }
 
-    // 2. If no evaluation, try to fetch the assessment to build dynamic evaluation
+    // 2. Try to fetch the assessment first
     const { data: assessment, error: assessmentError } = await supabase
       .from("assessments")
       .select("*")
@@ -1201,6 +1139,36 @@ export async function fetchDBEvaluation(
       .maybeSingle();
 
     if (assessmentError) throw assessmentError;
+
+    let shouldUpdateDB = false;
+    if (existingEval) {
+      if (assessment && Array.isArray(assessment.questions) && assessment.questions.length > 0) {
+        const qLen = assessment.questions.length;
+        if (existingEval.max_score !== qLen) {
+          shouldUpdateDB = true;
+        } else {
+          if (typeof window !== "undefined" && window.localStorage) {
+            const cacheKey = `evaluations_${userId}`;
+            const cached = window.localStorage.getItem(cacheKey);
+            let list = cached ? JSON.parse(cached) : [];
+            list = list.filter((e: any) => e.assessment_id !== assessmentId);
+            list.push(existingEval);
+            window.localStorage.setItem(cacheKey, JSON.stringify(list));
+          }
+          return existingEval as DBEvaluation;
+        }
+      } else {
+        if (typeof window !== "undefined" && window.localStorage) {
+          const cacheKey = `evaluations_${userId}`;
+          const cached = window.localStorage.getItem(cacheKey);
+          let list = cached ? JSON.parse(cached) : [];
+          list = list.filter((e: any) => e.assessment_id !== assessmentId);
+          list.push(existingEval);
+          window.localStorage.setItem(cacheKey, JSON.stringify(list));
+        }
+        return existingEval as DBEvaluation;
+      }
+    }
 
     let dynamicEval: DBEvaluation | null = null;
 
@@ -1325,14 +1293,28 @@ export async function fetchDBEvaluation(
       ...dynamicEval,
       user_id: userId
     };
-    const { data: inserted, error: insertError } = await supabase
-      .from("evaluations")
-      .insert(payload)
-      .select()
-      .single();
+    
+    if (shouldUpdateDB && existingEval) {
+      const { data: updated, error: updateError } = await supabase
+        .from("evaluations")
+        .update(payload)
+        .eq("user_id", userId)
+        .eq("assessment_id", assessmentId)
+        .select()
+        .single();
 
-    if (insertError) throw insertError;
-    if (inserted) return inserted as DBEvaluation;
+      if (updateError) throw updateError;
+      if (updated) return updated as DBEvaluation;
+    } else {
+      const { data: inserted, error: insertError } = await supabase
+        .from("evaluations")
+        .insert(payload)
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+      if (inserted) return inserted as DBEvaluation;
+    }
     
     return dynamicEval;
   } catch (e) {

@@ -16,7 +16,8 @@ export function StatCards() {
   const targetHours = store.recommendations?.weeklyHoursTarget || 5;
   const userProficiency = store.surveyAnswers?.proficiency || "Beginner";
 
-  const coursesCompleted = String(store.user?.coursesCompleted ?? 0);
+  const enrolled = store.enrolledCourses || [];
+  const coursesCompleted = String(enrolled.filter(c => c.progress === 100).length);
   const fitScore = `${store.user?.careerFitScore ?? 0}%`;
 
   const stats = [

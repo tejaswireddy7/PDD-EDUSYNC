@@ -296,7 +296,19 @@ export function useDashboardStore() {
               }
             });
 
-            updateState({ enrolledCourses: enrolled, suggestedCourses: suggested });
+            const completedCount = enrolled.filter(c => c.progress === 100).length;
+            if (state.user) {
+              updateState({ 
+                enrolledCourses: enrolled, 
+                suggestedCourses: suggested,
+                user: {
+                  ...state.user,
+                  coursesCompleted: completedCount
+                }
+              });
+            } else {
+              updateState({ enrolledCourses: enrolled, suggestedCourses: suggested });
+            }
           }
         } else {
           const target = state.suggestedCourses.find(c => 
@@ -390,7 +402,19 @@ export function useDashboardStore() {
               }
             });
 
-            updateState({ enrolledCourses: enrolled, suggestedCourses: suggested });
+            const completedCount = enrolled.filter(c => c.progress === 100).length;
+            if (state.user) {
+              updateState({ 
+                enrolledCourses: enrolled, 
+                suggestedCourses: suggested,
+                user: {
+                  ...state.user,
+                  coursesCompleted: completedCount
+                }
+              });
+            } else {
+              updateState({ enrolledCourses: enrolled, suggestedCourses: suggested });
+            }
           }
         } else {
           const target = state.enrolledCourses.find(c => 
@@ -475,7 +499,19 @@ export function useDashboardStore() {
           }
         }
 
-        updateState({ enrolledCourses: enrolled, suggestedCourses: suggested });
+        const completedCount = enrolled.filter(c => c.progress === 100).length;
+        if (state.user) {
+          updateState({
+            enrolledCourses: enrolled,
+            suggestedCourses: suggested,
+            user: {
+              ...state.user,
+              coursesCompleted: completedCount
+            }
+          });
+        } else {
+          updateState({ enrolledCourses: enrolled, suggestedCourses: suggested });
+        }
       };
 
       try {
@@ -721,12 +757,26 @@ export function useDashboardStore() {
           }
         }
 
-        updateState({
-          recommendations: newRecs,
-          enrolledCourses: enrolled,
-          suggestedCourses: suggested,
-          isLoadingRecommendations: false
-        });
+        const completedCount = enrolled.filter(c => c.progress === 100).length;
+        if (state.user) {
+          updateState({
+            recommendations: newRecs,
+            enrolledCourses: enrolled,
+            suggestedCourses: suggested,
+            user: {
+              ...state.user,
+              coursesCompleted: completedCount
+            },
+            isLoadingRecommendations: false
+          });
+        } else {
+          updateState({
+            recommendations: newRecs,
+            enrolledCourses: enrolled,
+            suggestedCourses: suggested,
+            isLoadingRecommendations: false
+          });
+        }
       } catch (e) {
         console.warn("Supabase fetch recommendations failed after survey, using local:", e);
         const localRecs = getRecommendations(
@@ -752,12 +802,26 @@ export function useDashboardStore() {
         const enrolled: any[] = [];
         const suggested = localCourses;
 
-        updateState({ 
-          recommendations: localRecs, 
-          enrolledCourses: enrolled,
-          suggestedCourses: suggested,
-          isLoadingRecommendations: false 
-        });
+        const completedCount = enrolled.filter(c => c.progress === 100).length;
+        if (state.user) {
+          updateState({ 
+            recommendations: localRecs, 
+            enrolledCourses: enrolled,
+            suggestedCourses: suggested,
+            user: {
+              ...state.user,
+              coursesCompleted: completedCount
+            },
+            isLoadingRecommendations: false 
+          });
+        } else {
+          updateState({ 
+            recommendations: localRecs, 
+            enrolledCourses: enrolled,
+            suggestedCourses: suggested,
+            isLoadingRecommendations: false 
+          });
+        }
       }
     },
 
@@ -814,13 +878,9 @@ export function useDashboardStore() {
     completeCourse: async (courseTitle: string) => {
       const prevUser = state.user;
       if (!prevUser) return;
-      const nextUser = {
-        ...prevUser,
-        coursesCompleted: (prevUser.coursesCompleted || 0) + 1,
-        xp: (prevUser.xp || 0) + 100
-      };
       
       let nextRecs = state.recommendations;
+      let nextEnrolled = state.enrolledCourses;
       if (nextRecs && nextRecs.courses) {
         nextRecs = {
           ...nextRecs,
@@ -829,10 +889,24 @@ export function useDashboardStore() {
           )
         };
       }
+      if (nextEnrolled) {
+        nextEnrolled = nextEnrolled.map(c =>
+          c.title === courseTitle ? { ...c, progress: 100 } : c
+        );
+      }
+      
+      const completedCount = nextEnrolled.filter(c => c.progress === 100).length;
+
+      const nextUser = {
+        ...prevUser,
+        coursesCompleted: completedCount,
+        xp: (prevUser.xp || 0) + 100
+      };
       
       updateState({
         user: nextUser,
-        recommendations: nextRecs
+        recommendations: nextRecs,
+        enrolledCourses: nextEnrolled
       });
 
       if (typeof window !== "undefined" && window.localStorage) {
@@ -913,7 +987,6 @@ export function useDashboardStore() {
       const nextUser = prevUser ? {
         ...prevUser,
         streak: prevUser.streak || 0,
-        coursesCompleted: (prevUser.coursesCompleted || 0) + 1,
         careerFitScore: Math.min((prevUser.careerFitScore || 0) + 12, 100),
         xp: (prevUser.xp || 0) + 800
       } : null;

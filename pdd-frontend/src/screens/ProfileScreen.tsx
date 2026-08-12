@@ -26,11 +26,10 @@ export default function ProfileScreen() {
   const userProficiency = store.surveyAnswers?.proficiency || "Beginner";
   const streak = store.user?.streak ?? 0;
   const xp = store.user?.xp ?? 0;
-  const coursesCompletedCount = store.user?.coursesCompleted ?? 0;
-
   const enrolled = store.enrolledCourses || [];
   const registeredCourses = enrolled.filter(c => c.progress < 100);
   const completedCourses = enrolled.filter(c => c.progress === 100);
+  const coursesCompletedCount = completedCourses.length;
 
   // Blocked Users State
   const [blockedUsers, setBlockedUsers] = useState<any[]>([]);

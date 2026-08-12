@@ -542,4 +542,11 @@ alter table public.assessments add column if not exists start_date timestamp wit
 alter table public.assessments add column if not exists due_date timestamp with time zone;
 alter table public.assessments add column if not exists last_penalized_at timestamp with time zone;
 
+-- Policies for evaluations table updates and deletions
+drop policy if exists "Users can update their own evaluations" on public.evaluations;
+create policy "Users can update their own evaluations" on public.evaluations for update using (auth.uid() = user_id);
+
+drop policy if exists "Users can delete their own evaluations" on public.evaluations;
+create policy "Users can delete their own evaluations" on public.evaluations for delete using (auth.uid() = user_id);
+
 

@@ -1307,8 +1307,11 @@ export async function fetchDBEvaluation(
         .select()
         .single();
 
-      if (updateError) throw updateError;
-      if (updated) return updated as DBEvaluation;
+      if (!updateError && updated) {
+        return updated as DBEvaluation;
+      } else {
+        console.warn("fetchDBEvaluation: Failed to update database, using generated value:", updateError);
+      }
     } else {
       const { data: inserted, error: insertError } = await supabase
         .from("evaluations")
@@ -1316,8 +1319,11 @@ export async function fetchDBEvaluation(
         .select()
         .single();
 
-      if (insertError) throw insertError;
-      if (inserted) return inserted as DBEvaluation;
+      if (!insertError && inserted) {
+        return inserted as DBEvaluation;
+      } else {
+        console.warn("fetchDBEvaluation: Failed to insert to database, using generated value:", insertError);
+      }
     }
     
     return dynamicEval;

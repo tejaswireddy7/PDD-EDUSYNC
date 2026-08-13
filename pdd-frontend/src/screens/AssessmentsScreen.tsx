@@ -164,7 +164,29 @@ export default function AssessmentsScreen() {
     }
   };
 
-  if (loading || !current) {
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#f8fafc" }}>
+        <ActivityIndicator size="large" color="#6366f1" />
+      </View>
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <ScrollView ref={scrollViewRef} style={styles.container} contentContainerStyle={[styles.contentContainer, { justifyContent: "center", alignItems: "center", minHeight: 500 }]} showsVerticalScrollIndicator={false}>
+        <Header />
+        <View style={{ padding: 40, alignItems: "center", backgroundColor: "#fff", borderRadius: 16, borderStyle: "dashed", borderWidth: 2, borderColor: "#cbd5e1", marginTop: 40, width: "90%", maxWidth: 500 }}>
+          <Text style={{ fontSize: 20, fontWeight: "bold", color: "#0f172a", marginBottom: 12 }}>No Assessments Available</Text>
+          <Text style={{ fontSize: 15, color: "#475569", textAlign: "center", lineHeight: 22 }}>
+            You are not currently enrolled in any courses. Please go to the Dashboard and enroll in a course to view and start your assessments!
+          </Text>
+        </View>
+      </ScrollView>
+    );
+  }
+
+  if (!current) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#f8fafc" }}>
         <ActivityIndicator size="large" color="#6366f1" />

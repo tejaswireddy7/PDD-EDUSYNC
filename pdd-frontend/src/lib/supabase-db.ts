@@ -492,6 +492,33 @@ export async function fetchDBAssessments(userId: string, focusDomain: string, pr
     const dbAssessments = (existing || []) as DBAssessment[];
     const now = new Date();
 
+    // Clean up stale assessments (for courses the user is no longer enrolled in, or fallback static list)
+    const enrolledCourseIds = new Set(enrollments.map(enc => enc.course_id));
+    const staleAssessments = dbAssessments.filter(a => {
+      if (a.id.startsWith("course_")) {
+        const parts = a.id.split("_");
+        const courseId = parseInt(parts[1]);
+        return !enrolledCourseIds.has(courseId);
+      }
+      return true; // Any non-course assessment (a1, a2, a3) is stale
+    });
+
+    if (staleAssessments.length > 0) {
+      const staleIds = staleAssessments.map(a => a.id);
+      await supabase
+        .from("assessments")
+        .delete()
+        .eq("user_id", userId)
+        .in("id", staleIds);
+      
+      const staleSet = new Set(staleIds);
+      for (let i = dbAssessments.length - 1; i >= 0; i--) {
+        if (staleSet.has(dbAssessments[i].id)) {
+          dbAssessments.splice(i, 1);
+        }
+      }
+    }
+
     // 3. If user has enrolled courses, manage assessments based on them
     if (enrollments && enrollments.length > 0) {
       const generated: DBAssessment[] = [];
@@ -607,65 +634,11 @@ export async function fetchDBAssessments(userId: string, focusDomain: string, pr
       }
       return generated;
     }
-
-    // 4. Fallback seeding if the user has no enrolled courses
-    if (dbAssessments.length > 0) {
-      const updated = await Promise.all(dbAssessments.map(async (item) => {
-        let deadline = item.deadline;
-        let start_date = item.start_date || new Date().toISOString();
-        let due_date = item.due_date || new Date(new Date().getTime() + 3 * 24 * 60 * 60 * 1000).toISOString();
-        let last_penalized_at = item.last_penalized_at || due_date;
-
-        if (item.id === "a1") deadline = "Tue, Aug 4 · 9:00 AM";
-        if (item.id === "a2") deadline = "Thu, Aug 6 · 6:00 PM";
-        if (item.id === "a3") deadline = "Sat, Aug 8 · 11:59 PM";
-        
-        let questions = item.questions;
-        if (!questions || questions.length === 0) {
-          questions = getQuestionsForAssessment(item.title, item.subject);
-          await supabase
-            .from("assessments")
-            .update({ questions, start_date, due_date, last_penalized_at })
-            .eq("user_id", userId)
-            .eq("id", item.id);
-        }
-        
-        return { ...item, deadline, start_date, due_date, last_penalized_at, questions };
-      }));
-
-      if (typeof window !== "undefined" && window.localStorage) {
-        window.localStorage.setItem(`assessments_${userId}_${focusDomain}`, JSON.stringify(updated));
-      }
-      return updated;
+    // 4. If the user has no enrolled courses, they should have no assessments.
+    if (typeof window !== "undefined" && window.localStorage) {
+      window.localStorage.removeItem(`assessments_${userId}_${focusDomain}`);
     }
-
-    const nextTitle = focusDomain === "Frontend" ? "React State & Styling Quiz"
-      : focusDomain === "Backend" ? "Dockerized Server Setup Challenge"
-        : focusDomain === "Mobile" ? "App Navigation & Screen Mapping"
-          : "PyTorch Data Loading & Gradient descent";
-
-    const defaultStartDate = now.toISOString();
-    const defaultDueDate = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString();
-
-    const fallbackSeed: DBAssessment[] = [
-      { id: "a1", title: nextTitle, type: "Coding", subject: focusDomain, difficulty: proficiency as any, deadline: "Tue, Aug 4 · 9:00 AM", skills: [focusDomain, "Interactive"], progress: 0, status: "open", questions: getQuestionsForAssessment(nextTitle, focusDomain), start_date: defaultStartDate, due_date: defaultDueDate, last_penalized_at: defaultDueDate },
-      { id: "a2", title: `Visual ${focusDomain} Layout Challenge`, type: "Project", subject: focusDomain, difficulty: proficiency as any, deadline: "Thu, Aug 6 · 6:00 PM", skills: [focusDomain, "Architecture"], progress: 0, status: "open", questions: getQuestionsForAssessment(`Visual ${focusDomain} Layout Challenge`, focusDomain), start_date: defaultStartDate, due_date: defaultDueDate, last_penalized_at: defaultDueDate },
-      { id: "a3", title: `Comprehensive ${focusDomain} Fundamentals Quiz`, type: "Essay", subject: focusDomain, difficulty: proficiency as any, deadline: "Sat, Aug 8 · 11:59 PM", skills: [focusDomain, "Theory"], progress: 0, status: "open", questions: getQuestionsForAssessment(`Comprehensive ${focusDomain} Fundamentals Quiz`, focusDomain), start_date: defaultStartDate, due_date: defaultDueDate, last_penalized_at: defaultDueDate },
-    ];
-
-    const inserts = fallbackSeed.map(item => ({ ...item, user_id: userId }));
-    const { data: insertedData, error: insertError } = await supabase
-      .from("assessments")
-      .insert(inserts)
-      .select();
-
-    if (insertError) throw insertError;
-    if (insertedData) {
-      if (typeof window !== "undefined" && window.localStorage) {
-        window.localStorage.setItem(`assessments_${userId}_${focusDomain}`, JSON.stringify(insertedData));
-      }
-      return insertedData as DBAssessment[];
-    }
+    return [];
   } catch (e) {
     logError("fetchDBAssessments", e);
   }

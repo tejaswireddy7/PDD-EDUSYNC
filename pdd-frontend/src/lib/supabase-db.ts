@@ -503,7 +503,7 @@ export async function fetchDBAssessments(userId: string, focusDomain: string, pr
         const courseTitle = course.title;
         const courseId = enc.course_id;
         const courseDomain = course.focus_domain || getDomainFromCourse(courseTitle);
-        const courseDifficulty = course.level || "Beginner";
+        const courseDifficulty = course.difficulty || course.level || "Beginner";
         
         // Find existing assessments for this specific course by prefix
         const courseAssessments = dbAssessments.filter(a => a.id.startsWith(`course_${courseId}_ass_`));
@@ -1813,7 +1813,7 @@ export async function fetchDBUserEnrollments(userId: string): Promise<any[]> {
         *,
         courses (
           title,
-          level,
+          difficulty,
           focus_domain
         )
       `)

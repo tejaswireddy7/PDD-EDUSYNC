@@ -24,25 +24,15 @@ function RootLayout() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          const { data, error } = await supabase
-            .from("assessments")
-            .select("id, status")
-            .eq("user_id", user.id);
-          
-          if (!error && data) {
-            const count = data.filter((a: any) => a.status !== "submitted").length;
+          const focusDomain = store.surveyAnswers?.focusDomain || "Mobile";
+          const key = `assessments_${user.id}_${focusDomain}`;
+          const cached = localStorage.getItem(key);
+          if (cached) {
+            const items = JSON.parse(cached);
+            const count = items.filter((a: any) => a.status !== "submitted").length;
             setOpenAssessmentsCount(count);
           } else {
-            const focusDomain = store.surveyAnswers?.focusDomain || "Mobile";
-            const key = `assessments_${user.id}_${focusDomain}`;
-            const cached = localStorage.getItem(key);
-            if (cached) {
-              const items = JSON.parse(cached);
-              const count = items.filter((a: any) => a.status !== "submitted").length;
-              setOpenAssessmentsCount(count);
-            } else {
-              setOpenAssessmentsCount(0);
-            }
+            setOpenAssessmentsCount(0);
           }
         }
       } catch (e) {
@@ -50,7 +40,7 @@ function RootLayout() {
       }
     }
     loadCounts();
-  }, [store.user, store.submittedAssessmentId, store.surveyAnswers?.focusDomain, store.enrolledCourses]);
+  }, [store.user, store.submittedAssessmentId, store.surveyAnswers?.focusDomain, store.enrolledCourses, store.isLoadingRecommendations]);
 
   useEffect(() => {
     if (!store.user) return;

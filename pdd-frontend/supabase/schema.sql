@@ -159,6 +159,9 @@ drop policy if exists "Users can modify their own assessments" on public.assessm
 create policy "Users can modify their own assessments" on public.assessments for insert with check (auth.uid() = user_id);
 drop policy if exists "Users can update their own assessments" on public.assessments;
 create policy "Users can update their own assessments" on public.assessments for update using (auth.uid() = user_id);
+drop policy if exists "Users can delete their own assessments" on public.assessments;
+create policy "Users can delete their own assessments" on public.assessments for delete using (auth.uid() = user_id);
+
 
 -- 6. CONTACTS Table
 create table if not exists public.contacts (

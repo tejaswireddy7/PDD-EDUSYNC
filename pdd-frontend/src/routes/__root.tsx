@@ -13,7 +13,7 @@ export const Route = createRootRoute({
 function RootLayout() {
   const store = useDashboardStore();
   const isAuthenticated = store.user !== null;
-  const [openAssessmentsCount, setOpenAssessmentsCount] = useState(3);
+  const [openAssessmentsCount, setOpenAssessmentsCount] = useState(0);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [newResourcesCount, setNewResourcesCount] = useState(0);
   const location = useLocation();
@@ -24,15 +24,25 @@ function RootLayout() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          const focusDomain = store.surveyAnswers?.focusDomain || "Mobile";
-          const key = `assessments_${user.id}_${focusDomain}`;
-          const cached = localStorage.getItem(key);
-          if (cached) {
-            const items = JSON.parse(cached);
-            const count = items.filter((a: any) => a.status !== "submitted").length;
+          const { data, error } = await supabase
+            .from("assessments")
+            .select("id, status")
+            .eq("user_id", user.id);
+          
+          if (!error && data) {
+            const count = data.filter((a: any) => a.status !== "submitted").length;
             setOpenAssessmentsCount(count);
           } else {
-            setOpenAssessmentsCount(3);
+            const focusDomain = store.surveyAnswers?.focusDomain || "Mobile";
+            const key = `assessments_${user.id}_${focusDomain}`;
+            const cached = localStorage.getItem(key);
+            if (cached) {
+              const items = JSON.parse(cached);
+              const count = items.filter((a: any) => a.status !== "submitted").length;
+              setOpenAssessmentsCount(count);
+            } else {
+              setOpenAssessmentsCount(0);
+            }
           }
         }
       } catch (e) {
@@ -40,7 +50,7 @@ function RootLayout() {
       }
     }
     loadCounts();
-  }, [store.user, store.submittedAssessmentId, store.surveyAnswers?.focusDomain]);
+  }, [store.user, store.submittedAssessmentId, store.surveyAnswers?.focusDomain, store.enrolledCourses]);
 
   useEffect(() => {
     if (!store.user) return;

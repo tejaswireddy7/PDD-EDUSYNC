@@ -156,6 +156,16 @@ if (typeof window !== "undefined" && window.localStorage) {
         if (savedAnswers) {
           state.surveyAnswers = JSON.parse(savedAnswers);
         }
+
+        const savedEnrolled = window.localStorage.getItem(`enrolled_courses_${lastUserId}`);
+        if (savedEnrolled) {
+          state.enrolledCourses = JSON.parse(savedEnrolled);
+        }
+
+        const savedSuggested = window.localStorage.getItem(`suggested_courses_${lastUserId}`);
+        if (savedSuggested) {
+          state.suggestedCourses = JSON.parse(savedSuggested);
+        }
       } catch (e) {}
     }
   }
@@ -186,6 +196,8 @@ export function useDashboardStore() {
       let hydratedToken = null;
       let hydratedSurveyCompleted = false;
       let hydratedSurveyAnswers = null;
+      let hydratedEnrolled = [];
+      let hydratedSuggested = [];
       
       const lastUserId = window.localStorage.getItem("last_logged_in_user_id");
       const savedToken = window.localStorage.getItem("supabase_session_token");
@@ -213,12 +225,24 @@ export function useDashboardStore() {
             }
           } catch (e) {}
         }
+
+        const savedEnrolled = window.localStorage.getItem(`enrolled_courses_${lastUserId}`);
+        if (savedEnrolled) {
+          try { hydratedEnrolled = JSON.parse(savedEnrolled); } catch (e) {}
+        }
+
+        const savedSuggested = window.localStorage.getItem(`suggested_courses_${lastUserId}`);
+        if (savedSuggested) {
+          try { hydratedSuggested = JSON.parse(savedSuggested); } catch (e) {}
+        }
       }
 
       updateState({
         lowDataMode: mode === "true",
         cachedMaterials: cached ? JSON.parse(cached) : [],
         appTheme: (window.localStorage.getItem("app-theme") || "indigo") as any,
+        enrolledCourses: hydratedEnrolled.length > 0 ? hydratedEnrolled : state.enrolledCourses,
+        suggestedCourses: hydratedSuggested.length > 0 ? hydratedSuggested : state.suggestedCourses,
         ...(hydratedUser ? {
           user: hydratedUser,
           token: hydratedToken,
@@ -436,6 +460,11 @@ export function useDashboardStore() {
             } else {
               updateState({ enrolledCourses: enrolled, suggestedCourses: suggested });
             }
+
+            if (typeof window !== "undefined" && window.localStorage && session.user.id) {
+              window.localStorage.setItem(`enrolled_courses_${session.user.id}`, JSON.stringify(enrolled));
+              window.localStorage.setItem(`suggested_courses_${session.user.id}`, JSON.stringify(suggested));
+            }
           }
         } else {
           const target = state.suggestedCourses.find(c => 
@@ -542,6 +571,11 @@ export function useDashboardStore() {
             } else {
               updateState({ enrolledCourses: enrolled, suggestedCourses: suggested });
             }
+
+            if (typeof window !== "undefined" && window.localStorage && session.user.id) {
+              window.localStorage.setItem(`enrolled_courses_${session.user.id}`, JSON.stringify(enrolled));
+              window.localStorage.setItem(`suggested_courses_${session.user.id}`, JSON.stringify(suggested));
+            }
           }
         } else {
           const target = state.enrolledCourses.find(c => 
@@ -639,6 +673,11 @@ export function useDashboardStore() {
           });
         } else {
           updateState({ enrolledCourses: enrolled, suggestedCourses: suggested });
+        }
+
+        if (currentUserId && typeof window !== "undefined" && window.localStorage) {
+          window.localStorage.setItem(`enrolled_courses_${currentUserId}`, JSON.stringify(enrolled));
+          window.localStorage.setItem(`suggested_courses_${currentUserId}`, JSON.stringify(suggested));
         }
       };
 

@@ -34,6 +34,10 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
   const [isOtpMode, setIsOtpMode] = useState(false);
   const [otp, setOtp] = useState("");
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [forgotPasswordStep, setForgotPasswordStep] = useState<'none' | 'email' | 'otp' | 'password'>('none');
+  const [newPassword, setNewPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [tempToken, setTempToken] = useState<string | null>(null);
 
   const getErrorMessage = (err: any): string => {
     if (!err) return "An unknown error occurred.";
@@ -55,7 +59,22 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
   };
 
   const handleSubmit = async () => {
-    if (isOtpMode) {
+    if (forgotPasswordStep === 'email') {
+      if (!email) {
+        setError("Please enter your email address.");
+        return;
+      }
+    } else if (forgotPasswordStep === 'otp') {
+      if (!otp || otp.length !== 6) {
+        setError("Please enter the 6-digit OTP code.");
+        return;
+      }
+    } else if (forgotPasswordStep === 'password') {
+      if (!newPassword || newPassword.length < 6) {
+        setError("Password must be at least 6 characters long.");
+        return;
+      }
+    } else if (isOtpMode) {
       if (!otp || otp.length !== 6) {
         setError("Please enter the 6-digit OTP code.");
         return;
@@ -69,7 +88,54 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
     setError(null);
     setSuccessMessage(null);
 
-    if (isOtpMode) {
+    if (forgotPasswordStep === 'email') {
+      const { error: apiError } = await supabase.auth.resetPasswordForEmail(email);
+      if (apiError) {
+        setError(getErrorMessage(apiError));
+      } else {
+        setForgotPasswordStep('otp');
+        setSuccessMessage("Verification code sent to your email.");
+      }
+    } else if (forgotPasswordStep === 'otp') {
+      const { data, error: apiError } = await supabase.auth.verifyOtp({
+        email,
+        token: otp,
+        type: 'recovery'
+      });
+      if (apiError) {
+        setError(getErrorMessage(apiError));
+      } else {
+        setTempToken(data.session?.access_token || null);
+        setForgotPasswordStep('password');
+        setSuccessMessage("Code verified! Please enter your new password.");
+      }
+    } else if (forgotPasswordStep === 'password') {
+      const { data, error: apiError } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+      if (apiError) {
+        setError(getErrorMessage(apiError));
+      } else {
+        if (data.user) {
+          const userObj = {
+            id: data.user.id,
+            email: data.user.email,
+            name: data.user.user_metadata?.full_name || "User",
+          };
+          let token = tempToken;
+          if (!token) {
+            const { data: sessionData } = await supabase.auth.getSession();
+            token = sessionData.session?.access_token || "";
+          }
+          store.setAuth(userObj, token);
+          onSuccess();
+        } else {
+          setForgotPasswordStep('none');
+          setIsLogin(true);
+          setSuccessMessage("Password reset successful! Please log in with your new password.");
+        }
+      }
+    } else if (isOtpMode) {
       const { data, error: apiError } = await supabase.auth.verifyOtp({
         email,
         token: otp,
@@ -179,6 +245,20 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
     setIsLoading(false);
   };
 
+  const handleResendForgotPasswordOtp = async () => {
+    setIsLoading(true);
+    setError(null);
+    setSuccessMessage(null);
+    const { error: resendError } = await supabase.auth.resetPasswordForEmail(email);
+    
+    if (resendError) {
+      setError(getErrorMessage(resendError));
+    } else {
+      setSuccessMessage("Verification code resent!");
+    }
+    setIsLoading(false);
+  };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -202,7 +282,17 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
         {/* Input Card Container */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>
-            {isOtpMode ? "Verify Email" : isLogin ? "Welcome Back" : "Create Account"}
+            {forgotPasswordStep === 'email'
+              ? "Reset Password"
+              : forgotPasswordStep === 'otp'
+              ? "Enter Reset Code"
+              : forgotPasswordStep === 'password'
+              ? "Set New Password"
+              : isOtpMode
+              ? "Verify Email"
+              : isLogin
+              ? "Welcome Back"
+              : "Create Account"}
           </Text>
 
           {error && (
@@ -219,7 +309,56 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
             </View>
           )}
 
-          {isOtpMode ? (
+          {forgotPasswordStep === 'email' ? (
+            <View style={styles.inputContainer}>
+              <Feather name="mail" size={20} color="#94a3b8" style={styles.inputIcon} />
+              <TextInput
+                placeholder="Email address"
+                placeholderTextColor="#94a3b8"
+                style={styles.input}
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
+          ) : forgotPasswordStep === 'otp' ? (
+            <View style={styles.inputContainer}>
+              <Feather name="key" size={20} color="#94a3b8" style={styles.inputIcon} />
+              <TextInput
+                placeholder="6-Digit OTP Code"
+                placeholderTextColor="#94a3b8"
+                style={styles.input}
+                value={otp}
+                onChangeText={setOtp}
+                keyboardType="number-pad"
+                maxLength={6}
+              />
+            </View>
+          ) : forgotPasswordStep === 'password' ? (
+            <View style={styles.inputContainer}>
+              <Feather name="lock" size={20} color="#94a3b8" style={styles.inputIcon} />
+              <TextInput
+                placeholder="New Password"
+                placeholderTextColor="#94a3b8"
+                style={styles.input}
+                value={newPassword}
+                onChangeText={setNewPassword}
+                secureTextEntry={!showNewPassword}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              <TouchableOpacity onPress={() => setShowNewPassword(!showNewPassword)}>
+                <Feather
+                  name={showNewPassword ? "eye-off" : "eye"}
+                  size={18}
+                  color="#94a3b8"
+                  style={styles.eyeIcon}
+                />
+              </TouchableOpacity>
+            </View>
+          ) : isOtpMode ? (
             <View style={styles.inputContainer}>
               <Feather name="key" size={20} color="#94a3b8" style={styles.inputIcon} />
               <TextInput
@@ -235,67 +374,80 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
           ) : (
             <>
 
-          {/* Full Name Input (Signup Mode Only) */}
-          {!isLogin && (
+            {/* Full Name Input (Signup Mode Only) */}
+            {!isLogin && (
+              <View style={styles.inputContainer}>
+                <Feather name="user" size={20} color="#94a3b8" style={styles.inputIcon} />
+                <TextInput
+                  placeholder="Full name"
+                  placeholderTextColor="#94a3b8"
+                  style={styles.input}
+                  value={name}
+                  onChangeText={setName}
+                  autoCapitalize="words"
+                />
+              </View>
+            )}
+
+            {/* Email Address Input */}
             <View style={styles.inputContainer}>
-              <Feather name="user" size={20} color="#94a3b8" style={styles.inputIcon} />
+              <Feather name="mail" size={20} color="#94a3b8" style={styles.inputIcon} />
               <TextInput
-                placeholder="Full name"
+                placeholder="Email address"
                 placeholderTextColor="#94a3b8"
                 style={styles.input}
-                value={name}
-                onChangeText={setName}
-                autoCapitalize="words"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
               />
             </View>
-          )}
 
-          {/* Email Address Input */}
-          <View style={styles.inputContainer}>
-            <Feather name="mail" size={20} color="#94a3b8" style={styles.inputIcon} />
-            <TextInput
-              placeholder="Email address"
-              placeholderTextColor="#94a3b8"
-              style={styles.input}
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-          </View>
-
-          {/* Password Input */}
-          <View style={styles.inputContainer}>
-            <Feather name="lock" size={20} color="#94a3b8" style={styles.inputIcon} />
-            <TextInput
-              placeholder="Password"
-              placeholderTextColor="#94a3b8"
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-              <Feather
-                name={showPassword ? "eye-off" : "eye"}
-                size={18}
-                color="#94a3b8"
-                style={styles.eyeIcon}
+            {/* Password Input */}
+            <View style={styles.inputContainer}>
+              <Feather name="lock" size={20} color="#94a3b8" style={styles.inputIcon} />
+              <TextInput
+                placeholder="Password"
+                placeholderTextColor="#94a3b8"
+                style={styles.input}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                autoCorrect={false}
               />
-            </TouchableOpacity>
-          </View>
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                <Feather
+                  name={showPassword ? "eye-off" : "eye"}
+                  size={18}
+                  color="#94a3b8"
+                  style={styles.eyeIcon}
+                />
+              </TouchableOpacity>
+            </View>
 
-          {/* Forgot Password Link (Login Mode Only) */}
-          {!isOtpMode && isLogin && (
-            <TouchableOpacity style={styles.forgotPasswordContainer}>
+          {/* Forgot Password Link / Resend Code Links */}
+          {forgotPasswordStep === 'none' && !isOtpMode && isLogin && (
+            <TouchableOpacity 
+              onPress={() => {
+                setError(null);
+                setSuccessMessage(null);
+                setForgotPasswordStep('email');
+              }}
+              style={styles.forgotPasswordContainer}
+            >
               <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
             </TouchableOpacity>
           )}
 
-          {isOtpMode && (
+          {forgotPasswordStep === 'otp' && (
+            <TouchableOpacity onPress={handleResendForgotPasswordOtp} style={styles.forgotPasswordContainer}>
+              <Text style={styles.forgotPasswordText}>Resend Code</Text>
+            </TouchableOpacity>
+          )}
+
+          {isOtpMode && forgotPasswordStep === 'none' && (
             <TouchableOpacity onPress={handleResendOtp} style={styles.forgotPasswordContainer}>
               <Text style={styles.forgotPasswordText}>Resend Code</Text>
             </TouchableOpacity>
@@ -322,7 +474,17 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
               ) : (
                 <>
                   <Text style={styles.buttonText}>
-                    {isOtpMode ? "Verify Account" : isLogin ? "Sign In" : "Sign Up"}
+                    {forgotPasswordStep === 'email'
+                      ? "Send Reset Code"
+                      : forgotPasswordStep === 'otp'
+                      ? "Verify Code"
+                      : forgotPasswordStep === 'password'
+                      ? "Update Password"
+                      : isOtpMode
+                      ? "Verify Account"
+                      : isLogin
+                      ? "Sign In"
+                      : "Sign Up"}
                   </Text>
                   <Feather name="arrow-right" size={18} color="#ffffff" style={styles.arrowIcon} />
                 </>
@@ -332,7 +494,7 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
         </View>
 
         {/* Toggle between Login and Signup */}
-        {!isOtpMode && (
+        {forgotPasswordStep === 'none' && !isOtpMode && (
           <View style={styles.footer}>
             <Text style={styles.footerText}>
               {isLogin ? "Don't have an account? " : "Already have an account? "}
@@ -344,9 +506,14 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
             </TouchableOpacity>
           </View>
         )}
-        {isOtpMode && (
+        {(isOtpMode || forgotPasswordStep !== 'none') && (
           <View style={styles.footer}>
-            <TouchableOpacity onPress={() => setIsOtpMode(false)}>
+            <TouchableOpacity onPress={() => {
+              setIsOtpMode(false);
+              setForgotPasswordStep('none');
+              setError(null);
+              setSuccessMessage(null);
+            }}>
               <Text style={styles.footerLink}>Back to Login</Text>
             </TouchableOpacity>
           </View>

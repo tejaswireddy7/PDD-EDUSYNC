@@ -363,11 +363,20 @@ export function useDashboardStore() {
     
     // Action methods
     setAuth: (user: any, token: string) => {
+      const userId = user.id || user.uid;
+      const userEmail = user.email;
+      const userName = user.name || userEmail?.split("@")[0];
+
+      if (typeof window !== "undefined" && window.localStorage) {
+        window.localStorage.setItem("last_logged_in_user_id", userId);
+        window.localStorage.setItem("supabase_session_token", token);
+      }
+
       updateState({
         user: {
-          id: user.id || user.uid,
-          name: user.name || user.email?.split("@")[0],
-          email: user.email,
+          id: userId,
+          name: userName,
+          email: userEmail,
           registeredAt: Date.now(),
           streak: user.streak ?? 0,
           coursesCompleted: user.coursesCompleted ?? 0,
@@ -376,6 +385,19 @@ export function useDashboardStore() {
         },
         token,
         isRecoveringPassword: false
+      });
+
+      // Hydrate profile details asynchronously
+      supabase.auth.getSession().then(({ data }) => {
+        const session = data.session || {
+          access_token: token,
+          user: {
+            id: userId,
+            email: userEmail,
+            created_at: new Date().toISOString()
+          }
+        };
+        syncProfile(userId, userEmail, userName, session);
       });
     },
 
@@ -1325,68 +1347,10 @@ export function useDashboardStore() {
   };
 }
 
-// Keep store session synced with Supabase Auth state changes
-supabase.auth.onAuthStateChange((event: any, session: any) => {
-  if (state.isRecoveringPassword) {
-    // Prevent auto-login / dashboard redirect during recovery password reset step
-    return;
-  }
-
-  if (!session || !session.user) {
-    if (typeof window !== "undefined" && window.localStorage) {
-      window.localStorage.removeItem("last_logged_in_user_id");
-      window.localStorage.removeItem("supabase_session_token");
-    }
-    updateState({
-      user: null,
-      surveyCompleted: false,
-      surveyAnswers: null,
-      token: null,
-      recommendations: null,
-      isLoadingProfile: false
-    });
-    return;
-  }
-
-  // Optimization: If already authenticated with the same access token, DO NOT reset state
-  if (state.token === session.access_token && state.user !== null) {
-    return;
-  }
-
-  const userId = session.user.id;
-  const userEmail = session.user.email || "";
-  const userName = session.user.user_metadata?.full_name || userEmail.split("@")[0] || "Student";
-  const userCreatedAt = new Date(session.user.created_at || Date.now()).getTime();
-
-  if (typeof window !== "undefined" && window.localStorage) {
-    window.localStorage.setItem("last_logged_in_user_id", userId);
-    window.localStorage.setItem("supabase_session_token", session.access_token);
-  }
-
-  const cachedSurveyCompleted = typeof window !== "undefined" && window.localStorage 
-    ? window.localStorage.getItem(`survey_completed_${userEmail}`) === "true"
-    : false;
-
-  // Set user state immediately so login completes instantly
-  updateState({
-    isLoadingProfile: true,
-    user: {
-      id: userId,
-      name: userName,
-      email: userEmail,
-      registeredAt: userCreatedAt,
-      streak: 0,
-      coursesCompleted: 0,
-      careerFitScore: 0,
-      xp: 0
-    },
-    surveyCompleted: cachedSurveyCompleted,
-    surveyAnswers: null,
-    token: session.access_token
-  });
-
-  // Fetch DB Profile asynchronously in the background
-  fetchDBProfile(userId).then(async (dbProfile) => {
+async function syncProfile(userId: string, userEmail: string, userName: string, session: any) {
+  updateState({ isLoadingProfile: true });
+  try {
+    const dbProfile = await fetchDBProfile(userId);
     // Confirm the user is still logged in with the same session token before updating state
     if (state.token !== session.access_token) return;
 
@@ -1524,10 +1488,73 @@ supabase.auth.onAuthStateChange((event: any, session: any) => {
         learningHours: profile.learning_hours || profile.learningHours || 5
       } : (localAnswers || null)
     });
-  }).catch(err => {
+  } catch (err) {
     console.warn("Background fetch profile failed:", err);
     updateState({ isLoadingProfile: false });
+  }
+}
+
+// Keep store session synced with Supabase Auth state changes
+supabase.auth.onAuthStateChange((event: any, session: any) => {
+  if (state.isRecoveringPassword) {
+    // Prevent auto-login / dashboard redirect during recovery password reset step
+    return;
+  }
+
+  if (!session || !session.user) {
+    if (typeof window !== "undefined" && window.localStorage) {
+      window.localStorage.removeItem("last_logged_in_user_id");
+      window.localStorage.removeItem("supabase_session_token");
+    }
+    updateState({
+      user: null,
+      surveyCompleted: false,
+      surveyAnswers: null,
+      token: null,
+      recommendations: null,
+      isLoadingProfile: false
+    });
+    return;
+  }
+
+  // Optimization: If already authenticated with the same access token, DO NOT reset state
+  if (state.token === session.access_token && state.user !== null) {
+    return;
+  }
+
+  const userId = session.user.id;
+  const userEmail = session.user.email || "";
+  const userName = session.user.user_metadata?.full_name || userEmail.split("@")[0] || "Student";
+  const userCreatedAt = new Date(session.user.created_at || Date.now()).getTime();
+
+  if (typeof window !== "undefined" && window.localStorage) {
+    window.localStorage.setItem("last_logged_in_user_id", userId);
+    window.localStorage.setItem("supabase_session_token", session.access_token);
+  }
+
+  const cachedSurveyCompleted = typeof window !== "undefined" && window.localStorage 
+    ? window.localStorage.getItem(`survey_completed_${userEmail}`) === "true"
+    : false;
+
+  // Set user state immediately so login completes instantly
+  updateState({
+    isLoadingProfile: true,
+    user: {
+      id: userId,
+      name: userName,
+      email: userEmail,
+      registeredAt: userCreatedAt,
+      streak: 0,
+      coursesCompleted: 0,
+      careerFitScore: 0,
+      xp: 0
+    },
+    surveyCompleted: cachedSurveyCompleted,
+    surveyAnswers: null,
+    token: session.access_token
   });
+
+  syncProfile(userId, userEmail, userName, session);
 });
 
 export type { SurveyAnswers, UserProfile };

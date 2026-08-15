@@ -97,6 +97,9 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
         setSuccessMessage("Verification code sent to your email.");
       }
     } else if (forgotPasswordStep === 'otp') {
+      if (typeof (store as any).setRecoveringPassword === 'function') {
+        (store as any).setRecoveringPassword(true);
+      }
       const { data, error: apiError } = await supabase.auth.verifyOtp({
         email,
         token: otp,
@@ -104,6 +107,9 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
       });
       if (apiError) {
         setError(getErrorMessage(apiError));
+        if (typeof (store as any).setRecoveringPassword === 'function') {
+          (store as any).setRecoveringPassword(false);
+        }
       } else {
         setTempToken(data.session?.access_token || null);
         setForgotPasswordStep('password');
@@ -116,6 +122,9 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
       if (apiError) {
         setError(getErrorMessage(apiError));
       } else {
+        if (typeof (store as any).setRecoveringPassword === 'function') {
+          (store as any).setRecoveringPassword(false);
+        }
         if (data.user) {
           const userObj = {
             id: data.user.id,
@@ -509,6 +518,9 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
         {(isOtpMode || forgotPasswordStep !== 'none') && (
           <View style={styles.footer}>
             <TouchableOpacity onPress={() => {
+              if (typeof (store as any).setRecoveringPassword === 'function') {
+                (store as any).setRecoveringPassword(false);
+              }
               setIsOtpMode(false);
               setForgotPasswordStep('none');
               setError(null);

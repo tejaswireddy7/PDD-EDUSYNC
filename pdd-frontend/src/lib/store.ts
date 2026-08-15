@@ -88,6 +88,7 @@ export interface DashboardState {
   lowDataMode: boolean;
   cachedMaterials: Array<{ title: string; url: string; cachedAt: number }>;
   appTheme: "light" | "indigo" | "dark";
+  isRecoveringPassword: boolean;
 }
 
 // Default initial state
@@ -108,6 +109,7 @@ const DEFAULT_STATE: DashboardState = {
   lowDataMode: false,
   cachedMaterials: [],
   appTheme: "indigo",
+  isRecoveringPassword: false,
 };
 
 // Internal store variables
@@ -372,8 +374,13 @@ export function useDashboardStore() {
           careerFitScore: user.careerFitScore ?? 0,
           xp: user.xp ?? 0
         },
-        token
+        token,
+        isRecoveringPassword: false
       });
+    },
+
+    setRecoveringPassword: (val: boolean) => {
+      updateState({ isRecoveringPassword: val });
     },
 
     enrollInCourse: async (courseIdOrTitle: number | string) => {
@@ -1320,6 +1327,11 @@ export function useDashboardStore() {
 
 // Keep store session synced with Supabase Auth state changes
 supabase.auth.onAuthStateChange((event: any, session: any) => {
+  if (state.isRecoveringPassword) {
+    // Prevent auto-login / dashboard redirect during recovery password reset step
+    return;
+  }
+
   if (!session || !session.user) {
     if (typeof window !== "undefined" && window.localStorage) {
       window.localStorage.removeItem("last_logged_in_user_id");

@@ -89,6 +89,7 @@ export interface DashboardState {
   cachedMaterials: Array<{ title: string; url: string; cachedAt: number }>;
   appTheme: "light" | "indigo" | "dark";
   isRecoveringPassword: boolean;
+  isProfileHydrated: boolean;
 }
 
 // Default initial state
@@ -110,6 +111,7 @@ const DEFAULT_STATE: DashboardState = {
   cachedMaterials: [],
   appTheme: "indigo",
   isRecoveringPassword: false,
+  isProfileHydrated: false,
 };
 
 // Internal store variables
@@ -384,7 +386,8 @@ export function useDashboardStore() {
           xp: user.xp ?? 0
         },
         token,
-        isRecoveringPassword: false
+        isRecoveringPassword: false,
+        isProfileHydrated: false
       });
 
       // Hydrate profile details asynchronously
@@ -1417,8 +1420,8 @@ async function syncProfile(userId: string, userEmail: string, userName: string, 
         // If no last active date, initialize streak to 1
         finalStreak = 1;
       } else if (lastActiveStr === todayStr) {
-        // Already logged in today, keep the same streak
-        finalStreak = profile.streak ?? 1;
+        // Already logged in today, keep the same streak (heal 0 to 1)
+        finalStreak = (profile.streak && profile.streak > 0) ? profile.streak : 1;
       } else {
         // Calculate calendar difference
         const localToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -1429,8 +1432,9 @@ async function syncProfile(userId: string, userEmail: string, userName: string, 
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
         if (diffDays === 1) {
-          // Consecutive day: increment streak
-          finalStreak = (profile.streak || 0) + 1;
+          // Consecutive day: increment streak (heal 0 to 0 + 1)
+          const baseStreak = (profile.streak && profile.streak > 0) ? profile.streak : 0;
+          finalStreak = baseStreak + 1;
         } else {
           // Missed a day: reset streak to 1 for today's activity
           finalStreak = 1;
@@ -1470,6 +1474,7 @@ async function syncProfile(userId: string, userEmail: string, userName: string, 
 
     updateState({
       isLoadingProfile: false,
+      isProfileHydrated: true,
       user: {
         id: userId,
         name: profile?.name || userName,
@@ -1517,8 +1522,8 @@ supabase.auth.onAuthStateChange((event: any, session: any) => {
     return;
   }
 
-  // Optimization: If already authenticated with the same access token, DO NOT reset state
-  if (state.token === session.access_token && state.user !== null) {
+  // Optimization: If already authenticated with the same access token and profile is fully loaded, DO NOT reset state
+  if (state.token === session.access_token && state.user !== null && state.isProfileHydrated) {
     return;
   }
 

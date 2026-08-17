@@ -92,6 +92,128 @@ const CONNECTING_QUESTIONS = {
   }
 };
 
+const DOMAIN_OPTIONS = [
+  { id: "Frontend", label: "Frontend Dev" },
+  { id: "Backend", label: "Backend Systems" },
+  { id: "Mobile", label: "Mobile Apps" },
+  { id: "AI", label: "AI & Data Science" }
+];
+
+const SUB_COURSES = {
+  Frontend: [
+    { id: "react_basics", label: "React Basics" },
+    { id: "state_management", label: "State Management (Redux/Zustand)" },
+    { id: "ssr_nextjs", label: "Next.js & Server Components" },
+    { id: "tailwind_styling", label: "Tailwind CSS & Styling systems" },
+    { id: "performance", label: "Performance & Core Web Vitals" },
+    { id: "html_css", label: "HTML5/CSS3 Layouts (Flexbox, Grid)" },
+    { id: "js_basics", label: "JavaScript fundamentals & ES6" },
+  ],
+  Backend: [
+    { id: "node_basics", label: "Node.js runtime & npm package basics" },
+    { id: "express_apis", label: "REST APIs & Express routing" },
+    { id: "basic_sql", label: "Relational databases & SQL queries" },
+    { id: "db_prisma", label: "Database relations & Prisma ORM" },
+    { id: "docker", label: "Docker containerization & Kubernetes" },
+    { id: "microservices", label: "Java Spring Boot Microservices" },
+    { id: "caching", label: "Redis Caching & Queue servers" }
+  ],
+  Mobile: [
+    { id: "react_native_basics", label: "React Native UI Components" },
+    { id: "expo_basics", label: "Expo framework CLI & SDKs" },
+    { id: "mobile_flexbox", label: "Flexbox layout scaling rules" },
+    { id: "navigation", label: "Advanced React Navigation" },
+    { id: "hardware_apis", label: "Hardware APIs (GPS, Camera, Sensors)" },
+    { id: "native_bridges", label: "Kotlin & Swift Native Bridges" },
+    { id: "deployment", label: "App Store & Play Store deployment" }
+  ],
+  AI: [
+    { id: "python_basics", label: "Python language structure & modules" },
+    { id: "pandas_numpy", label: "Pandas & Numpy data preprocessing" },
+    { id: "basic_stats", label: "Probability & basic statistics math" },
+    { id: "pytorch", label: "Deep Learning (Neural Networks, PyTorch)" },
+    { id: "transformers_nlp", label: "Natural Language Processing & LLMs" },
+    { id: "mlops", label: "MLOps pipelines & AI model deployment" },
+    { id: "llm_finetuning", label: "Fine-tuning & Retrieval (RAG)" }
+  ]
+};
+
+function CustomDropdown({
+  label,
+  value,
+  options,
+  onSelect,
+  placeholder = "Select an option",
+  icon = "chevron-down",
+  themeColor,
+}: {
+  label: string;
+  value: string;
+  options: { id: string; label: string }[];
+  onSelect: (id: string) => void;
+  placeholder?: string;
+  icon?: string;
+  themeColor: string;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const selectedOption = options.find((opt) => opt.id === value);
+
+  return (
+    <View style={styles.dropdownContainer}>
+      <Text style={styles.dropdownLabel}>{label}</Text>
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={() => setIsOpen(!isOpen)}
+        style={[
+          styles.dropdownTrigger,
+          isOpen && { borderColor: themeColor }
+        ]}
+      >
+        <View style={styles.dropdownTriggerLeft}>
+          <BootstrapIcon name={icon} size={14} color={selectedOption ? themeColor : "#64748b"} style={{ marginRight: 8 }} />
+          <Text style={[styles.dropdownTriggerText, selectedOption ? styles.dropdownSelectedText : styles.dropdownPlaceholderText]}>
+            {selectedOption ? selectedOption.label : placeholder}
+          </Text>
+        </View>
+        <BootstrapIcon name={isOpen ? "chevron-up" : "chevron-down"} size={12} color="#64748b" />
+      </TouchableOpacity>
+
+      {isOpen && (
+        <View style={styles.dropdownOptionsContainer}>
+          {options.map((opt, index) => {
+            const isSelected = opt.id === value;
+            return (
+              <TouchableOpacity
+                key={opt.id}
+                activeOpacity={0.7}
+                onPress={() => {
+                  onSelect(opt.id);
+                  setIsOpen(false);
+                }}
+                style={[
+                  styles.dropdownOptionItem,
+                  isSelected && { backgroundColor: `${themeColor}14` },
+                  index === options.length - 1 && { borderBottomWidth: 0 }
+                ]}
+              >
+                <Text style={[
+                  styles.dropdownOptionText,
+                  isSelected && { color: themeColor, fontWeight: "700" }
+                ]}>
+                  {opt.label}
+                </Text>
+                {isSelected && (
+                  <BootstrapIcon name="check" size={14} color={themeColor} />
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      )}
+    </View>
+  );
+}
+
 export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
   const store = useDashboardStore();
   
@@ -99,20 +221,32 @@ export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
   const [step, setStep] = useState<number>(1);
 
   // Selection states
-  const [domain, setDomain] = useState<"Frontend" | "Backend" | "Mobile" | "AI">("Mobile");
+  const [domain, setDomain] = useState<"Frontend" | "Backend" | "Mobile" | "AI">("Frontend");
   const [level, setLevel] = useState<"Beginner" | "Intermediate" | "Advanced">("Beginner");
   const [hours, setHours] = useState<number>(5);
   const [existingKnowledge, setExistingKnowledge] = useState<string[]>([]);
-  const [targetGoal, setTargetGoal] = useState<string>("");
+  const [targetGoal, setTargetGoal] = useState<string>("react_basics");
 
   const appTheme = store.appTheme || "indigo";
   const currentColors = themeColors[appTheme] || themeColors.indigo;
   const currentGradient = themeGradients[appTheme] || themeGradients.indigo;
 
+  React.useEffect(() => {
+    if (visible && store.surveyAnswers) {
+      const focusDom = store.surveyAnswers.focusDomain || "Frontend";
+      setDomain(focusDom);
+      setLevel(store.surveyAnswers.proficiency || "Beginner");
+      setHours(store.surveyAnswers.learningHours || 5);
+      setExistingKnowledge(store.surveyAnswers.existingKnowledge || []);
+      setTargetGoal(store.surveyAnswers.targetLearningGoal || (SUB_COURSES[focusDom]?.[0]?.id || "react_basics"));
+    }
+  }, [visible, store.surveyAnswers]);
+
   const handleDomainChange = (selectedDomain: "Frontend" | "Backend" | "Mobile" | "AI") => {
     setDomain(selectedDomain);
     setExistingKnowledge([]);
-    setTargetGoal("");
+    const defaultSub = SUB_COURSES[selectedDomain][0].id;
+    setTargetGoal(defaultSub);
   };
 
   const handleToggleKnowledge = (id: string) => {
@@ -202,45 +336,30 @@ export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
           <ScrollView style={styles.scrollBody} showsVerticalScrollIndicator={false}>
             {step === 1 && (
               <>
-                {/* Question 1: Domain Focus */}
-                <View style={styles.questionSection}>
-                  <Text style={styles.questionTitle}>1. What is your primary learning focus?</Text>
-                  <View style={styles.optionsGrid}>
-                    {[
-                      { id: "Frontend", label: "Frontend Dev", icon: "monitor" },
-                      { id: "Backend", label: "Backend Systems", icon: "database" },
-                      { id: "Mobile", label: "Mobile Apps", icon: "smartphone" },
-                      { id: "AI", label: "AI & Data Science", icon: "cpu" }
-                    ].map((item) => {
-                      const isSelected = domain === item.id;
-                      return (
-                        <TouchableOpacity
-                          key={item.id}
-                          activeOpacity={0.8}
-                          onPress={() => handleDomainChange(item.id as any)}
-                          style={[
-                            styles.optionCard, 
-                            isSelected && { borderColor: currentColors.primary, backgroundColor: `${currentColors.primary}14` }
-                          ]}
-                        >
-                          <BootstrapIcon 
-                            name={item.icon} 
-                            size={16} 
-                            color={isSelected ? currentColors.primary : "#64748b"} 
-                            style={styles.optionIcon} 
-                          />
-                          <Text style={[styles.optionLabel, isSelected && { color: currentColors.primary, fontWeight: "700" }]}>
-                            {item.label}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                </View>
+                {/* Question 1: Focus path and Sub-course dropdowns */}
+                <CustomDropdown
+                  label="1. Choose your focus path"
+                  value={domain}
+                  options={DOMAIN_OPTIONS}
+                  onSelect={(id) => handleDomainChange(id as any)}
+                  placeholder="Select Focus Type"
+                  icon="layers"
+                  themeColor={currentColors.primary}
+                />
+
+                <CustomDropdown
+                  label="2. Select target sub-course"
+                  value={targetGoal}
+                  options={SUB_COURSES[domain]}
+                  onSelect={(id) => setTargetGoal(id)}
+                  placeholder="Select Sub Course"
+                  icon="journal-code"
+                  themeColor={currentColors.primary}
+                />
 
                 {/* Question 2: Proficiency */}
                 <View style={styles.questionSection}>
-                  <Text style={styles.questionTitle}>2. What is your current technical level?</Text>
+                  <Text style={styles.questionTitle}>3. What is your current technical level?</Text>
                   <View style={styles.tierContainer}>
                     {[
                       { id: "Beginner", label: "Beginner", desc: "Starting out, no experience" },
@@ -307,40 +426,6 @@ export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
                             <Text style={[
                               styles.tierLabel, 
                               isChecked && { color: currentColors.primary, fontWeight: "700" }
-                            ]}>
-                              {item.label}
-                            </Text>
-                          </View>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                </View>
-
-                {/* Dynamic Question: Goal Topic to master (Radio choices) */}
-                <View style={styles.questionSection}>
-                  <Text style={styles.questionTitle}>What specific topic do you want to learn next?</Text>
-                  <View style={styles.tierContainer}>
-                    {currentQuestions.masterOptions.map((item) => {
-                      const isSelected = targetGoal === item.id;
-                      return (
-                        <TouchableOpacity
-                          key={item.id}
-                          activeOpacity={0.8}
-                          onPress={() => setTargetGoal(item.id)}
-                          style={[
-                            styles.tierCard, 
-                            isSelected && { borderColor: currentColors.primary, backgroundColor: `${currentColors.primary}14` }
-                          ]}
-                        >
-                          <View style={[
-                            styles.radioDot, 
-                            isSelected && { borderColor: currentColors.primary, backgroundColor: currentColors.primary }
-                          ]} />
-                          <View style={styles.tierTextColumn}>
-                            <Text style={[
-                              styles.tierLabel, 
-                              isSelected && { color: currentColors.primary, fontWeight: "700" }
                             ]}>
                               {item.label}
                             </Text>
@@ -423,10 +508,12 @@ export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
                 end={{ x: 1, y: 0 }}
                 style={styles.gradientSubmit}
               >
-                <Text style={styles.submitText}>
+                <Text style={[styles.submitText, { textAlign: "center" }]}>
                   {step === 3 ? (isResurvey ? "Apply Settings" : "Start Learning") : "Continue"}
                 </Text>
-                <BootstrapIcon name={step === 3 ? "check-lg" : "arrow-right"} size={14} color="#ffffff" />
+                <View style={{ position: "absolute", right: 20 }}>
+                  <BootstrapIcon name={step === 3 ? "check-lg" : "arrow-right"} size={14} color="#ffffff" />
+                </View>
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -670,5 +757,70 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 13,
     fontWeight: "700",
+  },
+  dropdownContainer: {
+    marginBottom: 20,
+    width: "100%",
+  },
+  dropdownLabel: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#0f172a",
+    marginBottom: 8,
+  },
+  dropdownTrigger: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#f8fafc",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    height: 52,
+  },
+  dropdownTriggerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  dropdownTriggerText: {
+    fontSize: 13,
+    fontWeight: "500",
+  },
+  dropdownSelectedText: {
+    color: "#0f172a",
+    fontWeight: "600",
+  },
+  dropdownPlaceholderText: {
+    color: "#94a3b8",
+  },
+  dropdownOptionsContainer: {
+    marginTop: 6,
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: 16,
+    overflow: "hidden",
+    shadowColor: "#0f172a",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  dropdownOptionItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
+  },
+  dropdownOptionText: {
+    fontSize: 13,
+    color: "#334155",
+    fontWeight: "500",
   },
 });

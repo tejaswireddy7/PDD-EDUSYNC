@@ -5,6 +5,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { routeTree } from "./routeTree.gen";
 import "./styles.css";
 
+if (typeof window !== "undefined") {
+  (window as any).env = import.meta.env;
+}
+
 // Unregister any legacy service workers (e.g. from other dev servers on the same port)
 if (typeof window !== "undefined" && "serviceWorker" in navigator) {
   navigator.serviceWorker.getRegistrations().then((registrations) => {

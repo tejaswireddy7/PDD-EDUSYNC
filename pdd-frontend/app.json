@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "PDD-EDUSYNC",
+    "slug": "pdd-edusync",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./public/favicon.png",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.pdd.edusync"
+    }
+  }
+}

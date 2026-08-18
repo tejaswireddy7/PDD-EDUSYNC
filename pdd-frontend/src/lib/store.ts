@@ -1026,6 +1026,7 @@ export function useDashboardStore() {
 
     skipResurvey: () => {
       updateState({
+        surveyCompleted: true,
         skippedResurveyAt: Date.now(),
         forceResurveyTriggered: false
       });

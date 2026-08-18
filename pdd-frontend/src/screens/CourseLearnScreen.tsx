@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Linki
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useDashboardStore } from "../lib/store";
 import { supabase } from "../lib/supabase";
+import { useNavigate } from "@tanstack/react-router";
+import { useNavigation } from "@react-navigation/native";
 
 const COURSE_VIDEOS: Record<string, string> = {
   // Frontend
@@ -603,6 +605,13 @@ function normalizeCourseTitle(title: string): string {
 
 export default function CourseLearnScreen() {
   const store = useDashboardStore();
+  const navigate = useNavigate();
+  let navigation: any;
+  try {
+    navigation = useNavigation();
+  } catch (e) {
+    // Fail-safe
+  }
   
   // Extract course title from search queries
   const params = new URLSearchParams(Platform.OS === "web" ? window.location.search : "");
@@ -858,9 +867,13 @@ export default function CourseLearnScreen() {
 
   const closeWindow = () => {
     if (Platform.OS === "web") {
-      window.close();
-      // Fallback if window.close is blocked
-      window.location.href = "/";
+      navigate({ to: "/" });
+    } else {
+      try {
+        navigation.goBack();
+      } catch (e) {
+        console.warn("Failed to go back on mobile:", e);
+      }
     }
   };
 

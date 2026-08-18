@@ -752,6 +752,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
+    width: "100%",
   },
   submitText: {
     color: "#ffffff",

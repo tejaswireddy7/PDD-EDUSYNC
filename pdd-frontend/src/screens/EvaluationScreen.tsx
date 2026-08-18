@@ -194,7 +194,7 @@ export default function EvaluationScreen() {
         <View style={styles.rubricList}>
           {rubric.map((r) => {
             const ratio = r.score / r.max;
-            const barColors = ratio >= 0.8 ? ["#0d9488", "#2dd4bf"] : ["#6366f1", "#818cf8"];
+            const barColors: [string, string] = ratio >= 0.8 ? ["#0d9488", "#2dd4bf"] : ["#6366f1", "#818cf8"];
             return (
               <View key={r.criterion} style={styles.rubricRow}>
                 <View style={styles.rubricLabelRow}>

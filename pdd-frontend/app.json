@@ -14,6 +14,11 @@
     },
     "android": {
       "package": "com.pdd.edusync"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "7ce16e0f-9c8b-4fef-bd2c-61d0cb338cbf"
+      }
     }
   }
 }

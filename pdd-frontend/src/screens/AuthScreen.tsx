@@ -450,7 +450,7 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
             </TouchableOpacity>
           )}
 
-          {forgotPasswordStep === 'otp' && (
+          {forgotPasswordStep === ('otp' as any) && (
             <TouchableOpacity onPress={handleResendForgotPasswordOtp} style={styles.forgotPasswordContainer}>
               <Text style={styles.forgotPasswordText}>Resend Code</Text>
             </TouchableOpacity>

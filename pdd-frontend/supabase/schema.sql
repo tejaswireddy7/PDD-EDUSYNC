@@ -552,4 +552,92 @@ create policy "Users can update their own evaluations" on public.evaluations for
 drop policy if exists "Users can delete their own evaluations" on public.evaluations;
 create policy "Users can delete their own evaluations" on public.evaluations for delete using (auth.uid() = user_id);
 
+-- ==========================================
+-- 21. COURSE SECTIONS Table
+-- ==========================================
+create table if not exists public.course_sections (
+  id serial primary key,
+  course_title text not null,
+  section_index integer not null,
+  title text not null,
+  start_sec integer not null,
+  duration text not null,
+  quiz jsonb not null
+);
+
+alter table public.course_sections enable row level security;
+drop policy if exists "Anyone can view course sections" on public.course_sections;
+create policy "Anyone can view course sections" on public.course_sections for select using (true);
+
+-- ==========================================
+-- 22. ACHIEVEMENTS Table
+-- ==========================================
+create table if not exists public.achievements (
+  id text primary key,
+  title text not null,
+  emoji text not null,
+  requirement text not null,
+  metric text not null,
+  threshold integer not null,
+  color text not null
+);
+
+alter table public.achievements enable row level security;
+drop policy if exists "Anyone can view achievements" on public.achievements;
+create policy "Anyone can view achievements" on public.achievements for select using (true);
+
+-- ==========================================
+-- SEED DATA FOR COURSE SECTIONS, ACHIEVEMENTS, AND MATERIALS
+-- ==========================================
+
+-- Course Sections and Quizzes
+insert into public.course_sections (course_title, section_index, title, start_sec, duration, quiz) values
+('React Native & Expo Ecosystem', 1, 'Section 1: Introduction to React Native & Expo Starter', 0, '10 mins', '{"question": "What is the primary benefit of using Expo with React Native?", "options": ["It compiles to native platforms without Xcode/Android Studio manual installs", "It forces you to write code in pure HTML/CSS styles", "It completely removes JavaScript from the runtime engine", "It only supports web-based targets"], "correctAnswer": 0}'),
+('React Native & Expo Ecosystem', 2, 'Section 2: Layouts, Styling, Flexbox & Component States', 600, '15 mins', '{"question": "Which React Native element is the equivalent of a <div> in normal HTML web pages?", "options": ["Text", "Div", "View", "Container"], "correctAnswer": 2}'),
+('React Native & Expo Ecosystem', 3, 'Section 3: Navigation, App Router & Device API Integrations', 1500, '20 mins', '{"question": "Which navigation routing library is built-in in modern Expo SDK releases?", "options": ["react-router-dom", "Expo Router", "native-navigation", "window.location"], "correctAnswer": 1}'),
+
+('HTML5, CSS3, & Modern Grid', 1, 'Section 1: Semantic Elements & Document Headers', 0, '12 mins', '{"question": "Which HTML5 semantic element is most appropriate for a syndicatable blog post?", "options": ["<section>", "<div>", "<article>", "<aside>"], "correctAnswer": 2}'),
+('HTML5, CSS3, & Modern Grid', 2, 'Section 2: Flexible Box Layouts & Media Queries', 720, '15 mins', '{"question": "What is the default direction of flex-direction in CSS Flexbox?", "options": ["row", "column", "row-reverse", "grid"], "correctAnswer": 0}'),
+('HTML5, CSS3, & Modern Grid', 3, 'Section 3: CSS Grid Gardens & Auto-fit Columns', 1620, '18 mins', '{"question": "Which CSS property defines column tracks and sizes in grid templates?", "options": ["grid-column-gap", "grid-template-columns", "grid-rows", "flex-basis"], "correctAnswer": 1}'),
+
+('JavaScript Fundamentals & DOM', 1, 'Section 1: Variables, Types & Block Scopes', 0, '10 mins', '{"question": "Which variable declaration keyword is block-scoped and prevents value reassignments?", "options": ["var", "let", "const", "define"], "correctAnswer": 2}'),
+('JavaScript Fundamentals & DOM', 2, 'Section 2: Functions, Array Map/Filter/Reduce & Callbacks', 600, '12 mins', '{"question": "Which array method returns a new array containing items that evaluate true inside a callback function?", "options": ["map()", "filter()", "forEach()", "reduce()"], "correctAnswer": 1}'),
+('JavaScript Fundamentals & DOM', 3, 'Section 3: DOM Selectors & Document Event Listeners', 1320, '15 mins', '{"question": "Which DOM method returns the first element that matches the specified CSS selectors?", "options": ["getElementById", "getElementsByClassName", "querySelector", "querySelectorAll"], "correctAnswer": 2}'),
+
+('Intro to React & Component States', 1, 'Section 1: JSX Syntax & Virtual DOM Diffing', 0, '10 mins', '{"question": "What is JSX in React component development?", "options": ["A JavaScript XML syntax extension", "A styling stylesheet framework", "A transpiler utility", "A direct browser compiler"], "correctAnswer": 0}'),
+('Intro to React & Component States', 2, 'Section 2: Functional Components & Custom Props passing', 600, '12 mins', '{"question": "How are initial arguments passed down from parent to child React components?", "options": ["Via local storage", "Via component context hook", "Via Component Props object", "Via global window objects"], "correctAnswer": 2}'),
+('Intro to React & Component States', 3, 'Section 3: useState Hooks & Rendering lifecycles', 1320, '15 mins', '{"question": "Which built-in Hook allows functional components to store and update local state values?", "options": ["useEffect", "useState", "useRef", "useContext"], "correctAnswer": 1}')
+on conflict do nothing;
+
+-- Achievements
+insert into public.achievements (id, title, emoji, requirement, metric, threshold, color) values
+('first_course', 'First Course Completed', '🏆', 'Complete 1 course from registered pathways', 'courses_completed', 1, '#f59e0b'),
+('streak_30', '30-Day Streak', '🔥', 'Maintain a consecutive study streak of 30 days', 'streak', 30, '#ef4444'),
+('quizzes_100', '100 Quizzes', '📚', 'Answer questions correctly to reach 1,000+ XP', 'xp', 1000, '#3b82f6'),
+('coding_master', 'Coding Master', '💻', 'Earn 5,000+ total Experience Points (XP)', 'xp', 5000, '#10b981')
+on conflict (id) do nothing;
+
+-- Course Reference Materials
+insert into public.resources (id, title, subject, level, type, rating, downloads, trending, author, focus_domain, course_title) values
+('m_flexbox_garden', 'Interactive CSS Grid Garden Game', 'Web Basics', 'Beginner', 'Notes', 4.8, 2200, false, 'System Instructor', 'Frontend', 'HTML5, CSS3, & Modern Grid'),
+('m_mdn_html_css', 'MDN Web Docs: HTML & CSS Basics', 'Web Basics', 'Beginner', 'PDF', 4.9, 5400, true, 'System Instructor', 'Frontend', 'HTML5, CSS3, & Modern Grid'),
+('m_css_tricks_flexbox', 'CSS Tricks: Complete Guide to Flexbox', 'Web Basics', 'Beginner', 'PDF', 4.9, 8700, true, 'System Instructor', 'Frontend', 'HTML5, CSS3, & Modern Grid'),
+
+('m_mdn_js', 'MDN Web Docs: JavaScript Programming Guide', 'JS Core', 'Beginner', 'PDF', 4.9, 3900, true, 'System Instructor', 'Frontend', 'JavaScript Fundamentals & DOM'),
+('m_js_info', 'JavaScript.info - Comprehensive Tutorial', 'JS Core', 'Beginner', 'Notes', 4.8, 6200, false, 'System Instructor', 'Frontend', 'JavaScript Fundamentals & DOM'),
+('m_eloquent_js', 'Eloquent JavaScript (Free Digital Book)', 'JS Core', 'Beginner', 'PDF', 4.9, 8900, true, 'System Instructor', 'Frontend', 'JavaScript Fundamentals & DOM'),
+
+('m_react_quickstart', 'React Official Docs: Quick Start Guide', 'React Framework', 'Beginner', 'PDF', 4.9, 7300, true, 'System Instructor', 'Frontend', 'Intro to React & Component States'),
+('m_react_tictactoe', 'React Tutorial: Tic-Tac-Toe Game', 'React Framework', 'Beginner', 'Notes', 4.7, 4900, false, 'System Instructor', 'Frontend', 'Intro to React & Component States'),
+('m_thinking_react', 'Thinking in React: Design Paradigm', 'React Framework', 'Beginner', 'PDF', 4.8, 5100, false, 'System Instructor', 'Frontend', 'Intro to React & Component States'),
+
+('m_rn_apis', 'React Native: Interactive Core APIs Docs', 'Cross-Platform', 'Beginner', 'PDF', 4.9, 4200, true, 'System Instructor', 'Mobile', 'React Native & Expo Ecosystem'),
+('m_expo_docs', 'Expo Docs: Learn the App Workflow', 'Cross-Platform', 'Beginner', 'PDF', 4.9, 9100, true, 'System Instructor', 'Mobile', 'React Native & Expo Ecosystem'),
+('m_rn_express', 'React Native Express: Quick Reference Guide', 'Cross-Platform', 'Beginner', 'Notes', 4.8, 5700, false, 'System Instructor', 'Mobile', 'React Native & Expo Ecosystem'),
+
+('m_python_tuts', 'Python 3 Official Tutorial', 'Python Dev', 'Beginner', 'PDF', 4.9, 6400, true, 'System Instructor', 'AI', 'Python Fundamentals & Packages'),
+('m_real_python', 'Real Python: Interactive Learning Paths', 'Python Dev', 'Beginner', 'PDF', 4.9, 8200, true, 'System Instructor', 'AI', 'Python Fundamentals & Packages'),
+('m_w3s_python', 'W3Schools Python Syntax Reference', 'Python Dev', 'Beginner', 'Notes', 4.8, 3100, false, 'System Instructor', 'AI', 'Python Fundamentals & Packages')
+on conflict (id) do nothing;
+
 

@@ -31,6 +31,62 @@ export default function ProfileScreen() {
   const completedCourses = enrolled.filter(c => c.progress === 100);
   const coursesCompletedCount = completedCourses.length;
 
+  const defaultAchievements = [
+    {
+      id: "first_course",
+      title: "First Course Completed",
+      emoji: "🏆",
+      requirement: "Complete 1 course from registered pathways",
+      metric: "courses_completed",
+      threshold: 1,
+      color: "#f59e0b"
+    },
+    {
+      id: "streak_30",
+      title: "30-Day Streak",
+      emoji: "🔥",
+      requirement: "Maintain a consecutive study streak of 30 days",
+      metric: "streak",
+      threshold: 30,
+      color: "#ef4444"
+    },
+    {
+      id: "quizzes_100",
+      title: "100 Quizzes",
+      emoji: "📚",
+      requirement: "Answer questions correctly to reach 1,000+ XP",
+      metric: "xp",
+      threshold: 1000,
+      color: "#3b82f6"
+    },
+    {
+      id: "coding_master",
+      title: "Coding Master",
+      emoji: "💻",
+      requirement: "Earn 5,000+ total Experience Points (XP)",
+      metric: "xp",
+      threshold: 5000,
+      color: "#10b981"
+    }
+  ];
+
+  const [dbAchievements, setDbAchievements] = useState<any[]>(defaultAchievements);
+
+  useEffect(() => {
+    async function loadAchievements() {
+      try {
+        const { fetchDBAchievements } = await import("../lib/supabase-db");
+        const list = await fetchDBAchievements();
+        if (list && list.length > 0) {
+          setDbAchievements(list);
+        }
+      } catch (e) {
+        console.warn("Failed to load achievements dynamically:", e);
+      }
+    }
+    loadAchievements();
+  }, []);
+
   // Blocked Users State
   const [blockedUsers, setBlockedUsers] = useState<any[]>([]);
   const [loadingBlocked, setLoadingBlocked] = useState(false);
@@ -151,40 +207,20 @@ export default function ProfileScreen() {
   };
 
   // Achievements evaluation
-  const achievements = [
-    {
-      id: "first_course",
-      title: "First Course Completed",
-      emoji: "🏆",
-      requirement: "Complete 1 course from registered pathways",
-      unlocked: coursesCompletedCount > 0,
-      color: "#f59e0b"
-    },
-    {
-      id: "streak_30",
-      title: "30-Day Streak",
-      emoji: "🔥",
-      requirement: "Maintain a consecutive study streak of 30 days",
-      unlocked: streak >= 30,
-      color: "#ef4444"
-    },
-    {
-      id: "quizzes_100",
-      title: "100 Quizzes",
-      emoji: "📚",
-      requirement: "Answer questions correctly to reach 1,000+ XP",
-      unlocked: xp >= 1000,
-      color: "#3b82f6"
-    },
-    {
-      id: "coding_master",
-      title: "Coding Master",
-      emoji: "💻",
-      requirement: "Earn 5,000+ total Experience Points (XP)",
-      unlocked: xp >= 5000,
-      color: "#10b981"
+  const achievements = dbAchievements.map(a => {
+    let unlocked = false;
+    if (a.metric === "courses_completed") {
+      unlocked = coursesCompletedCount >= a.threshold;
+    } else if (a.metric === "streak") {
+      unlocked = streak >= a.threshold;
+    } else if (a.metric === "xp") {
+      unlocked = xp >= a.threshold;
     }
-  ];
+    return {
+      ...a,
+      unlocked
+    };
+  });
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>

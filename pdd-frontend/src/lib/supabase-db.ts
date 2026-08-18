@@ -1815,5 +1815,392 @@ export async function enrollInDBCourse(userId: string, courseId: number): Promis
   }
 }
 
+// -------------------------------------------------------------
+// Course Sections, Reference Materials, and Achievements
+// -------------------------------------------------------------
+
+export interface DBSection {
+  title: string;
+  startSec: number;
+  duration: string;
+  quiz: {
+    question: string;
+    options: string[];
+    correctAnswer: number;
+  };
+}
+
+export interface DBAchievement {
+  id: string;
+  title: string;
+  emoji: string;
+  requirement: string;
+  metric: string;
+  threshold: number;
+  color: string;
+}
+
+const COURSE_MATERIALS_FALLBACK: Record<string, Array<{ label: string; url: string; type: "doc" | "tutorial" | "article" }>> = {
+  "HTML5, CSS3, & Modern Grid": [
+    { label: "MDN Web Docs: HTML & CSS Basics", url: "https://developer.mozilla.org/en-US/docs/Learn", type: "doc" },
+    { label: "CSS Tricks: Complete Guide to Flexbox", url: "https://css-tricks.com/snippets/css/a-guide-to-flexbox/", type: "article" },
+    { label: "Interactive CSS Grid Garden Game", url: "https://cssgridgarden.com/", type: "tutorial" }
+  ],
+  "JavaScript Fundamentals & DOM": [
+    { label: "MDN Web Docs: JavaScript Programming Guide", url: "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide", type: "doc" },
+    { label: "JavaScript.info - Comprehensive Tutorial", url: "https://javascript.info/", type: "tutorial" },
+    { label: "Eloquent JavaScript (Free Digital Book)", url: "https://eloquentjavascript.net/", type: "doc" }
+  ],
+  "Intro to React & Component States": [
+    { label: "React Official Docs: Quick Start Guide", url: "https://react.dev/learn", type: "doc" },
+    { label: "Scrimba: Free Interactive React Course", url: "https://scrimba.com/learn/learnreact", type: "tutorial" },
+    { label: "Robin Wieruch: Complete React State tutorial", url: "https://www.robinwieruch.de/react-state/", type: "article" }
+  ],
+  "Intro to Node.js & REST API": [
+    { label: "Node.js Official Documentation Guide", url: "https://nodejs.org/en/docs", type: "doc" },
+    { label: "Express.js RESTful API Routing guide", url: "https://expressjs.com/en/guide/routing.html", type: "doc" },
+    { label: "RestApiTutorial: What is REST?", url: "https://restapitutorial.com/", type: "tutorial" }
+  ],
+  "SQL Fundamentals & Relational DBs": [
+    { label: "W3Schools Interactive SQL Reference", url: "https://www.w3schools.com/sql/", type: "tutorial" },
+    { label: "SQLBolt: Interactive SQL Lessons", url: "https://sqlbolt.com/", type: "tutorial" },
+    { label: "Use The Index, Luke: SQL query speed guide", url: "https://use-the-index-luke.com/", type: "doc" }
+  ],
+  "React Native & Expo Ecosystem": [
+    { label: "React Native official Layout Guides", url: "https://reactnative.dev/docs/flexbox", type: "doc" },
+    { label: "Expo CLI Docs: Building native bundles", url: "https://docs.expo.dev/", type: "doc" },
+    { label: "React Navigation state container setups", url: "https://reactnavigation.org/", type: "article" }
+  ],
+  "Python Fundamentals & Packages": [
+    { label: "Python.org Official Tutorial", url: "https://docs.python.org/3/tutorial/", type: "doc" },
+    { label: "Real Python: Comprehensive Learning Path", url: "https://realpython.com/", type: "tutorial" }
+  ],
+  "Neural Networks with PyTorch": [
+    { label: "PyTorch Official Neural Network Tutorial", url: "https://pytorch.org/tutorials/beginner/blitz/neural_networks_tutorial.html", type: "doc" },
+    { label: "Deep Learning with PyTorch (Free book)", url: "https://pytorch.org/deep-learning-with-pytorch-book", type: "doc" }
+  ],
+  "React Router & Global Context": [
+    { label: "React Router Docs: Routing Basics", url: "https://reactrouter.com/", type: "doc" }
+  ],
+  "Tailwind CSS & Responsive Layouts": [
+    { label: "Tailwind CSS Official Docs", url: "https://tailwindcss.com/", type: "doc" }
+  ],
+  "TypeScript Essentials for Web": [
+    { label: "TypeScript Deep Dive Handbook", url: "https://basarat.gitbook.io/typescript/", type: "doc" }
+  ],
+  "Java Spring Boot Microservices": [
+    { label: "Spring Boot Official Guides", url: "https://spring.io/guides", type: "doc" }
+  ],
+  "PostgreSQL Queries & Optimization": [
+    { label: "Postgres Guide: Indexes & Queries", url: "https://www.postgresguide.com/", type: "doc" }
+  ],
+  "SwiftUI Mastery for iOS Platforms": [
+    { label: "Apple Developer SwiftUI Tutorials", url: "https://developer.apple.com/tutorials/swiftui", type: "doc" }
+  ],
+  "Kotlin & Android Jetpack UI": [
+    { label: "Android Developers Jetpack Compose Guide", url: "https://developer.android.com/jetpack/compose", type: "doc" }
+  ],
+  "Pandas & Numpy Data Wrangling": [
+    { label: "Pandas User Guide & Exercises", url: "https://pandas.pydata.org/docs/user_guide/index.html", type: "doc" }
+  ],
+  "Basics of Routing & HTTP Methods": [
+    { label: "HTTP Protocols MDN Reference", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP", type: "doc" }
+  ]
+};
+
+const ACHIEVEMENTS_FALLBACK: DBAchievement[] = [
+  {
+    id: "first_course",
+    title: "First Course Completed",
+    emoji: "🏆",
+    requirement: "Complete 1 course from registered pathways",
+    metric: "courses_completed",
+    threshold: 1,
+    color: "#f59e0b"
+  },
+  {
+    id: "streak_30",
+    title: "30-Day Streak",
+    emoji: "🔥",
+    requirement: "Maintain a consecutive study streak of 30 days",
+    metric: "streak",
+    threshold: 30,
+    color: "#ef4444"
+  },
+  {
+    id: "quizzes_100",
+    title: "100 Quizzes",
+    emoji: "📚",
+    requirement: "Answer questions correctly to reach 1,000+ XP",
+    metric: "xp",
+    threshold: 1000,
+    color: "#3b82f6"
+  },
+  {
+    id: "coding_master",
+    title: "Coding Master",
+    emoji: "💻",
+    requirement: "Earn 5,000+ total Experience Points (XP)",
+    metric: "xp",
+    threshold: 5000,
+    color: "#10b981"
+  }
+];
+
+const DEFAULT_SECTIONS_FALLBACK: DBSection[] = [
+  {
+    title: "Section 1: Getting Started and Basic Setup",
+    startSec: 0,
+    duration: "10 mins",
+    quiz: {
+      question: "What is the primary language used in this course domain?",
+      options: ["TypeScript/JavaScript", "Python", "Swift", "C++"],
+      correctAnswer: 0
+    }
+  },
+  {
+    title: "Section 2: Deep Dive into Core Workflows",
+    startSec: 600,
+    duration: "15 mins",
+    quiz: {
+      question: "Which hook or function is commonly used for managing local state updates?",
+      options: ["useReducer", "useState", "useEffect", "useMemo"],
+      correctAnswer: 1
+    }
+  }
+];
+
+const COURSE_SECTIONS_FALLBACK: Record<string, DBSection[]> = {
+  "React Native & Expo Ecosystem": [
+    {
+      title: "Section 1: Introduction to React Native & Expo Starter",
+      startSec: 0,
+      duration: "10 mins",
+      quiz: {
+        question: "What is the primary benefit of using Expo with React Native?",
+        options: [
+          "It compiles to native platforms without Xcode/Android Studio manual installs",
+          "It forces you to write code in pure HTML/CSS styles",
+          "It completely removes JavaScript from the runtime engine",
+          "It only supports web-based targets"
+        ],
+        correctAnswer: 0
+      }
+    },
+    {
+      title: "Section 2: Layouts, Styling, Flexbox & Component States",
+      startSec: 600,
+      duration: "15 mins",
+      quiz: {
+        question: "Which React Native element is the equivalent of a <div> in normal HTML web pages?",
+        options: ["Text", "Div", "View", "Container"],
+        correctAnswer: 2
+      }
+    },
+    {
+      title: "Section 3: Navigation, App Router & Device API Integrations",
+      startSec: 1500,
+      duration: "20 mins",
+      quiz: {
+        question: "Which navigation routing library is built-in in modern Expo SDK releases?",
+        options: ["react-router-dom", "Expo Router", "native-navigation", "window.location"],
+        correctAnswer: 1
+      }
+    }
+  ],
+  "HTML5, CSS3, & Modern Grid": [
+    {
+      title: "Section 1: Semantic Elements & Document Headers",
+      startSec: 0,
+      duration: "12 mins",
+      quiz: {
+        question: "Which HTML5 semantic element is most appropriate for a syndicatable blog post?",
+        options: ["<section>", "<div>", "<article>", "<aside>"],
+        correctAnswer: 2
+      }
+    },
+    {
+      title: "Section 2: Flexible Box Layouts & Media Queries",
+      startSec: 720,
+      duration: "15 mins",
+      quiz: {
+        question: "What is the default direction of flex-direction in CSS Flexbox?",
+        options: ["row", "column", "row-reverse", "grid"],
+        correctAnswer: 0
+      }
+    },
+    {
+      title: "Section 3: CSS Grid Gardens & Auto-fit Columns",
+      startSec: 1620,
+      duration: "18 mins",
+      quiz: {
+        question: "Which CSS property defines column tracks and sizes in grid templates?",
+        options: ["grid-column-gap", "grid-template-columns", "grid-rows", "flex-basis"],
+        correctAnswer: 1
+      }
+    }
+  ],
+  "JavaScript Fundamentals & DOM": [
+    {
+      title: "Section 1: Variables, Types & Block Scopes",
+      startSec: 0,
+      duration: "10 mins",
+      quiz: {
+        question: "Which variable declaration keyword is block-scoped and prevents value reassignments?",
+        options: ["var", "let", "const", "define"],
+        correctAnswer: 2
+      }
+    },
+    {
+      title: "Section 2: Functions, Array Map/Filter/Reduce & Callbacks",
+      startSec: 600,
+      duration: "12 mins",
+      quiz: {
+        question: "Which array method returns a new array containing items that evaluate true inside a callback function?",
+        options: ["map()", "filter()", "forEach()", "reduce()"],
+        correctAnswer: 1
+      }
+    },
+    {
+      title: "Section 3: DOM Selectors & Document Event Listeners",
+      startSec: 1320,
+      duration: "15 mins",
+      quiz: {
+        question: "Which DOM method returns the first element that matches the specified CSS selectors?",
+        options: ["getElementById", "getElementsByClassName", "querySelector", "querySelectorAll"],
+        correctAnswer: 2
+      }
+    }
+  ],
+  "Intro to React & Component States": [
+    {
+      title: "Section 1: JSX Syntax & Virtual DOM Diffing",
+      startSec: 0,
+      duration: "10 mins",
+      quiz: {
+        question: "What is JSX in React component development?",
+        options: ["A JavaScript XML syntax extension", "A styling stylesheet framework", "A transpiler utility", "A direct browser compiler"],
+        correctAnswer: 0
+      }
+    },
+    {
+      title: "Section 2: Functional Components & Custom Props passing",
+      startSec: 600,
+      duration: "12 mins",
+      quiz: {
+        question: "How are initial arguments passed down from parent to child React components?",
+        options: ["Via local storage", "Via component context hook", "Via Component Props object", "Via global window objects"],
+        correctAnswer: 2
+      }
+    },
+    {
+      title: "Section 3: useState Hooks & Rendering lifecycles",
+      startSec: 1320,
+      duration: "15 mins",
+      quiz: {
+        question: "Which built-in Hook allows functional components to store and update local state values?",
+        options: ["useEffect", "useState", "useRef", "useContext"],
+        correctAnswer: 1
+      }
+    }
+  ]
+};
+
+function normalizeCourseTitle(title: string): string {
+  const mapping: Record<string, string> = {
+    "HTML5, CSS3, & Modern Grid": "HTML5, CSS3, & Modern Grid",
+    "JavaScript Fundamentals & DOM": "JavaScript Fundamentals & DOM",
+    "Intro to React & Component States": "Intro to React & Component States",
+    "React Native & Expo Ecosystem": "React Native & Expo Ecosystem",
+    "Python Fundamentals & Packages": "Python Fundamentals & Packages",
+    "Neural Networks with PyTorch": "Neural Networks with PyTorch",
+    "SQL Fundamentals & Relational DBs": "SQL Fundamentals & Relational DBs",
+    "Intro to Node.js & REST API": "Intro to Node.js & REST API",
+    "Pandas & Numpy Data Wrangling": "Pandas & Numpy Data Wrangling",
+    "React Router & Global Context": "React Router & Global Context",
+    "Tailwind CSS & Responsive Layouts": "Tailwind CSS & Responsive Layouts",
+    "TypeScript Essentials for Web": "TypeScript Essentials for Web",
+    "Java Spring Boot Microservices": "Java Spring Boot Microservices",
+    "PostgreSQL Queries & Optimization": "PostgreSQL Queries & Optimization",
+    "SwiftUI Mastery for iOS Platforms": "SwiftUI Mastery for iOS Platforms",
+    "Kotlin & Android Jetpack UI": "Kotlin & Android Jetpack UI",
+    "Basics of Routing & HTTP Methods": "Basics of Routing & HTTP Methods"
+  };
+  return mapping[title] || title;
+}
+
+export async function fetchDBCourseSections(courseTitle: string): Promise<DBSection[]> {
+  try {
+    const { data, error } = await supabase
+      .from("course_sections")
+      .select("*")
+      .eq("course_title", courseTitle)
+      .order("section_index", { ascending: true });
+    
+    if (error) throw error;
+    if (data && data.length > 0) {
+      return data.map(item => ({
+        title: item.title,
+        startSec: item.start_sec,
+        duration: item.duration,
+        quiz: typeof item.quiz === "string" ? JSON.parse(item.quiz) : item.quiz
+      }));
+    }
+  } catch (e) {
+    console.warn("fetchDBCourseSections failed. Falling back to local data. Reason:", e);
+  }
+
+  // Local fallback
+  const normalized = normalizeCourseTitle(courseTitle);
+  return (COURSE_SECTIONS_FALLBACK[normalized] || DEFAULT_SECTIONS_FALLBACK) as DBSection[];
+}
+
+export async function fetchDBCourseMaterials(courseTitle: string): Promise<Array<{ label: string; url: string; type: "doc" | "tutorial" | "article" }>> {
+  try {
+    const { data, error } = await supabase
+      .from("resources")
+      .select("*")
+      .eq("course_title", courseTitle)
+      .is("user_id", null);
+    
+    if (error) throw error;
+    if (data && data.length > 0) {
+      return data.map(item => ({
+        label: item.title,
+        url: item.url || "https://developer.mozilla.org/en-US/docs/Learn",
+        type: item.type === "PDF" ? "doc" : item.type === "Slides" ? "tutorial" : "article"
+      }));
+    }
+  } catch (e) {
+    console.warn("fetchDBCourseMaterials failed. Falling back to local data. Reason:", e);
+  }
+
+  // Local fallback
+  const normalized = normalizeCourseTitle(courseTitle);
+  return COURSE_MATERIALS_FALLBACK[normalized] || [
+    { label: "EduSync Course Study Manual (PDF)", url: "https://developer.mozilla.org/en-US/docs/Learn", type: "doc" },
+    { label: "Topic Reference Guides & Examples", url: "https://dev.to", type: "article" },
+    { label: "Interactive Coding Sandbox Practice", url: "https://www.freecodecamp.org/learn", type: "tutorial" }
+  ];
+}
+
+export async function fetchDBAchievements(): Promise<DBAchievement[]> {
+  try {
+    const { data, error } = await supabase
+      .from("achievements")
+      .select("*");
+    
+    if (error) throw error;
+    if (data && data.length > 0) {
+      return data as DBAchievement[];
+    }
+  } catch (e) {
+    console.warn("fetchDBAchievements failed. Falling back to local data. Reason:", e);
+  }
+
+  // Local fallback
+  return ACHIEVEMENTS_FALLBACK;
+}
+
 
 

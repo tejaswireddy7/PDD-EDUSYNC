@@ -6,552 +6,7 @@ import { supabase } from "../lib/supabase";
 import { useNavigate } from "@tanstack/react-router";
 import { useNavigation } from "@react-navigation/native";
 
-const COURSE_VIDEOS: Record<string, string> = {
-  // Frontend
-  "HTML5, CSS3, & Modern Grid": "https://www.youtube.com/embed/0xMQfnTU6oo",
-  "JavaScript Fundamentals & DOM": "https://www.youtube.com/embed/hdI2bqOjy3c",
-  "Intro to React & Component States": "https://www.youtube.com/embed/Ke90Tje7VS0",
-  "React Router & Global Context": "https://www.youtube.com/embed/Ul3y1LXxzdU",
-  "Tailwind CSS & Responsive Layouts": "https://www.youtube.com/embed/m7OWXtbiXX8",
-  "TypeScript Essentials for Web": "https://www.youtube.com/embed/d56mG7DezGs",
-  "Next.js 14 App Router Mastery": "https://www.youtube.com/embed/wm5gMKuwSYk",
-  "Web Performance & Core Web Vitals": "https://www.youtube.com/embed/t5fjIW3tB00",
-  "Module Federation & Micro-Frontends": "https://www.youtube.com/embed/ICeH3uBGGeo",
 
-  // Backend
-  "Intro to Node.js & REST API": "https://www.youtube.com/embed/Oe421EPjeBE",
-  "SQL Fundamentals & Relational DBs": "https://www.youtube.com/embed/7S_tz1z_5bA",
-  "Basics of Routing & HTTP Methods": "https://www.youtube.com/embed/iYM2zFP3Zn0",
-  "Java Spring Boot Microservices": "https://www.youtube.com/embed/35EQXmHKZYs",
-  "PostgreSQL Queries & Optimization": "https://www.youtube.com/embed/qw--VYLpxG4",
-  "Redis Caching & Task Queues": "https://www.youtube.com/embed/jgpVdJB2sKQ",
-  "Distributed Systems & Scalability": "https://www.youtube.com/embed/oSkTPzOGMuw",
-  "Docker & Kubernetes Orchestration": "https://www.youtube.com/embed/rjjES5IsPdg",
-  "Go Concurrency & Channels Deep-Dive": "https://www.youtube.com/embed/un6ZyFkqFKo",
-
-  // Mobile
-  "React Native & Expo Ecosystem": "https://www.youtube.com/embed/0-S5a0eXPoc",
-  "Flexbox Layouts in Mobile Screens": "https://www.youtube.com/embed/kGtEax1WQFg",
-  "Navigation Containers & Tabs": "https://www.youtube.com/embed/ur6I5m2nTvk",
-  "Advanced React Navigation v6": "https://www.youtube.com/embed/UVUPEokN8Mw",
-  "Native Features: Camera, GPS & Audio": "https://www.youtube.com/embed/0-S5a0eXPoc",
-  "State Management in Native Apps": "https://www.youtube.com/embed/0-S5a0eXPoc",
-  "SwiftUI Mastery for iOS Platforms": "https://www.youtube.com/embed/HXoVSbwWUIk",
-  "Kotlin & Android Jetpack UI": "https://www.youtube.com/embed/6_wK_Ud8--0",
-  "Native Bridges & Performance Tuning": "https://www.youtube.com/embed/0-S5a0eXPoc",
-
-  // AI
-  "Python Fundamentals & Packages": "https://www.youtube.com/embed/_uQrJ0TkZlc",
-  "Pandas & Numpy Data Wrangling": "https://www.youtube.com/embed/F6kmIpWWEdU",
-  "Basic Statistics & Probability": "https://www.youtube.com/embed/xxpc-HPKN28",
-  "Neural Networks with PyTorch": "https://www.youtube.com/embed/V_xro1bcAuA",
-  "Natural Language Processing (NLP)": "https://www.youtube.com/embed/dIUTsFT2MeQ",
-  "Data Visualization with Recharts": "https://www.youtube.com/embed/F6kmIpWWEdU",
-  "Fine-Tuning Generative AI Models": "https://www.youtube.com/embed/V_xro1bcAuA",
-  "MLOps: CI/CD Pipeline for Models": "https://www.youtube.com/embed/V_xro1bcAuA",
-  "Transformer Architectures & Attention": "https://www.youtube.com/embed/V_xro1bcAuA"
-};
-
-const COURSE_MATERIALS: Record<string, Array<{ label: string; url: string; type: "doc" | "tutorial" | "article" }>> = {
-  "HTML5, CSS3, & Modern Grid": [
-    { label: "MDN Web Docs: HTML & CSS Basics", url: "https://developer.mozilla.org/en-US/docs/Learn", type: "doc" },
-    { label: "CSS Tricks: Complete Guide to Flexbox", url: "https://css-tricks.com/snippets/css/a-guide-to-flexbox/", type: "article" },
-    { label: "Interactive CSS Grid Garden Game", url: "https://cssgridgarden.com/", type: "tutorial" }
-  ],
-  "JavaScript Fundamentals & DOM": [
-    { label: "MDN Web Docs: JavaScript Programming Guide", url: "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide", type: "doc" },
-    { label: "JavaScript.info - Comprehensive Tutorial", url: "https://javascript.info/", type: "tutorial" },
-    { label: "Eloquent JavaScript (Free Digital Book)", url: "https://eloquentjavascript.net/", type: "doc" }
-  ],
-  "Intro to React & Component States": [
-    { label: "React Official Docs: Quick Start Guide", url: "https://react.dev/learn", type: "doc" },
-    { label: "Scrimba: Free Interactive React Course", url: "https://scrimba.com/learn/learnreact", type: "tutorial" },
-    { label: "Robin Wieruch: Complete React State tutorial", url: "https://www.robinwieruch.de/react-state/", type: "article" }
-  ],
-  "Intro to Node.js & REST API": [
-    { label: "Node.js Official Documentation Guide", url: "https://nodejs.org/en/docs", type: "doc" },
-    { label: "Express.js RESTful API Routing guide", url: "https://expressjs.com/en/guide/routing.html", type: "doc" },
-    { label: "RestApiTutorial: What is REST?", url: "https://restapitutorial.com/", type: "tutorial" }
-  ],
-  "SQL Fundamentals & Relational DBs": [
-    { label: "W3Schools Interactive SQL Reference", url: "https://www.w3schools.com/sql/", type: "tutorial" },
-    { label: "SQLBolt: Interactive SQL Lessons", url: "https://sqlbolt.com/", type: "tutorial" },
-    { label: "Use The Index, Luke: SQL query speed guide", url: "https://use-the-index-luke.com/", type: "doc" }
-  ],
-  "React Native & Expo Ecosystem": [
-    { label: "React Native official Layout Guides", url: "https://reactnative.dev/docs/flexbox", type: "doc" },
-    { label: "Expo CLI Docs: Building native bundles", url: "https://docs.expo.dev/", type: "doc" },
-    { label: "React Navigation state container setups", url: "https://reactnavigation.org/", type: "article" }
-  ],
-  "Python Fundamentals & Packages": [
-    { label: "Python.org Official Tutorial", url: "https://docs.python.org/3/tutorial/", type: "doc" },
-    { label: "Real Python: Comprehensive Learning Path", url: "https://realpython.com/", type: "tutorial" }
-  ],
-  "Neural Networks with PyTorch": [
-    { label: "PyTorch Official Neural Network Tutorial", url: "https://pytorch.org/tutorials/beginner/blitz/neural_networks_tutorial.html", type: "doc" },
-    { label: "Deep Learning with PyTorch (Free book)", url: "https://pytorch.org/deep-learning-with-pytorch-book", type: "doc" }
-  ],
-  "React Router & Global Context": [
-    { label: "React Router Docs: Routing Basics", url: "https://reactrouter.com/", type: "doc" }
-  ],
-  "Tailwind CSS & Responsive Layouts": [
-    { label: "Tailwind CSS Official Docs", url: "https://tailwindcss.com/", type: "doc" }
-  ],
-  "TypeScript Essentials for Web": [
-    { label: "TypeScript Deep Dive Handbook", url: "https://basarat.gitbook.io/typescript/", type: "doc" }
-  ],
-  "Java Spring Boot Microservices": [
-    { label: "Spring Boot Official Guides", url: "https://spring.io/guides", type: "doc" }
-  ],
-  "PostgreSQL Queries & Optimization": [
-    { label: "Postgres Guide: Indexes & Queries", url: "https://www.postgresguide.com/", type: "doc" }
-  ],
-  "SwiftUI Mastery for iOS Platforms": [
-    { label: "Apple Developer SwiftUI Tutorials", url: "https://developer.apple.com/tutorials/swiftui", type: "doc" }
-  ],
-  "Kotlin & Android Jetpack UI": [
-    { label: "Android Developers Jetpack Compose Guide", url: "https://developer.android.com/jetpack/compose", type: "doc" }
-  ],
-  "Pandas & Numpy Data Wrangling": [
-    { label: "Pandas User Guide & Exercises", url: "https://pandas.pydata.org/docs/user_guide/index.html", type: "doc" }
-  ],
-  "Basics of Routing & HTTP Methods": [
-    { label: "HTTP Protocols MDN Reference", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP", type: "doc" }
-  ]
-};
-
-interface Section {
-  title: string;
-  startSec: number;
-  duration: string;
-  quiz: {
-    question: string;
-    options: string[];
-    correctAnswer: number;
-  };
-}
-
-const COURSE_SECTIONS: Record<string, Section[]> = {
-  "React Native & Expo Ecosystem": [
-    {
-      title: "Section 1: Introduction to React Native & Expo Starter",
-      startSec: 0,
-      duration: "10 mins",
-      quiz: {
-        question: "What is the primary benefit of using Expo with React Native?",
-        options: [
-          "It compiles to native platforms without Xcode/Android Studio manual installs",
-          "It forces you to write code in pure HTML/CSS styles",
-          "It completely removes JavaScript from the runtime engine",
-          "It only supports web-based targets"
-        ],
-        correctAnswer: 0
-      }
-    },
-    {
-      title: "Section 2: Layouts, Styling, Flexbox & Component States",
-      startSec: 600,
-      duration: "15 mins",
-      quiz: {
-        question: "Which React Native element is the equivalent of a <div> in normal HTML web pages?",
-        options: ["Text", "Div", "View", "Container"],
-        correctAnswer: 2
-      }
-    },
-    {
-      title: "Section 3: Navigation, App Router & Device API Integrations",
-      startSec: 1500,
-      duration: "20 mins",
-      quiz: {
-        question: "Which navigation routing library is built-in in modern Expo SDK releases?",
-        options: ["react-router-dom", "Expo Router", "native-navigation", "window.location"],
-        correctAnswer: 1
-      }
-    }
-  ],
-  "HTML5, CSS3, & Modern Grid": [
-    {
-      title: "Section 1: Semantic Elements & Document Headers",
-      startSec: 0,
-      duration: "12 mins",
-      quiz: {
-        question: "Which HTML5 semantic element is most appropriate for a self-contained blog post?",
-        options: ["<section>", "<div>", "<article>", "<aside>"],
-        correctAnswer: 2
-      }
-    },
-    {
-      title: "Section 2: Flexible Box Layouts & Media Queries",
-      startSec: 720,
-      duration: "15 mins",
-      quiz: {
-        question: "What is the default direction of flex-direction in CSS Flexbox?",
-        options: ["row", "column", "row-reverse", "grid"],
-        correctAnswer: 0
-      }
-    },
-    {
-      title: "Section 3: CSS Grid Gardens & Auto-fit Columns",
-      startSec: 1620,
-      duration: "18 mins",
-      quiz: {
-        question: "Which CSS property defines column tracks and sizes in grid templates?",
-        options: ["grid-column-gap", "grid-template-columns", "grid-rows", "flex-basis"],
-        correctAnswer: 1
-      }
-    }
-  ],
-  "JavaScript Fundamentals & DOM": [
-    {
-      title: "Section 1: Variables, Types & Block Scopes",
-      startSec: 0,
-      duration: "10 mins",
-      quiz: {
-        question: "Which variable declaration keyword is block-scoped and prevents value reassignments?",
-        options: ["var", "let", "const", "define"],
-        correctAnswer: 2
-      }
-    },
-    {
-      title: "Section 2: Functions, Array Map/Filter/Reduce & Callbacks",
-      startSec: 600,
-      duration: "12 mins",
-      quiz: {
-        question: "Which array method returns a new array containing items that evaluate true inside a callback function?",
-        options: ["map()", "filter()", "forEach()", "reduce()"],
-        correctAnswer: 1
-      }
-    },
-    {
-      title: "Section 3: DOM Selectors & Document Event Listeners",
-      startSec: 1320,
-      duration: "15 mins",
-      quiz: {
-        question: "Which DOM method returns the first element that matches the specified CSS selectors?",
-        options: ["getElementById", "getElementsByClassName", "querySelector", "querySelectorAll"],
-        correctAnswer: 2
-      }
-    }
-  ],
-  "Intro to React & Component States": [
-    {
-      title: "Section 1: JSX Syntax & Virtual DOM Diffing",
-      startSec: 0,
-      duration: "10 mins",
-      quiz: {
-        question: "What is JSX in React component development?",
-        options: ["A JavaScript XML syntax extension", "A styling stylesheet framework", "A transpiler utility", "A direct browser compiler"],
-        correctAnswer: 0
-      }
-    },
-    {
-      title: "Section 2: Functional Components & Custom Props passing",
-      startSec: 600,
-      duration: "12 mins",
-      quiz: {
-        question: "How are initial arguments passed down from parent to child React components?",
-        options: ["Via local storage", "Via component context hook", "Via Component Props object", "Via global window objects"],
-        correctAnswer: 2
-      }
-    },
-    {
-      title: "Section 3: useState Hooks & Rendering lifecycles",
-      startSec: 1320,
-      duration: "15 mins",
-      quiz: {
-        question: "Which built-in Hook allows functional components to store and update local state values?",
-        options: ["useEffect", "useState", "useRef", "useContext"],
-        correctAnswer: 1
-      }
-    }
-  ],
-  "SQL Fundamentals & Relational DBs": [
-    {
-      title: "Section 1: Relational Database Models & Tables",
-      startSec: 0,
-      duration: "10 mins",
-      quiz: {
-        question: "What does the SQL acronym stand for?",
-        options: ["Structured Query Language", "Simple Query List", "Server Queue Language", "Stateful Query Loop"],
-        correctAnswer: 0
-      }
-    },
-    {
-      title: "Section 2: Primary Keys, Foreign Keys & Schema relations",
-      startSec: 600,
-      duration: "12 mins",
-      quiz: {
-        question: "Which constraint uniquely identifies each record in a database table?",
-        options: ["Foreign Key", "Primary Key", "Unique Index", "NotNull Constraint"],
-        correctAnswer: 1
-      }
-    }
-  ],
-  "Intro to Node.js & REST API": [
-    {
-      title: "Section 1: Event Loops & Non-blocking I/O operations",
-      startSec: 0,
-      duration: "11 mins",
-      quiz: {
-        question: "Is Node.js multi-threaded or single-threaded by default?",
-        options: ["Multi-threaded", "Single-threaded with event loop", "Dual-threaded", "Process-isolated"],
-        correctAnswer: 1
-      }
-    },
-    {
-      title: "Section 2: Creating REST Endpoints with Express middleware",
-      startSec: 660,
-      duration: "14 mins",
-      quiz: {
-        question: "Which HTTP status code represents a successful REST operation?",
-        options: ["200 OK", "404 Not Found", "500 Server Error", "403 Forbidden"],
-        correctAnswer: 0
-      }
-    }
-  ],
-  "Python Fundamentals & Packages": [
-    {
-      title: "Section 1: Syntax basics, variables, list comprehensions",
-      startSec: 0,
-      duration: "10 mins",
-      quiz: {
-        question: "Which Python data structure is mutable and ordered?",
-        options: ["Tuple", "Set", "List", "Dictionary"],
-        correctAnswer: 2
-      }
-    },
-    {
-      title: "Section 2: Packages, modules import & PIP package manager",
-      startSec: 600,
-      duration: "12 mins",
-      quiz: {
-        question: "Which command-line utility is used to install Python external packages?",
-        options: ["npm", "pip", "brew", "apt-get"],
-        correctAnswer: 1
-      }
-    }
-  ],
-  "Neural Networks with PyTorch": [
-    {
-      title: "Section 1: Tensors, Gradient computation, backpropagation",
-      startSec: 0,
-      duration: "15 mins",
-      quiz: {
-        question: "What is the primary multidimensional array data structure in PyTorch?",
-        options: ["DataFrame", "List", "Tensor", "Matrix"],
-        correctAnswer: 2
-      }
-    },
-    {
-      title: "Section 2: Building Neural Networks using torch.nn",
-      startSec: 900,
-      duration: "15 mins",
-      quiz: {
-        question: "Which activation function is most commonly used in deep network hidden layers?",
-        options: ["Sigmoid", "ReLU", "Tanh", "Linear"],
-        correctAnswer: 1
-      }
-    }
-  ],
-  "React Router & Global Context": [
-    {
-      title: "Section 1: Dynamic client-side routing setups",
-      startSec: 0,
-      duration: "10 mins",
-      quiz: {
-        question: "Which hook is used to get URL query params in React Router?",
-        options: ["useParams", "useNavigate", "useLocation", "useSearchParams"],
-        correctAnswer: 3
-      }
-    },
-    {
-      title: "Section 2: Global state sharing via useContext",
-      startSec: 600,
-      duration: "12 mins",
-      quiz: {
-        question: "What is the primary benefit of React Context API?",
-        options: ["It optimizes database queries", "It avoids prop drilling by sharing state globally", "It styles components dynamically", "It compiles code to WebAssembly"],
-        correctAnswer: 1
-      }
-    }
-  ],
-  "Tailwind CSS & Responsive Layouts": [
-    {
-      title: "Section 1: Utility classes & style compilation",
-      startSec: 0,
-      duration: "10 mins",
-      quiz: {
-        question: "What describes Tailwind CSS?",
-        options: ["A utility-first CSS framework", "A preprocessor compiler", "A component framework like Bootstrap", "An inline styles generator"],
-        correctAnswer: 0
-      }
-    },
-    {
-      title: "Section 2: Responsive screen prefixes & modifiers",
-      startSec: 600,
-      duration: "12 mins",
-      quiz: {
-        question: "Which breakpoint prefix applies styles on screens 768px and wider in Tailwind?",
-        options: ["sm:", "md:", "lg:", "xl:"],
-        correctAnswer: 1
-      }
-    }
-  ],
-  "TypeScript Essentials for Web": [
-    {
-      title: "Section 1: Interfaces, Types & Static type checks",
-      startSec: 0,
-      duration: "10 mins",
-      quiz: {
-        question: "What compiles TypeScript code into browser-readable JavaScript?",
-        options: ["Babel", "TypeScript Compiler (tsc)", "Vite", "Webpack"],
-        correctAnswer: 1
-      }
-    },
-    {
-      title: "Section 2: Generics & Union Types mapping",
-      startSec: 600,
-      duration: "12 mins",
-      quiz: {
-        question: "Which type utility allows defining parameters that accept multiple distinct type definitions?",
-        options: ["Generics", "Union Types", "Interfaces", "Tuples"],
-        correctAnswer: 1
-      }
-    }
-  ],
-  "Java Spring Boot Microservices": [
-    {
-      title: "Section 1: Dependency Injection & Beans configurations",
-      startSec: 0,
-      duration: "12 mins",
-      quiz: {
-        question: "Which annotation registers a class as a Spring component bean?",
-        options: ["@Autowired", "@Component", "@Bean", "@Service"],
-        correctAnswer: 1
-      }
-    },
-    {
-      title: "Section 2: Creating REST APIs using @RestController",
-      startSec: 720,
-      duration: "15 mins",
-      quiz: {
-        question: "Which annotation maps HTTP GET requests in Spring controllers?",
-        options: ["@GetMapping", "@PostMapping", "@RequestMapping", "@PathValue"],
-        correctAnswer: 0
-      }
-    }
-  ],
-  "PostgreSQL Queries & Optimization": [
-    {
-      title: "Section 1: Select joins, filters & aggregate commands",
-      startSec: 0,
-      duration: "11 mins",
-      quiz: {
-        question: "Which join returns all matched records and unmatched rows from both tables?",
-        options: ["Inner Join", "Left Join", "Full Outer Join", "Right Join"],
-        correctAnswer: 2
-      }
-    },
-    {
-      title: "Section 2: B-Tree Indexing, EXPLAIN ANALYZE checks",
-      startSec: 660,
-      duration: "14 mins",
-      quiz: {
-        question: "Which PostgreSQL statement is used to show query execution plans and costs?",
-        options: ["DESCRIBE", "EXPLAIN ANALYZE", "SELECT INDEX", "SHOW COSTS"],
-        correctAnswer: 1
-      }
-    }
-  ],
-  "SwiftUI Mastery for iOS Platforms": [
-    {
-      title: "Section 1: Declarative UI structures & State variables",
-      startSec: 0,
-      duration: "10 mins",
-      quiz: {
-        question: "Which property wrapper triggers view updates on state changes in SwiftUI?",
-        options: ["@State", "@Binding", "@ObservedObject", "@Environment"],
-        correctAnswer: 0
-      }
-    },
-    {
-      title: "Section 2: NavigationStack, lists, grids scaling",
-      startSec: 600,
-      duration: "12 mins",
-      quiz: {
-        question: "What is the equivalent of ScrollView with items in SwiftUI?",
-        options: ["ListView", "List", "VStack", "GridView"],
-        correctAnswer: 1
-      }
-    }
-  ],
-  "Kotlin & Android Jetpack UI": [
-    {
-      title: "Section 1: Composable layouts & state modifiers",
-      startSec: 0,
-      duration: "10 mins",
-      quiz: {
-        question: "Which function defines a composable UI element in Jetpack Compose?",
-        options: ["@Compose", "@Composable", "onCreateView", "buildUI"],
-        correctAnswer: 1
-      }
-    },
-    {
-      title: "Section 2: State hoisting & viewModels binding",
-      startSec: 600,
-      duration: "12 mins",
-      quiz: {
-        question: "Which wrapper preserves composable state values across recompositions?",
-        options: ["remember", "mutableStateOf", "remember { mutableStateOf(value) }", "stateSave"],
-        correctAnswer: 2
-      }
-    }
-  ],
-  "Pandas & Numpy Data Wrangling": [
-    {
-      title: "Section 1: NDArrays & Vectorized math in NumPy",
-      startSec: 0,
-      duration: "10 mins",
-      quiz: {
-        question: "Which property gets the dimensions of a NumPy array?",
-        options: ["ndim", "shape", "size", "dtype"],
-        correctAnswer: 1
-      }
-    },
-    {
-      title: "Section 2: Series, DataFrames & group aggregations in Pandas",
-      startSec: 600,
-      duration: "12 mins",
-      quiz: {
-        question: "Which Pandas method aggregates grouped rows by function values?",
-        options: ["groupby()", "merge()", "concat()", "apply()"],
-        correctAnswer: 0
-      }
-    }
-  ],
-  "Basics of Routing & HTTP Methods": [
-    {
-      title: "Section 1: Client-Server requests & Headers",
-      startSec: 0,
-      duration: "10 mins",
-      quiz: {
-        question: "Which HTTP request header specifies content encoding/type?",
-        options: ["Content-Type", "Accept", "User-Agent", "Authorization"],
-        correctAnswer: 0
-      }
-    },
-    {
-      title: "Section 2: GET, POST, PUT, DELETE method routing",
-      startSec: 600,
-      duration: "12 mins",
-      quiz: {
-        question: "Which HTTP method should be used to create a new resource on the server?",
-        options: ["GET", "POST", "PUT", "DELETE"],
-        correctAnswer: 1
-      }
-    }
-  ]
-};
 
 function normalizeCourseTitle(title: string): string {
   const mapping: Record<string, string> = {
@@ -618,7 +73,59 @@ export default function CourseLearnScreen() {
   const courseTitle = params.get("course") || "React Native & Expo Ecosystem";
   const normalizedTitle = normalizeCourseTitle(courseTitle);
 
-  const videoUrl = COURSE_VIDEOS[normalizedTitle] || "https://www.youtube.com/embed/hdI2bqOjy3c";
+  const defaultSections = [
+    {
+      title: "Section 1: Getting Started and Basic Setup",
+      startSec: 0,
+      duration: "10 mins",
+      quiz: {
+        question: "What is the primary language used in this course domain?",
+        options: ["TypeScript/JavaScript", "Python", "Swift", "C++"],
+        correctAnswer: 0
+      }
+    },
+    {
+      title: "Section 2: Deep Dive into Core Workflows",
+      startSec: 600,
+      duration: "15 mins",
+      quiz: {
+        question: "Which hook or function is commonly used for managing local state updates?",
+        options: ["useReducer", "useState", "useEffect", "useMemo"],
+        correctAnswer: 1
+      }
+    }
+  ];
+
+  const [videoUrl, setVideoUrl] = useState<string>("https://www.youtube.com/embed/hdI2bqOjy3c");
+  const [sections, setSections] = useState<any[]>(defaultSections);
+  const [materials, setMaterials] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function loadDynamicCourseData() {
+      try {
+        const { fetchDBCourseSections, fetchDBCourseMaterials } = await import("../lib/supabase-db");
+        const [dbSections, dbMaterials] = await Promise.all([
+          fetchDBCourseSections(courseTitle),
+          fetchDBCourseMaterials(courseTitle)
+        ]);
+        setSections(dbSections);
+        setMaterials(dbMaterials);
+
+        // Fetch dynamic course video URL from course database table
+        const { data } = await supabase
+          .from("courses")
+          .select("url")
+          .eq("title", courseTitle)
+          .maybeSingle();
+        if (data && data.url) {
+          setVideoUrl(data.url);
+        }
+      } catch (e) {
+        console.warn("Failed to load course details dynamically:", e);
+      }
+    }
+    loadDynamicCourseData();
+  }, [courseTitle]);
 
   // Timeline and Quiz States
   const [activeStartSec, setActiveStartSec] = useState<number>(0);
@@ -741,7 +248,7 @@ export default function CourseLearnScreen() {
   }, [watchedTime, videoDuration, courseTitle, quizTriggered]);
 
   const handleFifteenMinQuizSubmit = () => {
-    const sectList = COURSE_SECTIONS[courseTitle] || defaultSections;
+    const sectList = sections;
     if (q1Answer === null || q2Answer === null) {
       Alert.alert("Error", "Please answer both questions before submitting.");
       return;
@@ -825,7 +332,7 @@ export default function CourseLearnScreen() {
   };
 
   const handleQuizSubmit = (sectionIdx: number) => {
-    const sectList = COURSE_SECTIONS[courseTitle] || defaultSections;
+    const sectList = sections;
     if (!sectList || showQuizSectionIdx === null) return;
     const sect = sectList[sectionIdx];
     if (selectedQuizOption === null) {
@@ -877,30 +384,7 @@ export default function CourseLearnScreen() {
     }
   };
 
-  const defaultSections = [
-    {
-      title: "Section 1: Getting Started and Basic Setup",
-      startSec: 0,
-      duration: "10 mins",
-      quiz: {
-        question: "What is the primary language used in this course domain?",
-        options: ["TypeScript/JavaScript", "Python", "Swift", "C++"],
-        correctAnswer: 0
-      }
-    },
-    {
-      title: "Section 2: Deep Dive into Core Workflows",
-      startSec: 600,
-      duration: "15 mins",
-      quiz: {
-        question: "Which hook or function is commonly used for managing local state updates?",
-        options: ["useReducer", "useState", "useEffect", "useMemo"],
-        correctAnswer: 1
-      }
-    }
-  ];
 
-  const sections = COURSE_SECTIONS[normalizedTitle] || defaultSections;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={true}>
@@ -980,7 +464,7 @@ export default function CourseLearnScreen() {
                   <View style={styles.quizPanelBody}>
                     <Text style={styles.quizQuestion}>{sect.quiz.question}</Text>
                     <View style={styles.quizOptions}>
-                      {sect.quiz.options.map((opt, oIdx) => {
+                      {sect.quiz.options.map((opt: string, oIdx: number) => {
                         const isSel = selectedQuizOption === oIdx;
                         return (
                           <TouchableOpacity
@@ -1143,7 +627,7 @@ export default function CourseLearnScreen() {
               <View style={styles.materialsList}>
                 {/* 1. Official Course Materials */}
                 <Text style={styles.materialsSubHeader}>Official Reference Guides</Text>
-                {(COURSE_MATERIALS[normalizedTitle] || [
+                {(materials.length > 0 ? materials : [
                   { label: "EduSync Course Study Manual (PDF)", url: "https://developer.mozilla.org/en-US/docs/Learn", type: "doc" },
                   { label: "Topic Reference Guides & Examples", url: "https://dev.to", type: "article" },
                   { label: "Interactive Coding Sandbox Practice", url: "https://www.freecodecamp.org/learn", type: "tutorial" }
@@ -1329,7 +813,7 @@ export default function CourseLearnScreen() {
                   <View style={styles.fifteenQCard}>
                     <Text style={styles.fifteenQText}>Q1: {sections[0].quiz.question}</Text>
                     <View style={styles.fifteenOptions}>
-                      {sections[0].quiz.options.map((opt, oIdx) => {
+                      {sections[0].quiz.options.map((opt: string, oIdx: number) => {
                         const isSel = q1Answer === oIdx;
                         return (
                           <TouchableOpacity
@@ -1354,7 +838,7 @@ export default function CourseLearnScreen() {
                   <View style={styles.fifteenQCard}>
                     <Text style={styles.fifteenQText}>Q2: {sections[1].quiz.question}</Text>
                     <View style={styles.fifteenOptions}>
-                      {sections[1].quiz.options.map((opt, oIdx) => {
+                      {sections[1].quiz.options.map((opt: string, oIdx: number) => {
                         const isSel = q2Answer === oIdx;
                         return (
                           <TouchableOpacity

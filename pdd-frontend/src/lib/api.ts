@@ -4,20 +4,11 @@
 // Reads VITE_API_BASE_URL from your .env file.
 // ============================================================
 
-const getEnvVar = (key: string): string => {
-  const expoKey = "EXPO_PUBLIC_" + key.replace("VITE_", "");
-  if (typeof process !== "undefined" && process.env) {
-    if (process.env[expoKey]) return process.env[expoKey];
-    if (process.env[key]) return process.env[key];
-  }
-  if (typeof window !== "undefined" && (window as any).env && (window as any).env[key]) {
-    return (window as any).env[key];
-  }
-  return "";
-};
-
 export const API_BASE_URL =
-  getEnvVar("VITE_API_BASE_URL") || "http://localhost:3000/api";
+  process.env.EXPO_PUBLIC_VITE_API_BASE_URL ||
+  process.env.VITE_API_BASE_URL ||
+  (typeof window !== "undefined" && (window as any).env?.VITE_API_BASE_URL) ||
+  "http://localhost:3000/api";
 
 // ---- Generic fetch wrapper ------------------------------------
 

@@ -522,17 +522,36 @@ export function useDashboardStore() {
         const session = sessionData.data.session;
         if (session?.user) {
           let targetId: number | null = null;
+          let courseTitle: string | null = null;
+
           if (typeof courseIdOrTitle === "number") {
             targetId = courseIdOrTitle;
+            const foundCourse = state.enrolledCourses.find(c => c.id === targetId) || 
+                                state.suggestedCourses.find(c => c.id === targetId);
+            if (foundCourse) {
+              courseTitle = foundCourse.title;
+            }
           } else {
-            // Find course ID by title
-            const { data } = await supabase
-              .from("courses")
-              .select("id")
-              .eq("title", courseIdOrTitle)
-              .maybeSingle();
-            if (data) {
-              targetId = data.id;
+            courseTitle = courseIdOrTitle;
+            // 1. Try to find the ID from local store state first (fast & case-insensitive)
+            const foundCourse = state.enrolledCourses.find(
+              c => c.title.toLowerCase() === courseIdOrTitle.toLowerCase()
+            ) || state.suggestedCourses.find(
+              c => c.title.toLowerCase() === courseIdOrTitle.toLowerCase()
+            );
+
+            if (foundCourse && foundCourse.id !== undefined) {
+              targetId = foundCourse.id;
+            } else {
+              // 2. Fallback to querying the database
+              const { data } = await supabase
+                .from("courses")
+                .select("id")
+                .ilike("title", courseIdOrTitle)
+                .maybeSingle();
+              if (data) {
+                targetId = data.id;
+              }
             }
           }
 
@@ -543,12 +562,41 @@ export function useDashboardStore() {
               .eq("user_id", session.user.id)
               .eq("course_id", targetId);
 
-            // Proactively delete any associated assessments for this course
+            // Proactively delete any associated assessments for this course by ID pattern
             await supabase
               .from("assessments")
               .delete()
               .eq("user_id", session.user.id)
               .like("id", `course_${targetId}_%`);
+          }
+
+          // Proactively delete any associated assessments by course title (subject) to be absolutely sure
+          if (courseTitle) {
+            await supabase
+              .from("assessments")
+              .delete()
+              .eq("user_id", session.user.id)
+              .eq("subject", courseTitle);
+          }
+
+          // Clean up local storage cache for assessments as well
+          if (typeof window !== "undefined" && window.localStorage) {
+            const keys = Object.keys(window.localStorage);
+            keys.forEach(key => {
+              if (key.startsWith(`assessments_${session.user.id}_`)) {
+                try {
+                  const cachedData = JSON.parse(window.localStorage.getItem(key) || "[]");
+                  const filteredData = cachedData.filter((ass: any) => {
+                    const isStaleId = targetId ? ass.id.startsWith(`course_${targetId}_`) : false;
+                    const isStaleSubject = courseTitle ? (ass.subject && ass.subject.toLowerCase() === courseTitle.toLowerCase()) : false;
+                    return !isStaleId && !isStaleSubject;
+                  });
+                  window.localStorage.setItem(key, JSON.stringify(filteredData));
+                } catch (e) {
+                  console.error("Failed to clean up assessments cache for key", key, e);
+                }
+              }
+            });
           }
 
           const answers = state.surveyAnswers;

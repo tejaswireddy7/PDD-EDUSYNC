@@ -144,7 +144,7 @@ export default function AssessmentsScreen() {
 
   useEffect(() => {
     loadData(true);
-  }, [focusDomain, userProficiency]);
+  }, [focusDomain, userProficiency, store.enrolledCourses]);
 
   const onRefresh = async () => {
     setRefreshing(true);

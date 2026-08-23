@@ -1638,3 +1638,28 @@ supabase.auth.onAuthStateChange((event: any, session: any) => {
 });
 
 export type { SurveyAnswers, UserProfile };
+
+export const themeColors = {
+  light: {
+    primary: "#6366f1",
+    secondary: "#475569",
+    background: "#f8fafc",
+    card: "#ffffff",
+    text: "#0f172a",
+    subtext: "#64748b",
+    border: "#cbd5e1",
+    divider: "#f1f5f9",
+    inputBg: "#f8fafc"
+  },
+  dark: {
+    primary: "#818cf8",
+    secondary: "#94a3b8",
+    background: "#090d16",
+    card: "#151b2c",
+    text: "#f8fafc",
+    subtext: "#94a3b8",
+    border: "#1e293b",
+    divider: "#1e293b",
+    inputBg: "#111827"
+  }
+};

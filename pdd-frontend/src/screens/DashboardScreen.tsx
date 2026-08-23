@@ -7,7 +7,7 @@ import { CareerPanel } from "../components/skillora/CareerPanel";
 import { SideRail } from "../components/skillora/SideRail";
 import { ResourceHub } from "../components/skillora/ResourceHub";
 import { SurveyModal } from "../components/skillora/SurveyModal";
-import { useDashboardStore } from "../lib/store";
+import { useDashboardStore, themeColors } from "../lib/store";
 
 export default function DashboardScreen() {
   const store = useDashboardStore();
@@ -15,6 +15,8 @@ export default function DashboardScreen() {
 
   const focusDomain = store.surveyAnswers?.focusDomain;
   const proficiency = store.surveyAnswers?.proficiency;
+  const appTheme = store.appTheme || "light";
+  const currentColors = themeColors[appTheme as "light" | "dark"] || themeColors.light;
 
   useEffect(() => {
     if (store.token && !store.isLoadingRecommendations) {
@@ -34,7 +36,7 @@ export default function DashboardScreen() {
   };
 
   return (
-    <View style={styles.outerContainer}>
+    <View style={[styles.outerContainer, { backgroundColor: currentColors.background }]}>
 
 
       {store.isLoadingRecommendations || !store.recommendations || !store.recommendations.courses ? (
@@ -44,7 +46,7 @@ export default function DashboardScreen() {
         </View>
       ) : (
         <ScrollView 
-          style={styles.container} 
+          style={[styles.container, { backgroundColor: currentColors.background }]} 
           contentContainerStyle={styles.contentContainer}
           showsVerticalScrollIndicator={false}
           refreshControl={

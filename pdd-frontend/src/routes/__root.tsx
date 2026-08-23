@@ -125,14 +125,17 @@ function RootLayout() {
     return <AuthScreen onSuccess={() => {}} />;
   }
 
+  const appTheme = store.appTheme || "light";
+  const isDark = appTheme === "dark";
+
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-slate-50 font-sans text-slate-800 antialiased">
+    <div className={`flex h-screen w-screen overflow-hidden font-sans antialiased ${isDark ? "bg-[#090d16] text-slate-100" : "bg-slate-50 text-slate-800"}`}>
       {/* ========================================================================= */}
       {/* DESKTOP SIDEBAR (Visible on md and larger viewports)                     */}
       {/* ========================================================================= */}
-      <aside className="hidden md:flex md:w-64 md:flex-col border-r border-slate-200 bg-white shadow-sm shrink-0">
+      <aside className={`hidden md:flex md:w-64 md:flex-col border-r shrink-0 ${isDark ? "bg-[#151b2c] border-[#1e293b]" : "bg-white border-slate-200 shadow-sm"}`}>
         {/* Brand Header */}
-        <div className="flex h-16 items-center px-6 border-b border-slate-100">
+        <div className={`flex h-16 items-center px-6 border-b ${isDark ? "border-[#1e293b]" : "border-slate-100"}`}>
           <div className="flex items-center gap-2.5">
             <img 
               src="/logo.png" 
@@ -140,7 +143,7 @@ function RootLayout() {
               alt="EduSync Logo" 
             />
             <div>
-              <h1 className="text-base font-bold tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+              <h1 className={`text-base font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r ${isDark ? "from-white to-slate-300" : "from-slate-900 to-slate-700"}`}>
                 EduSync
               </h1>
               <p className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
@@ -160,10 +163,14 @@ function RootLayout() {
                 to={item.to}
                 activeOptions={{ exact: item.to === "/" }}
                 activeProps={{
-                  className: "bg-indigo-50/70 text-indigo-600 font-semibold shadow-sm border-l-4 border-indigo-500",
+                  className: isDark 
+                    ? "bg-indigo-950/40 text-indigo-400 font-semibold shadow-sm border-l-4 border-indigo-500"
+                    : "bg-indigo-50/70 text-indigo-600 font-semibold shadow-sm border-l-4 border-indigo-500",
                 }}
                 inactiveProps={{
-                  className: "text-slate-500 hover:bg-slate-50 hover:text-slate-900 border-l-4 border-transparent",
+                  className: isDark
+                    ? "text-slate-400 hover:bg-[#1e293b] hover:text-white border-l-4 border-transparent"
+                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 border-l-4 border-transparent",
                 }}
                 className="flex items-center gap-3.5 px-4 py-3 rounded-lg text-sm transition-all duration-200 cursor-pointer"
               >
@@ -180,7 +187,7 @@ function RootLayout() {
         </nav>
 
         {/* Desktop Sidebar Footer */}
-        <div className="p-4 border-t border-slate-100 bg-slate-50/50">
+        <div className={`p-4 border-t ${isDark ? "border-[#1e293b] bg-[#111827]/50" : "border-slate-100 bg-slate-50/50"}`}>
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
               <div className="h-9 w-9 rounded-full bg-indigo-100 flex items-center justify-center text-sm font-semibold text-indigo-700 uppercase">
@@ -191,7 +198,7 @@ function RootLayout() {
                   .substring(0, 2) || "S"}
               </div>
               <div className="truncate">
-                <p className="text-xs font-semibold text-slate-700 truncate">{store.user?.name || "Student"}</p>
+                <p className={`text-xs font-semibold truncate ${isDark ? "text-slate-200" : "text-slate-700"}`}>{store.user?.name || "Student"}</p>
                 <p className="text-[10px] text-slate-400 truncate">{store.user?.email || "student@edusync.ai"}</p>
               </div>
             </div>
@@ -211,7 +218,7 @@ function RootLayout() {
         {/* ========================================================================= */}
         {/* MOBILE BOTTOM NAVIGATION BAR (Visible on screens smaller than md)          */}
         {/* ========================================================================= */}
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 border-t border-slate-200 bg-white/95 backdrop-blur-md flex items-center justify-around px-2 z-50 shadow-lg">
+        <nav className={`md:hidden fixed bottom-0 left-0 right-0 h-16 border-t flex items-center justify-around px-2 z-50 shadow-lg ${isDark ? "bg-[#151b2c]/95 border-[#1e293b] text-slate-200" : "bg-white/95 border-slate-200 text-slate-800"} backdrop-blur-md`}>
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -220,10 +227,10 @@ function RootLayout() {
                 to={item.to}
                 activeOptions={{ exact: item.to === "/" }}
                 activeProps={{
-                  className: "text-indigo-600 scale-105 font-bold",
+                  className: isDark ? "text-indigo-400 scale-105 font-bold" : "text-indigo-600 scale-105 font-bold",
                 }}
                 inactiveProps={{
-                  className: "text-slate-400 hover:text-slate-600",
+                  className: isDark ? "text-slate-500 hover:text-slate-300" : "text-slate-400 hover:text-slate-600",
                 }}
                 className="flex flex-col items-center justify-center flex-1 py-1 transition-all duration-200 text-center cursor-pointer relative"
               >

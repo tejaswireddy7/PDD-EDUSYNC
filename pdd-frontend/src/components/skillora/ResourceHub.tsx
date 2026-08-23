@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Linking, Platform } from "react-native";
 import { Feather, FontAwesome } from "@expo/vector-icons";
-import { useDashboardStore } from "../../lib/store";
+import { useDashboardStore, themeColors } from "../../lib/store";
 import { useNavigate } from "@tanstack/react-router";
 import { WebView } from "react-native-webview";
 
@@ -105,6 +105,9 @@ export function ResourceHub() {
   const focusDomain = store.surveyAnswers?.focusDomain || "General";
   const userProficiency = store.surveyAnswers?.proficiency || "Beginner";
   const navigate = useNavigate();
+  const appTheme = store.appTheme || "light";
+  const currentColors = themeColors[appTheme as "light" | "dark"] || themeColors.light;
+  const isDark = appTheme === "dark";
 
   const [videoUrl, setVideoUrl] = React.useState<string | null>(null);
   const [videoTitle, setVideoTitle] = React.useState<string>("");
@@ -134,11 +137,11 @@ export function ResourceHub() {
     <View style={styles.container}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.title}>Collaborative Resource Hub</Text>
-          <Text style={styles.subTitle}>Notes & projects shared by peers</Text>
+          <Text style={[styles.title, { color: currentColors.text }]}>Collaborative Resource Hub</Text>
+          <Text style={[styles.subTitle, { color: currentColors.subtext }]}>Notes & projects shared by peers</Text>
         </View>
         <TouchableOpacity onPress={() => navigate({ to: "/resources" })}>
-          <Text style={styles.exploreAll}>Explore all</Text>
+          <Text style={[styles.exploreAll, { color: currentColors.primary }]}>Explore all</Text>
         </TouchableOpacity>
       </View>
 
@@ -146,16 +149,16 @@ export function ResourceHub() {
         {dynamicResources.map((r) => (
           <TouchableOpacity 
             key={r.id} 
-            style={styles.card}
+            style={[styles.card, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}
             onPress={() => openResourceUrl(r.title)}
             activeOpacity={0.85}
           >
             <View style={styles.cardTop}>
-              <View style={styles.iconBox}>
+              <View style={[styles.iconBox, isDark && { backgroundColor: currentColors.divider }]}>
                 <Feather name={getResourceIcon(r.title, r.type) as any} size={16} color="#6366f1" />
               </View>
               <TouchableOpacity>
-                <Feather name="bookmark" size={16} color="#64748b" />
+                <Feather name="bookmark" size={16} color={currentColors.subtext} />
               </TouchableOpacity>
             </View>
 
@@ -163,8 +166,8 @@ export function ResourceHub() {
               <View style={[styles.badge, styles.bgPrimary]}>
                 <Text style={[styles.badgeText, styles.textPrimary]}>{r.subject}</Text>
               </View>
-              <View style={[styles.badge, styles.bgMuted]}>
-                <Text style={[styles.badgeText, styles.textGray]}>{r.level}</Text>
+              <View style={[styles.badge, isDark ? { backgroundColor: currentColors.divider } : styles.bgMuted]}>
+                <Text style={[styles.badgeText, { color: currentColors.subtext }]}>{r.level}</Text>
               </View>
               {r.trending && (
                 <View style={[styles.badge, styles.bgMint]}>
@@ -174,20 +177,20 @@ export function ResourceHub() {
               )}
             </View>
 
-            <Text style={styles.resourceTitle} numberOfLines={2}>
+            <Text style={[styles.resourceTitle, { color: currentColors.text }]} numberOfLines={2}>
               {r.title}
             </Text>
 
             <View style={styles.footer}>
-              <Text style={styles.author} numberOfLines={1}>by {r.author}</Text>
+              <Text style={[styles.author, { color: currentColors.subtext }]} numberOfLines={1}>by {r.author}</Text>
               <View style={styles.stats}>
                 <View style={styles.statRow}>
                   <FontAwesome name="star" size={10} color="#0d9488" />
-                  <Text style={styles.statText}>{r.rating}</Text>
+                  <Text style={[styles.statText, { color: currentColors.subtext }]}>{r.rating}</Text>
                 </View>
                 <View style={styles.statRow}>
-                  <Feather name="download" size={10} color="#64748b" />
-                  <Text style={styles.statText}>{r.downloads}</Text>
+                  <Feather name="download" size={10} color={currentColors.subtext} />
+                  <Text style={[styles.statText, { color: currentColors.subtext }]}>{r.downloads}</Text>
                 </View>
               </View>
             </View>
@@ -197,11 +200,11 @@ export function ResourceHub() {
 
       {videoUrl && (
         <View style={styles.videoOverlay}>
-          <View style={styles.videoModal}>
+          <View style={[styles.videoModal, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
             <View style={styles.videoHeader}>
-              <Text style={styles.videoTitle} numberOfLines={1}>{videoTitle}</Text>
+              <Text style={[styles.videoTitle, { color: currentColors.text }]} numberOfLines={1}>{videoTitle}</Text>
               <TouchableOpacity onPress={() => setVideoUrl(null)} style={styles.closeBtn}>
-                <Feather name="x" size={18} color="#ffffff" />
+                <Feather name="x" size={18} color={currentColors.text} />
               </TouchableOpacity>
             </View>
             <View style={styles.videoPlayerContainer}>

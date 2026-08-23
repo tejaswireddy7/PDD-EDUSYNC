@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useDashboardStore } from "../../lib/store";
+import { useDashboardStore, themeColors } from "../../lib/store";
 import { supabase } from "../../lib/supabase";
 
 interface HeaderProps {
@@ -13,6 +13,9 @@ export function Header({ hideSurvey = false }: HeaderProps) {
   const store = useDashboardStore();
   const userName = store.user?.name || "Student";
   const [showNotifications, setShowNotifications] = React.useState(false);
+  const appTheme = store.appTheme || "light";
+  const currentColors = themeColors[appTheme as "light" | "dark"] || themeColors.light;
+  const isDark = appTheme === "dark";
 
   const notifications = [];
   if (store.user?.streak && store.user.streak > 0) {
@@ -60,44 +63,40 @@ export function Header({ hideSurvey = false }: HeaderProps) {
         await doLogout();
       }
     } else {
-      Alert.alert("Log Out", "Are you sure you want to log out?", [
+      Alert.alert("Logout", "Are you sure you want to log out?", [
         { text: "Cancel", style: "cancel" },
-        { text: "Log Out", style: "destructive", onPress: doLogout },
+        { text: "Logout", onPress: doLogout }
       ]);
     }
   };
 
   const getGreeting = () => {
-    const hours = new Date().getHours();
-    if (hours >= 0 && hours < 12) {
-      return "Good morning";
-    } else if (hours >= 12 && hours < 16) {
-      return "Good afternoon";
-    } else {
-      return "Good evening";
-    }
+    const hrs = new Date().getHours();
+    if (hrs < 12) return "Good morning";
+    if (hrs < 18) return "Good afternoon";
+    return "Good evening";
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.greetingContainer}>
         <View style={styles.metaRow}>
-          <Text style={styles.metaText}>{getGreeting()}</Text>
-          <View style={styles.dot} />
-          <Text style={styles.metaText}>
+          <Text style={[styles.metaText, { color: currentColors.subtext }]}>{getGreeting()}</Text>
+          <View style={[styles.dot, { backgroundColor: currentColors.border }]} />
+          <Text style={[styles.metaText, { color: currentColors.subtext }]}>
             {new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}
           </Text>
         </View>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-          <Text style={styles.welcomeText}>
+          <Text style={[styles.welcomeText, { color: currentColors.text }]}>
             Welcome back, {userName} <Text style={styles.waveEmoji}>👋</Text>
           </Text>
         </View>
       </View>
 
       <View style={styles.actionsContainer}>
-        <TouchableOpacity style={styles.iconButton} onPress={() => setShowNotifications(!showNotifications)}>
-          <Feather name="bell" size={20} color="#475569" />
+        <TouchableOpacity style={[styles.iconButton, { backgroundColor: currentColors.card, borderColor: currentColors.border }]} onPress={() => setShowNotifications(!showNotifications)}>
+          <Feather name="bell" size={20} color={currentColors.text} />
           <View style={styles.badge} />
         </TouchableOpacity>
 
@@ -111,18 +110,18 @@ export function Header({ hideSurvey = false }: HeaderProps) {
         </LinearGradient>
 
         {showNotifications && (
-          <View style={styles.notificationsContainer}>
-            <View style={styles.notifHeader}>
-              <Text style={styles.notifTitle}>Notifications</Text>
+          <View style={[styles.notificationsContainer, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
+            <View style={[styles.notifHeader, { borderBottomColor: currentColors.divider }]}>
+              <Text style={[styles.notifTitle, { color: currentColors.text }]}>Notifications</Text>
               <TouchableOpacity onPress={() => setShowNotifications(false)}>
-                <Text style={{ fontSize: 13, color: "#64748b", fontWeight: "700" }}>✕</Text>
+                <Text style={{ fontSize: 13, color: currentColors.subtext, fontWeight: "700" }}>✕</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.notifList}>
               {notifications.map((n) => (
-                <View key={n.id} style={[styles.notifItem, !n.read && styles.notifUnread]}>
-                  <Text style={styles.notifText}>{n.text}</Text>
-                  <Text style={styles.notifTime}>{n.time}</Text>
+                <View key={n.id} style={[styles.notifItem, !n.read && { backgroundColor: isDark ? "rgba(129, 140, 248, 0.1)" : "rgba(99, 102, 241, 0.05)" }]}>
+                  <Text style={[styles.notifText, { color: currentColors.text }]}>{n.text}</Text>
+                  <Text style={[styles.notifTime, { color: currentColors.subtext }]}>{n.time}</Text>
                 </View>
               ))}
             </View>

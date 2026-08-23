@@ -4,7 +4,7 @@ import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigate } from "@tanstack/react-router";
 import { useNavigation } from "@react-navigation/native";
-import { useDashboardStore } from "../../lib/store";
+import { useDashboardStore, themeColors } from "../../lib/store";
 import { supabase } from "../../lib/supabase";
 import { fetchDBCourses } from "../../lib/supabase-db";
 
@@ -44,14 +44,15 @@ export function ContinueLearning() {
   const allCourses = store.recommendations?.courses || [];
   const enrolled = store.enrolledCourses || [];
   const suggested = store.suggestedCourses || [];
+  const appTheme = store.appTheme || "light";
+  const currentColors = themeColors[appTheme as "light" | "dark"] || themeColors.light;
+  const isDark = appTheme === "dark";
 
   React.useEffect(() => {
     if (store.surveyCompleted && enrolled.length === 0 && suggested.length === 0) {
       store.fetchRecommendations();
     }
   }, [store.surveyCompleted]);
-
-
 
   const [showAllCoursesModal, setShowAllCoursesModal] = React.useState(false);
   const [modalTab, setModalTab] = React.useState<"my" | "all">("my");
@@ -69,9 +70,9 @@ export function ContinueLearning() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Continue Learning</Text>
+        <Text style={[styles.title, { color: currentColors.text }]}>Continue Learning</Text>
         <TouchableOpacity onPress={handleOpenAllCourses}>
-          <Text style={styles.viewAll}>View all</Text>
+          <Text style={[styles.viewAll, { color: currentColors.primary }]}>View all</Text>
         </TouchableOpacity>
       </View>
       <ScrollView 
@@ -80,16 +81,16 @@ export function ContinueLearning() {
         contentContainerStyle={styles.scrollContainer}
       >
         {enrolled.length === 0 ? (
-          <View style={styles.emptyEnrolledCard}>
-            <MaterialCommunityIcons name="book-open-blank-variant" size={24} color="#64748b" style={{ marginBottom: 6 }} />
-            <Text style={styles.emptyEnrolledTitle}>No Enrolled Courses</Text>
-            <Text style={styles.emptyEnrolledText}>Select a suggested course below and click Enroll to start learning!</Text>
+          <View style={[styles.emptyEnrolledCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
+            <MaterialCommunityIcons name="book-open-blank-variant" size={24} color={currentColors.subtext} style={{ marginBottom: 6 }} />
+            <Text style={[styles.emptyEnrolledTitle, { color: currentColors.text }]}>No Enrolled Courses</Text>
+            <Text style={[styles.emptyEnrolledText, { color: currentColors.subtext }]}>Select a suggested course below and click Enroll to start learning!</Text>
           </View>
         ) : (
           enrolled.map((c) => (
             <TouchableOpacity 
               key={c.title} 
-              style={styles.card}
+              style={[styles.card, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}
               activeOpacity={0.9}
               onPress={() => {
                 if (Platform.OS === "web") {
@@ -124,19 +125,19 @@ export function ContinueLearning() {
                   <Feather name="play" size={16} color="#6366f1" style={styles.playIcon} />
                 </View>
               </View>
-              <View style={styles.cardBody}>
+              <View style={[styles.cardBody, { backgroundColor: currentColors.card }]}>
                 <View style={styles.metaRow}>
-                  <Feather name="clock" size={12} color="#64748b" />
-                  <Text style={styles.metaText}>{c.time}</Text>
-                  <View style={styles.dot} />
-                  <Text style={styles.metaText}>{c.difficulty}</Text>
+                  <Feather name="clock" size={12} color={currentColors.subtext} />
+                  <Text style={[styles.metaText, { color: currentColors.subtext }]}>{c.time}</Text>
+                  <View style={[styles.dot, { backgroundColor: currentColors.border }]} />
+                  <Text style={[styles.metaText, { color: currentColors.subtext }]}>{c.difficulty}</Text>
                 </View>
-                <Text style={styles.courseTitle} numberOfLines={2}>{c.title}</Text>
+                <Text style={[styles.courseTitle, { color: currentColors.text }]} numberOfLines={2}>{c.title}</Text>
                 <View style={styles.progressRow}>
-                  <View style={styles.progressTrack}>
+                  <View style={[styles.progressTrack, { backgroundColor: currentColors.divider }]}>
                     <View style={[styles.progressBar, { width: `${c.progress}%` }]} />
                   </View>
-                  <Text style={styles.progressText}>{c.progress}%</Text>
+                  <Text style={[styles.progressText, { color: currentColors.primary }]}>{c.progress}%</Text>
                 </View>
               </View>
             </TouchableOpacity>
@@ -148,7 +149,7 @@ export function ContinueLearning() {
       {suggested.length > 0 && (
         <View style={{ marginTop: 20 }}>
           <View style={styles.header}>
-            <Text style={styles.title}>Suggested Courses</Text>
+            <Text style={[styles.title, { color: currentColors.text }]}>Suggested Courses</Text>
           </View>
           <ScrollView 
             horizontal 
@@ -156,7 +157,7 @@ export function ContinueLearning() {
             contentContainerStyle={styles.scrollContainer}
           >
             {suggested.map((c) => (
-              <View key={c.title} style={styles.card}>
+              <View key={c.title} style={[styles.card, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
                 <View style={styles.cardHeader}>
                   <Image
                     source={{ uri: getCourseImage(c.subject, c.title) }}
@@ -179,14 +180,14 @@ export function ContinueLearning() {
                     )}
                   </View>
                 </View>
-                <View style={styles.cardBody}>
+                <View style={[styles.cardBody, { backgroundColor: currentColors.card }]}>
                   <View style={styles.metaRow}>
-                    <Feather name="clock" size={12} color="#64748b" />
-                    <Text style={styles.metaText}>{c.time}</Text>
-                    <View style={styles.dot} />
-                    <Text style={styles.metaText}>{c.difficulty}</Text>
+                    <Feather name="clock" size={12} color={currentColors.subtext} />
+                    <Text style={[styles.metaText, { color: currentColors.subtext }]}>{c.time}</Text>
+                    <View style={[styles.dot, { backgroundColor: currentColors.border }]} />
+                    <Text style={[styles.metaText, { color: currentColors.subtext }]}>{c.difficulty}</Text>
                   </View>
-                  <Text style={styles.courseTitle} numberOfLines={2}>{c.title}</Text>
+                  <Text style={[styles.courseTitle, { color: currentColors.text }]} numberOfLines={2}>{c.title}</Text>
                   
                   <TouchableOpacity
                     style={styles.enrollBtn}
@@ -217,22 +218,22 @@ export function ContinueLearning() {
         onRequestClose={() => setShowAllCoursesModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{store.surveyAnswers?.focusDomain || "Mobile"} Pathway Courses</Text>
+          <View style={[styles.modalContent, { backgroundColor: currentColors.card }]}>
+            <View style={[styles.modalHeader, { borderBottomColor: currentColors.divider }]}>
+              <Text style={[styles.modalTitle, { color: currentColors.text }]}>{store.surveyAnswers?.focusDomain || "Mobile"} Pathway Courses</Text>
               <TouchableOpacity onPress={() => setShowAllCoursesModal(false)} style={styles.closeButton}>
-                <Feather name="x" size={20} color="#64748b" />
+                <Feather name="x" size={20} color={currentColors.subtext} />
               </TouchableOpacity>
             </View>
 
             {/* Modal Tabs Toggles */}
-            <View style={styles.modalTabs}>
+            <View style={[styles.modalTabs, { borderBottomColor: currentColors.divider }]}>
               <TouchableOpacity 
                 style={[styles.modalTabBtn, modalTab === "my" && styles.modalTabBtnActive]} 
                 onPress={() => setModalTab("my")}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.modalTabBtnText, modalTab === "my" && styles.modalTabBtnTextActive]}>
+                <Text style={[styles.modalTabBtnText, { color: modalTab === "my" ? "#6366f1" : currentColors.subtext }]}>
                   My Courses ({enrolled.length})
                 </Text>
               </TouchableOpacity>
@@ -241,7 +242,7 @@ export function ContinueLearning() {
                 onPress={() => setModalTab("all")}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.modalTabBtnText, modalTab === "all" && styles.modalTabBtnTextActive]}>
+                <Text style={[styles.modalTabBtnText, { color: modalTab === "all" ? "#6366f1" : currentColors.subtext }]}>
                   Explore All ({modalCourses.length})
                 </Text>
               </TouchableOpacity>
@@ -250,9 +251,9 @@ export function ContinueLearning() {
             <ScrollView contentContainerStyle={styles.modalList} showsVerticalScrollIndicator={false}>
               {listToRender.length === 0 ? (
                 <View style={styles.modalEmptyState}>
-                  <Feather name="book-open" size={40} color="#94a3b8" style={{ marginBottom: 12 }} />
-                  <Text style={styles.modalEmptyText}>No active courses yet</Text>
-                  <Text style={styles.modalEmptySubText}>
+                  <Feather name="book-open" size={40} color={currentColors.subtext} style={{ marginBottom: 12 }} />
+                  <Text style={[styles.modalEmptyText, { color: currentColors.text }]}>No active courses yet</Text>
+                  <Text style={[styles.modalEmptySubText, { color: currentColors.subtext }]}>
                     You haven't started any lessons. Switch to "Explore All" to begin your pathway!
                   </Text>
                 </View>
@@ -260,7 +261,7 @@ export function ContinueLearning() {
                 listToRender.map((c) => (
                   <TouchableOpacity
                     key={c.title}
-                    style={styles.modalCard}
+                    style={[styles.modalCard, { backgroundColor: currentColors.background, borderColor: currentColors.border }]}
                     onPress={() => {
                       if (!enrolled.some(ec => ec.title === c.title)) {
                         Alert.alert("Enroll Required", "Please click the 'Enroll' button to add this course to your learning pathway first.");
@@ -289,7 +290,7 @@ export function ContinueLearning() {
                         <View style={styles.badge}>
                           <Text style={styles.badgeText}>{c.difficulty || "Beginner"}</Text>
                         </View>
-                        <Text style={styles.modalCardTitle}>{c.title}</Text>
+                        <Text style={[styles.modalCardTitle, { color: "#ffffff" }]}>{c.title}</Text>
                         <View style={{ flexDirection: "row", alignItems: "center", gap: 12, marginTop: 4 }}>
                           <Text style={styles.modalCardDuration}>
                             <Feather name="clock" size={12} color="#ffffffaa" /> {c.time || "10 hrs"}

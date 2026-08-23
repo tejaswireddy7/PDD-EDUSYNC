@@ -2,13 +2,16 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Modal, Alert, ScrollView, Switch } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useDashboardStore } from "../../lib/store";
+import { useDashboardStore, themeColors } from "../../lib/store";
 
 export function SideRail() {
   const store = useDashboardStore();
   const focusDomain = store.surveyAnswers?.focusDomain || "Mobile";
   const userProficiency = store.surveyAnswers?.proficiency || "Beginner";
   const nextAssessment = store.recommendations?.nextAssessment || `Introduction to ${focusDomain}`;
+  const appTheme = store.appTheme || "light";
+  const currentColors = themeColors[appTheme as "light" | "dark"] || themeColors.light;
+  const isDark = appTheme === "dark";
 
   const [showCacheManager, setShowCacheManager] = useState(false);
 
@@ -44,29 +47,29 @@ export function SideRail() {
   return (
     <View style={styles.container}>
       {/* Upcoming Assessments Widget */}
-      <View style={styles.card}>
+      <View style={[styles.card, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
         <View style={styles.cardHeader}>
           <View style={[styles.iconBox, styles.bgPrimary]}>
             <Feather name="calendar" size={16} color="#6366f1" />
           </View>
-          <Text style={styles.cardTitle}>Upcoming Assessments</Text>
+          <Text style={[styles.cardTitle, { color: currentColors.text }]}>Upcoming Assessments</Text>
         </View>
         <View style={styles.upcomingList}>
           {upcoming.map((u) => {
             const isPrimary = u.color === "primary";
             return (
               <View key={u.title} style={styles.upcomingItem}>
-                <View style={[styles.dateBox, isPrimary ? styles.bgPrimaryLight : styles.bgMintLight]}>
-                  <Text style={[styles.dayText, isPrimary ? styles.textPrimary : styles.textMint]}>
+                <View style={[styles.dateBox, isDark ? { backgroundColor: currentColors.divider } : (isPrimary ? styles.bgPrimaryLight : styles.bgMintLight)]}>
+                  <Text style={[styles.dayText, isDark ? { color: currentColors.subtext } : (isPrimary ? styles.textPrimary : styles.textMint)]}>
                     {u.day}
                   </Text>
-                  <Text style={[styles.dateText, isPrimary ? styles.textPrimary : styles.textMint]}>
+                  <Text style={[styles.dateText, { color: isDark ? currentColors.text : (isPrimary ? "#6366f1" : "#0d9488") }]}>
                     {u.date}
                   </Text>
                 </View>
                 <View style={styles.upcomingDetails}>
-                  <Text style={styles.upcomingTitle} numberOfLines={1}>{u.title}</Text>
-                  <Text style={styles.upcomingMeta}>9:00 AM • 45 min</Text>
+                  <Text style={[styles.upcomingTitle, { color: currentColors.text }]} numberOfLines={1}>{u.title}</Text>
+                  <Text style={[styles.upcomingMeta, { color: currentColors.subtext }]}>9:00 AM • 45 min</Text>
                 </View>
               </View>
             );
@@ -104,15 +107,15 @@ export function SideRail() {
       <TouchableOpacity 
         activeOpacity={0.85} 
         onPress={() => setShowCacheManager(true)} 
-        style={[styles.card, styles.offlineCard]}
+        style={[styles.card, styles.offlineCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}
       >
         <View style={styles.offlineLeft}>
-          <View style={styles.iconBoxBeige}>
-            <Feather name="wifi-off" size={18} color="#78350f" />
+          <View style={[styles.iconBoxBeige, isDark && { backgroundColor: currentColors.divider }]}>
+            <Feather name="wifi-off" size={18} color={isDark ? currentColors.text : "#78350f"} />
           </View>
           <View style={styles.offlineText}>
-            <Text style={styles.offlineTitle}>Low-data mode</Text>
-            <Text style={styles.offlineSubtitle}>
+            <Text style={[styles.offlineTitle, { color: currentColors.text }]}>Low-data mode</Text>
+            <Text style={[styles.offlineSubtitle, { color: currentColors.subtext }]}>
               {store.lowDataMode ? "Active" : "Disabled"} • {store.cachedMaterials.length} files cached
             </Text>
           </View>
@@ -130,18 +133,18 @@ export function SideRail() {
         onRequestClose={() => setShowCacheManager(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Offline Cache Settings</Text>
+          <View style={[styles.modalContent, { backgroundColor: currentColors.card }]}>
+            <View style={[styles.modalHeader, { borderBottomColor: currentColors.divider }]}>
+              <Text style={[styles.modalTitle, { color: currentColors.text }]}>Offline Cache Settings</Text>
               <TouchableOpacity onPress={() => setShowCacheManager(false)} style={styles.closeBtn}>
-                <Feather name="x" size={18} color="#475569" />
+                <Feather name="x" size={18} color={currentColors.subtext} />
               </TouchableOpacity>
             </View>
 
             <View style={styles.cacheSettingRow}>
               <View style={{ flex: 1, marginRight: 8 }}>
-                <Text style={styles.cacheSettingLabel}>Enable Low-Data Caching</Text>
-                <Text style={styles.cacheSettingDesc}>
+                <Text style={[styles.cacheSettingLabel, { color: currentColors.text }]}>Enable Low-Data Caching</Text>
+                <Text style={[styles.cacheSettingDesc, { color: currentColors.subtext }]}>
                   Stores all course documents, syllabus guides, and notes locally when opened so you don't need internet to revisit them.
                 </Text>
               </View>
@@ -151,21 +154,21 @@ export function SideRail() {
               />
             </View>
 
-            <Text style={styles.cachedSectionHeader}>
+            <Text style={[styles.cachedSectionHeader, { color: currentColors.text }]}>
               Cached Lessons ({store.cachedMaterials.length})
             </Text>
 
             <ScrollView style={styles.cachedListScroll} showsVerticalScrollIndicator={true}>
               {store.cachedMaterials.length === 0 ? (
-                <Text style={styles.emptyCacheText}>No items stored in local cache memory yet.</Text>
+                <Text style={[styles.emptyCacheText, { color: currentColors.subtext }]}>No items stored in local cache memory yet.</Text>
               ) : (
                 store.cachedMaterials.map((m, idx) => (
                   <View key={idx} style={styles.cachedItemRow}>
                     <Feather name="file-text" size={12} color="#6366f1" style={{ marginRight: 6 }} />
-                    <Text style={styles.cachedItemText} numberOfLines={1}>
+                    <Text style={[styles.cachedItemText, { color: currentColors.text }]} numberOfLines={1}>
                       {m.title}
                     </Text>
-                    <Text style={styles.cachedItemDate}>
+                    <Text style={[styles.cachedItemDate, { color: currentColors.subtext }]}>
                       {new Date(m.cachedAt).toLocaleDateString()}
                     </Text>
                   </View>

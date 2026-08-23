@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform, Image } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useDashboardStore } from "../../lib/store";
+import { useDashboardStore, themeColors } from "../../lib/store";
 
 function BootstrapIcon({ name, size, color, style }: { name: string; size: number; color: string; style?: any }) {
   if (Platform.OS === "web") {
@@ -74,6 +74,9 @@ export function StatCards() {
   const store = useDashboardStore();
   const targetHours = store.recommendations?.weeklyHoursTarget || 5;
   const userProficiency = store.surveyAnswers?.proficiency || "Beginner";
+  const appTheme = store.appTheme || "light";
+  const currentColors = themeColors[appTheme as "light" | "dark"] || themeColors.light;
+  const isDark = appTheme === "dark";
 
   const enrolled = store.enrolledCourses || [];
   const coursesCompleted = String(enrolled.filter(c => c.progress === 100).length);
@@ -101,15 +104,15 @@ export function StatCards() {
   return (
     <View style={styles.container}>
       {/* 1. XP Calculator Widget */}
-      <TouchableOpacity activeOpacity={0.9} onPress={showXpGuide} style={styles.xpCard}>
+      <TouchableOpacity activeOpacity={0.9} onPress={showXpGuide} style={[styles.xpCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
         <View style={styles.xpHeader}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
             <MaterialCommunityIcons name="trophy-outline" size={18} color="#eab308" />
-            <Text style={styles.xpTitle}>XP Calculator & Progress</Text>
+            <Text style={[styles.xpTitle, { color: currentColors.text }]}>XP Calculator & Progress</Text>
           </View>
-          <Text style={styles.xpValue}>{userXp.toLocaleString()} / {nextLevelXp.toLocaleString()} XP</Text>
+          <Text style={[styles.xpValue, { color: currentColors.text }]}>{userXp.toLocaleString()} / {nextLevelXp.toLocaleString()} XP</Text>
         </View>
-        <View style={styles.progressBarTrack}>
+        <View style={[styles.progressBarTrack, { backgroundColor: currentColors.divider }]}>
           <LinearGradient
             colors={["#6366f1", "#8b5cf6"]}
             start={{ x: 0, y: 0 }}
@@ -117,7 +120,7 @@ export function StatCards() {
             style={[styles.progressBarFill, { width: `${progressPercent}%` }]}
           />
         </View>
-        <Text style={styles.xpFeedback}>
+        <Text style={[styles.xpFeedback, { color: currentColors.subtext }]}>
           {userXp > 0 
             ? `You need ${(nextLevelXp - userXp).toLocaleString()} XP to rank up as Elite Pathway Learner!` 
             : "Complete lesson tasks to earn XP and progress!"}
@@ -129,13 +132,13 @@ export function StatCards() {
         {stats.map((s, i) => {
           const isPrimary = s.tint === "primary";
           return (
-            <View key={s.label} style={styles.card}>
+            <View key={s.label} style={[styles.card, { borderColor: currentColors.border }]}>
               <Image
                 source={{ uri: s.bgImage }}
                 style={StyleSheet.absoluteFillObject}
                 resizeMode="cover"
               />
-              <View style={[StyleSheet.absoluteFillObject, { backgroundColor: "rgba(255, 255, 255, 0.88)" }]} />
+              <View style={[StyleSheet.absoluteFillObject, { backgroundColor: isDark ? "rgba(21, 27, 44, 0.92)" : "rgba(255, 255, 255, 0.88)" }]} />
               <View style={styles.header}>
                 <View style={[styles.iconContainer, isPrimary ? styles.bgPrimary : styles.bgMint]}>
                   <BootstrapIcon name={s.bootstrapIcon} size={15} color={isPrimary ? "#6366f1" : "#0d9488"} />
@@ -152,8 +155,8 @@ export function StatCards() {
                 </View>
               </View>
               <View style={styles.textContainer}>
-                <Text style={styles.value}>{s.value}</Text>
-                <Text style={styles.label}>{s.label}</Text>
+                <Text style={[styles.value, { color: currentColors.text }]}>{s.value}</Text>
+                <Text style={[styles.label, { color: currentColors.subtext }]}>{s.label}</Text>
               </View>
             </View>
           );

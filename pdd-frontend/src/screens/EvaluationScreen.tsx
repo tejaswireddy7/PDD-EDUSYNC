@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Activi
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Header } from "../components/skillora/Header";
 import { LinearGradient } from "expo-linear-gradient";
-import { useDashboardStore } from "../lib/store";
+import { useDashboardStore, themeColors } from "../lib/store";
 import { supabase } from "../lib/supabase";
 import { fetchDBEvaluation, DBEvaluation } from "../lib/supabase-db";
 
@@ -12,6 +12,9 @@ export default function EvaluationScreen() {
   const focusDomain = store.surveyAnswers?.focusDomain || "Mobile";
   const userProficiency = store.surveyAnswers?.proficiency || "Beginner";
   const assessmentTitle = store.recommendations?.nextAssessment || `Introduction to ${focusDomain}`;
+  const appTheme = store.appTheme || "light";
+  const currentColors = themeColors[appTheme as "light" | "dark"] || themeColors.light;
+  const isDark = appTheme === "dark";
 
   const [evaluation, setEvaluation] = useState<DBEvaluation | null>(null);
   const [loading, setLoading] = useState(false);
@@ -88,20 +91,20 @@ export default function EvaluationScreen() {
 
   if (!submittedId) {
     return (
-      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
+      <ScrollView style={[styles.container, { backgroundColor: currentColors.background }]} contentContainerStyle={[styles.contentContainer, { flexGrow: 1 }]} showsVerticalScrollIndicator={false}>
         <Header hideSurvey={true} />
-        <View style={styles.emptyStateCard}>
+        <View style={[styles.emptyStateCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
           <LinearGradient
-            colors={["rgba(99, 102, 241, 0.05)", "rgba(13, 148, 136, 0.05)"]}
+            colors={isDark ? ["rgba(129, 140, 248, 0.05)", "rgba(20, 184, 166, 0.05)"] : ["rgba(99, 102, 241, 0.05)", "rgba(13, 148, 136, 0.05)"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.emptyStateGradient}
           >
-            <View style={styles.emptyIconCircle}>
+            <View style={[styles.emptyIconCircle, isDark && { backgroundColor: currentColors.divider }]}>
               <Feather name="award" size={32} color="#6366f1" />
             </View>
-            <Text style={styles.emptyTitle}>AI Gradebook Ready</Text>
-            <Text style={styles.emptyDescription}>
+            <Text style={[styles.emptyTitle, { color: currentColors.text }]}>AI Gradebook Ready</Text>
+            <Text style={[styles.emptyDescription, { color: currentColors.subtext }]}>
               You haven't submitted any projects or coding challenges for evaluation yet! 
               Once you upload your first task under the <Text style={{fontWeight: "700", color: "#6366f1"}}>Assessments</Text> tab, 
               your dynamically calculated scores, verified mentor feedback, transparent rubrics, and response metrics will display right here.
@@ -114,7 +117,7 @@ export default function EvaluationScreen() {
 
   if (loading || !evaluation) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#f8fafc" }}>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: currentColors.background }}>
         <ActivityIndicator size="large" color="#6366f1" />
       </View>
     );
@@ -127,13 +130,13 @@ export default function EvaluationScreen() {
   const max = rubric.reduce((s, r) => s + r.max, 0);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
+    <ScrollView style={[styles.container, { backgroundColor: currentColors.background }]} contentContainerStyle={[styles.contentContainer, { flexGrow: 1 }]} showsVerticalScrollIndicator={false}>
       <Header hideSurvey={true} />
 
       {/* Selector Row */}
       {submittedAssessments.length > 1 && (
-        <View style={styles.selectorCard}>
-          <Text style={styles.selectorLabel}>Select Assessment Analytics:</Text>
+        <View style={[styles.selectorCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
+          <Text style={[styles.selectorLabel, { color: currentColors.subtext }]}>Select Assessment Analytics:</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.selectorScroll}>
             {submittedAssessments.map((a, idx) => {
               const isSel = a.id === submittedId;
@@ -145,9 +148,9 @@ export default function EvaluationScreen() {
                     setSubmittedTitle(a.title);
                     setSubmissionNumber(idx + 1);
                   }}
-                  style={[styles.selectorPill, isSel && styles.activeSelectorPill]}
+                  style={[styles.selectorPill, { borderColor: currentColors.border, backgroundColor: isDark ? currentColors.divider : "#f1f5f9" }, isSel && styles.activeSelectorPill]}
                 >
-                  <Text style={[styles.selectorPillText, isSel && styles.activeSelectorPillText]}>
+                  <Text style={[styles.selectorPillText, { color: currentColors.subtext }, isSel && styles.activeSelectorPillText]}>
                     {a.title}
                   </Text>
                 </TouchableOpacity>
@@ -158,12 +161,12 @@ export default function EvaluationScreen() {
       )}
 
       {/* Main Score Overview Card */}
-      <View style={styles.scoreCard}>
+      <View style={[styles.scoreCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
         <View style={styles.scoreHeader}>
           <View style={styles.scoreMeta}>
-            <Text style={styles.scoreMetaText}>Evaluated · Submission #{submissionNumber}</Text>
-            <Text style={styles.scoreTitle}>{submittedTitle}</Text>
-            <Text style={styles.scoreMentor}>Reviewed by AI · {evaluation.mentor}</Text>
+            <Text style={[styles.scoreMetaText, { color: currentColors.subtext }]}>Evaluated · Submission #{submissionNumber}</Text>
+            <Text style={[styles.scoreTitle, { color: currentColors.text }]}>{submittedTitle}</Text>
+            <Text style={[styles.scoreMentor, { color: currentColors.subtext }]}>Reviewed by AI · {evaluation.mentor}</Text>
           </View>
           <View style={styles.scoreContainer}>
             <View style={styles.scoreIconWrapper}>
@@ -171,7 +174,7 @@ export default function EvaluationScreen() {
             </View>
             <View style={styles.scoreTextWrapper}>
               <Text style={styles.scoreNumberText}>
-                {total}<Text style={styles.scoreMaxText}>/{max}</Text>
+                {total}<Text style={[styles.scoreMaxText, { color: currentColors.subtext }]}>/{max}</Text>
               </Text>
               <Text style={styles.scoreLabelText}>Score</Text>
             </View>
@@ -182,15 +185,15 @@ export default function EvaluationScreen() {
         <View style={styles.feedbackBanner}>
           <MaterialCommunityIcons name="creation" size={16} color="#6366f1" style={styles.feedbackIcon} />
           <View style={styles.feedbackDetails}>
-            <Text style={styles.feedbackTitle}>AI-generated feedback</Text>
-            <Text style={styles.feedbackText}>
+            <Text style={[styles.feedbackTitle, { color: currentColors.text }]}>AI-generated feedback</Text>
+            <Text style={[styles.feedbackText, { color: currentColors.subtext }]}>
               {evaluation.ai_feedback}
             </Text>
           </View>
         </View>
 
         {/* Rubric list */}
-        <Text style={styles.rubricTitle}>Transparent rubric breakdown</Text>
+        <Text style={[styles.rubricTitle, { color: currentColors.text }]}>Transparent rubric breakdown</Text>
         <View style={styles.rubricList}>
           {rubric.map((r) => {
             const ratio = r.score / r.max;
@@ -198,10 +201,10 @@ export default function EvaluationScreen() {
             return (
               <View key={r.criterion} style={styles.rubricRow}>
                 <View style={styles.rubricLabelRow}>
-                  <Text style={styles.rubricLabel}>{r.criterion}</Text>
-                  <Text style={styles.rubricScore}>{r.score}/{r.max}</Text>
+                  <Text style={[styles.rubricLabel, { color: currentColors.text }]}>{r.criterion}</Text>
+                  <Text style={[styles.rubricScore, { color: currentColors.text }]}>{r.score}/{r.max}</Text>
                 </View>
-                <View style={styles.rubricBarTrack}>
+                <View style={[styles.rubricBarTrack, { backgroundColor: currentColors.divider }]}>
                   <LinearGradient
                     colors={barColors}
                     start={{ x: 0, y: 0 }}
@@ -209,7 +212,7 @@ export default function EvaluationScreen() {
                     style={[styles.rubricBar, { width: `${ratio * 100}%` }]}
                   />
                 </View>
-                <Text style={styles.rubricNote}>{r.note}</Text>
+                <Text style={[styles.rubricNote, { color: currentColors.subtext }]}>{r.note}</Text>
               </View>
             );
           })}
@@ -217,10 +220,10 @@ export default function EvaluationScreen() {
       </View>
 
       {/* Answer Sheet Card */}
-      <View style={styles.rubricBreakdownCard}>
+      <View style={[styles.rubricBreakdownCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
         <View style={styles.cardHeader}>
           <Feather name="file-text" size={16} color="#6366f1" />
-          <Text style={styles.cardTitle}>Evaluated Answer Sheet</Text>
+          <Text style={[styles.cardTitle, { color: currentColors.text }]}>Evaluated Answer Sheet</Text>
         </View>
         
         <View style={styles.answersList}>
@@ -232,19 +235,19 @@ export default function EvaluationScreen() {
             const bgClass = isCorrect ? styles.bgMint : isPartial ? styles.bgPrimary : styles.bgDestructive;
 
             return (
-              <View key={i} style={styles.answerItem}>
+              <View key={i} style={[styles.answerItem, { borderColor: currentColors.border }]}>
                 <View style={styles.answerHeader}>
                   <View style={[styles.answerIconBox, bgClass]}>
                     <Feather name={icon} size={14} color={tintColor} />
                   </View>
-                  <Text style={styles.answerQuestion}>{a.q}</Text>
-                  <Text style={styles.answerMarks}>{a.marks}</Text>
+                  <Text style={[styles.answerQuestion, { color: currentColors.text }]}>{a.q}</Text>
+                  <Text style={[styles.answerMarks, { color: currentColors.text }]}>{a.marks}</Text>
                 </View>
-                <Text style={styles.answerText}>{a.student}</Text>
+                <Text style={[styles.answerText, { color: currentColors.subtext }]}>{a.student}</Text>
                 {"feedback" in a && a.feedback && (
-                  <View style={styles.answerFeedbackBox}>
-                    <Text style={styles.feedbackLabel}>Feedback: </Text>
-                    <Text style={styles.feedbackVal}>{a.feedback}</Text>
+                  <View style={[styles.answerFeedbackBox, { backgroundColor: isDark ? currentColors.divider : "#f8fafc" }]}>
+                    <Text style={[styles.feedbackLabel, { color: currentColors.text }]}>Feedback: </Text>
+                    <Text style={[styles.feedbackVal, { color: currentColors.subtext }]}>{a.feedback}</Text>
                   </View>
                 )}
               </View>
@@ -252,7 +255,6 @@ export default function EvaluationScreen() {
           })}
         </View>
       </View>
-
 
       <View style={styles.spacer} />
     </ScrollView>

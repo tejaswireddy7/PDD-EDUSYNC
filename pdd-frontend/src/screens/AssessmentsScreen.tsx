@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Dimensions, Alert, ActivityIndicator, Platform, RefreshControl } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Header } from "../components/skillora/Header";
-import { useDashboardStore } from "../lib/store";
+import { useDashboardStore, themeColors } from "../lib/store";
 import { supabase } from "../lib/supabase";
 import { fetchDBAssessments, updateDBAssessment } from "../lib/supabase-db";
 import { useNavigate } from "@tanstack/react-router";
@@ -114,6 +114,9 @@ export default function AssessmentsScreen() {
   const store = useDashboardStore();
   const focusDomain = store.surveyAnswers?.focusDomain || "Mobile";
   const userProficiency = store.surveyAnswers?.proficiency || "Beginner";
+  const appTheme = store.appTheme || "light";
+  const currentColors = themeColors[appTheme as "light" | "dark"] || themeColors.light;
+  const isDark = appTheme === "dark";
 
   const [items, setItems] = useState<Assessment[]>([]);
   const [active, setActive] = useState<Assessment | null>(null);
@@ -175,7 +178,7 @@ export default function AssessmentsScreen() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#f8fafc" }}>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: currentColors.background }}>
         <ActivityIndicator size="large" color="#6366f1" />
       </View>
     );
@@ -185,17 +188,17 @@ export default function AssessmentsScreen() {
     return (
       <ScrollView 
         ref={scrollViewRef} 
-        style={styles.container} 
-        contentContainerStyle={[styles.contentContainer, { justifyContent: "center", alignItems: "center", minHeight: 500 }]} 
+        style={[styles.container, { backgroundColor: currentColors.background }]} 
+        contentContainerStyle={[styles.contentContainer, { justifyContent: "center", alignItems: "center", minHeight: 500, flexGrow: 1 }]} 
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#6366f1"]} />
         }
       >
         <Header />
-        <View style={{ padding: 40, alignItems: "center", backgroundColor: "#fff", borderRadius: 16, borderStyle: "dashed", borderWidth: 2, borderColor: "#cbd5e1", marginTop: 40, width: "90%", maxWidth: 500 }}>
-          <Text style={{ fontSize: 20, fontWeight: "bold", color: "#0f172a", marginBottom: 12 }}>No Assessments Available</Text>
-          <Text style={{ fontSize: 15, color: "#475569", textAlign: "center", lineHeight: 22 }}>
+        <View style={{ padding: 40, alignItems: "center", backgroundColor: currentColors.card, borderRadius: 16, borderStyle: "dashed", borderWidth: 2, borderColor: currentColors.border, marginTop: 40, width: "90%", maxWidth: 500 }}>
+          <Text style={{ fontSize: 20, fontWeight: "bold", color: currentColors.text, marginBottom: 12 }}>No Assessments Available</Text>
+          <Text style={{ fontSize: 15, color: currentColors.subtext, textAlign: "center", lineHeight: 22 }}>
             You are not currently enrolled in any courses. Please go to the Dashboard and enroll in a course to view and start your assessments!
           </Text>
         </View>
@@ -205,7 +208,7 @@ export default function AssessmentsScreen() {
 
   if (!current) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#f8fafc" }}>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: currentColors.background }}>
         <ActivityIndicator size="large" color="#6366f1" />
       </View>
     );
@@ -214,8 +217,8 @@ export default function AssessmentsScreen() {
   return (
     <ScrollView 
       ref={scrollViewRef} 
-      style={styles.container} 
-      contentContainerStyle={styles.contentContainer} 
+      style={[styles.container, { backgroundColor: currentColors.background }]} 
+      contentContainerStyle={[styles.contentContainer, { flexGrow: 1 }]} 
       showsVerticalScrollIndicator={false}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#6366f1"]} />
@@ -372,6 +375,11 @@ const PROJECT_TEMPLATES: Record<string, Array<{ title: string; files: string[] }
 };
 
 function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onUpdate: (patch: Partial<Assessment>) => void }) {
+  const store = useDashboardStore();
+  const appTheme = store.appTheme || "light";
+  const currentColors = themeColors[appTheme as "light" | "dark"] || themeColors.light;
+  const isDark = appTheme === "dark";
+
   const navigate = useNavigate();
   let nativeNavigation: any;
   try {
@@ -537,19 +545,19 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
   // SUBMITTED STATE VIEW
   if (assessment.status === "submitted") {
     return (
-      <View style={styles.panelCard}>
+      <View style={[styles.panelCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
         <View style={styles.successCard}>
           <View style={styles.successIconBox}>
             <Feather name="check-circle" size={24} color="#0d9488" />
           </View>
-          <Text style={styles.successTitle}>Assessment Submitted!</Text>
+          <Text style={[styles.successTitle, { color: currentColors.text }]}>Assessment Submitted!</Text>
 
           {isAdvanced ? (
-            <Text style={styles.successDesc}>
+            <Text style={[styles.successDesc, { color: currentColors.subtext }]}>
               Your project "{selectedTemplate || "Source Code Submission"}" has been submitted for AI feedback. Detailed rubric mapping is ready in the Gradebook.
             </Text>
           ) : (
-            <Text style={styles.successDesc}>
+            <Text style={[styles.successDesc, { color: currentColors.subtext }]}>
               Interactive quiz completed successfully! Earned +800 XP and streak bonus. Check your transparent rubric scoring details in the Gradebook.
             </Text>
           )}
@@ -573,13 +581,13 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
   }
 
   return (
-    <View style={styles.panelCard}>
+    <View style={[styles.panelCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
       <View style={styles.panelHeader}>
         <View style={styles.panelHeaderLeft}>
-          <Text style={styles.panelCategory}>
+          <Text style={[styles.panelCategory, { color: currentColors.subtext }]}>
             {assessment.type} · {assessment.subject}
           </Text>
-          <Text style={styles.panelTitle}>{assessment.title}</Text>
+          <Text style={[styles.panelTitle, { color: currentColors.text }]}>{assessment.title}</Text>
         </View>
         <View style={[styles.statusBadge, styles[statusBg as keyof typeof styles]]}>
           <Text style={[styles.statusBadgeText, styles[statusText as keyof typeof styles]]}>
@@ -601,12 +609,13 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
 
       <View style={[
         styles.deadlineBox, 
-        isLateAssessment && { backgroundColor: '#fef2f2', borderColor: '#fee2e2', borderWidth: 1 }
+        { backgroundColor: isDark ? currentColors.divider : "#f8fafc" },
+        isLateAssessment && { backgroundColor: isDark ? 'rgba(239, 68, 68, 0.08)' : '#fef2f2', borderColor: '#fee2e2', borderWidth: 1 }
       ]}>
         <Feather name="clock" size={14} color={isLateAssessment ? "#ef4444" : "#6366f1"} />
         <View style={{ flex: 1 }}>
-          <Text style={styles.deadlineLabel}>Deadline</Text>
-          <Text style={[styles.deadlineValue, isLateAssessment && { color: '#ef4444', fontWeight: 'bold' }]}>
+          <Text style={[styles.deadlineLabel, { color: currentColors.subtext }]}>Deadline</Text>
+          <Text style={[styles.deadlineValue, { color: currentColors.text }, isLateAssessment && { color: '#ef4444', fontWeight: 'bold' }]}>
             {assessment.deadline}
           </Text>
           {isLateAssessment && (
@@ -620,10 +629,10 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
       {/* RENDER INTERACTIVE QUIZ FOR BEGINNER / INTERMEDIATE */}
       {!isAdvanced && (
         <View style={{ marginBottom: 12 }}>
-          <Text style={styles.quizTitle}>Interactive Knowledge Check</Text>
+          <Text style={[styles.quizTitle, { color: currentColors.text }]}>Interactive Knowledge Check</Text>
           {questions.map((q, qIdx) => (
-            <View key={qIdx} style={styles.quizCard}>
-              <Text style={styles.quizQuestionText}>
+            <View key={qIdx} style={[styles.quizCard, { backgroundColor: isDark ? currentColors.divider : "#ffffff", borderColor: currentColors.border }]}>
+              <Text style={[styles.quizQuestionText, { color: currentColors.text }]}>
                 {qIdx + 1}. {q.question}
               </Text>
               {q.options.map((opt, oIdx) => {
@@ -632,12 +641,12 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
                   <TouchableOpacity
                     key={oIdx}
                     onPress={() => handleSelectQuizAnswer(qIdx, oIdx)}
-                    style={[styles.optionButton, isSel && styles.selectedOptionButton]}
+                    style={[styles.optionButton, { backgroundColor: currentColors.card, borderColor: currentColors.border }, isSel && styles.selectedOptionButton, isSel && isDark && { backgroundColor: 'rgba(99, 102, 241, 0.1)' }]}
                   >
-                    <View style={[styles.optionCircle, isSel && styles.selectedOptionCircle]}>
+                    <View style={[styles.optionCircle, { borderColor: currentColors.border }, isSel && styles.selectedOptionCircle]}>
                       {isSel && <View style={styles.selectedOptionInnerCircle} />}
                     </View>
-                    <Text style={[styles.optionText, isSel && styles.selectedOptionText]}>
+                    <Text style={[styles.optionText, { color: currentColors.subtext }, isSel && styles.selectedOptionText, isSel && { color: currentColors.text }]}>
                       {opt}
                     </Text>
                   </TouchableOpacity>
@@ -652,7 +661,7 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
       {isAdvanced && (
         <View style={{ marginBottom: 12 }}>
           {/* Template Selection */}
-          <Text style={styles.templateSectionTitle}>Choose a Project Template</Text>
+          <Text style={[styles.templateSectionTitle, { color: currentColors.subtext }]}>Choose a Project Template</Text>
           <View style={styles.templateList}>
             {templates.map((t) => {
               const isSel = selectedTemplate === t.title;
@@ -660,10 +669,10 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
                 <TouchableOpacity
                   key={t.title}
                   onPress={() => selectTemplate(t.title, t.files)}
-                  style={[styles.templateCard, isSel && styles.selectedTemplateCard]}
+                  style={[styles.templateCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }, isSel && styles.selectedTemplateCard]}
                 >
-                  <Text style={styles.templateTitle} numberOfLines={1}>{t.title}</Text>
-                  <Text style={styles.templateDesc}>{t.files.length} boilerplate files</Text>
+                  <Text style={[styles.templateTitle, { color: currentColors.text }]} numberOfLines={1}>{t.title}</Text>
+                  <Text style={[styles.templateDesc, { color: currentColors.subtext }]}>{t.files.length} boilerplate files</Text>
                 </TouchableOpacity>
               );
             })}
@@ -672,8 +681,8 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
           {/* Template files selector (Only visible once a template is chosen) */}
           {selectedTemplate !== "" && (
             <View style={{ marginBottom: 12 }}>
-              <Text style={styles.fileTogglesTitle}>Project Files Configuration</Text>
-              <View style={styles.fileTogglesContainer}>
+              <Text style={[styles.fileTogglesTitle, { color: currentColors.text }]}>Project Files Configuration</Text>
+              <View style={[styles.fileTogglesContainer, { backgroundColor: isDark ? currentColors.divider : "#f8fafc", borderColor: currentColors.border }]}>
                 {templates.find(t => t.title === selectedTemplate)?.files.map((fileName) => {
                   const included = files.some(f => f.name === fileName);
                   return (
@@ -684,7 +693,7 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
                     >
                       <View style={styles.fileToggleLeft}>
                         <Feather name="file" size={12} color="#64748b" />
-                        <Text style={styles.fileToggleText}>{fileName}</Text>
+                        <Text style={[styles.fileToggleText, { color: currentColors.text }]}>{fileName}</Text>
                       </View>
                       <Feather
                         name={included ? "check-square" : "square"}
@@ -702,7 +711,7 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
                     onChangeText={setCustomFileText}
                     placeholder="Add custom file name (e.g. index.js)"
                     placeholderTextColor="#94a3b8"
-                    style={styles.fileAddInput}
+                    style={[styles.fileAddInput, { backgroundColor: currentColors.inputBg, borderColor: currentColors.border, color: currentColors.text }]}
                   />
                   <TouchableOpacity onPress={handleAddCustomFile} style={styles.fileAddBtn}>
                     <Text style={styles.fileAddBtnText}>Add</Text>
@@ -715,14 +724,14 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
           {/* Custom attached files summary */}
           {files.length > 0 && (
             <View style={{ marginBottom: 12 }}>
-              <Text style={styles.fileTogglesTitle}>Included Submission Files</Text>
+              <Text style={[styles.fileTogglesTitle, { color: currentColors.text }]}>Included Submission Files</Text>
               <View style={styles.filesList}>
                 {files.map((f, idx) => (
-                  <View key={idx} style={styles.fileItem}>
+                  <View key={idx} style={[styles.fileItem, { backgroundColor: isDark ? currentColors.divider : "#f1f5f9" }]}>
                     <Feather name="file-text" size={14} color="#6366f1" />
                     <View style={styles.fileDetails}>
-                      <Text style={styles.fileName} numberOfLines={1}>{f.name}</Text>
-                      <Text style={styles.fileSize}>{(f.size / 1024).toFixed(1)} KB</Text>
+                      <Text style={[styles.fileName, { color: currentColors.text }]} numberOfLines={1}>{f.name}</Text>
+                      <Text style={[styles.fileSize, { color: currentColors.subtext }]}>{(f.size / 1024).toFixed(1)} KB</Text>
                     </View>
                     <TouchableOpacity onPress={() => removeFile(idx)}>
                       <Feather name="x" size={14} color="#ef4444" />
@@ -734,9 +743,9 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
           )}
 
           {/* GitHub Repository URL */}
-          <Text style={styles.inputLabel}>GitHub Repository URL</Text>
+          <Text style={[styles.inputLabel, { color: currentColors.text }]}>GitHub Repository URL</Text>
           <TextInput
-            style={[styles.notesInput, { height: 40, marginBottom: 12, paddingVertical: 8 }]}
+            style={[styles.notesInput, { height: 40, marginBottom: 12, paddingVertical: 8, backgroundColor: currentColors.inputBg, borderColor: currentColors.border, color: currentColors.text }]}
             value={githubUrl}
             onChangeText={(text) => {
               setGithubUrl(text);
@@ -747,9 +756,9 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
           />
 
           {/* Note for Evaluator */}
-          <Text style={styles.inputLabel}>Additional Notes (optional)</Text>
+          <Text style={[styles.inputLabel, { color: currentColors.text }]}>Additional Notes (optional)</Text>
           <TextInput
-            style={styles.notesInput}
+            style={[styles.notesInput, { backgroundColor: currentColors.inputBg, borderColor: currentColors.border, color: currentColors.text }]}
             multiline
             numberOfLines={3}
             value={note}
@@ -769,10 +778,10 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
       {(uploading || progress === 100) && (
         <View style={styles.progressContainer}>
           <View style={styles.progressHeader}>
-            <Text style={styles.progressTitle}>
+            <Text style={[styles.progressTitle, { color: currentColors.text }]}>
               {progress === 100 ? "Submitted" : isAdvanced ? "Uploading files..." : "Evaluating answers..."}
             </Text>
-            <Text style={styles.progressPercent}>{progress}%</Text>
+            <Text style={[styles.progressPercent, { color: currentColors.subtext }]}>{progress}%</Text>
           </View>
           <View style={styles.progressTrack}>
             <View style={[styles.progressBar, { width: `${progress}%` }]} />
@@ -791,12 +800,17 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
           {isAdvanced ? "Submit project for AI evaluation" : "Submit answers for scoring"}
         </Text>
       </TouchableOpacity>
-      <Text style={styles.evaluationTime}>AI feedback within 60s · Transparent rubric scoring</Text>
+      <Text style={[styles.evaluationTime, { color: currentColors.subtext }]}>AI feedback within 60s · Transparent rubric scoring</Text>
     </View>
   );
 }
 
 function AssessmentList({ items, activeId, onPick }: { items: Assessment[]; activeId: string; onPick: (a: Assessment) => void }) {
+  const store = useDashboardStore();
+  const appTheme = store.appTheme || "light";
+  const currentColors = themeColors[appTheme as "light" | "dark"] || themeColors.light;
+  const isDark = appTheme === "dark";
+
   const [filter, setFilter] = useState<"all" | Status | "late">("all");
   const filtered = filter === "all" ? items 
     : filter === "late" ? items.filter(i => i.status !== "submitted" && isLate(i))
@@ -807,19 +821,19 @@ function AssessmentList({ items, activeId, onPick }: { items: Assessment[]; acti
   ];
 
   return (
-    <View style={styles.listCard}>
+    <View style={[styles.listCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
       <View style={styles.listHeader}>
-        <Text style={styles.listTitle}>All Assessments</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterTabs}>
+        <Text style={[styles.listTitle, { color: currentColors.text }]}>All Assessments</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.filterTabs, { backgroundColor: isDark ? currentColors.divider : "#f1f5f9" }]}>
           {tabs.map((t) => {
             const isActive = filter === t.k;
             return (
               <TouchableOpacity
                 key={t.k}
                 onPress={() => setFilter(t.k)}
-                style={[styles.tabButton, isActive && styles.activeTabButton]}
+                style={[styles.tabButton, isActive && [styles.activeTabButton, { backgroundColor: currentColors.card }]]}
               >
-                <Text style={[styles.tabText, isActive && styles.activeTabText]}>{t.label}</Text>
+                <Text style={[styles.tabText, { color: currentColors.subtext }, isActive && [styles.activeTabText, { color: currentColors.text }]]}>{t.label}</Text>
               </TouchableOpacity>
             );
           })}
@@ -840,10 +854,10 @@ function AssessmentList({ items, activeId, onPick }: { items: Assessment[]; acti
               onPress={() => onPick(a)}
               style={[
                 styles.listItem, 
-                isActive ? styles.activeListItem : styles.inactiveListItem,
-                isLateAssessment && { backgroundColor: '#fff5f5' },
+                isActive ? [styles.activeListItem, { backgroundColor: isDark ? currentColors.divider : "rgba(99, 102, 241, 0.03)", borderColor: "#6366f1" }] : [styles.inactiveListItem, { backgroundColor: currentColors.card, borderColor: currentColors.border }],
+                isLateAssessment && { backgroundColor: isDark ? 'rgba(239, 68, 68, 0.08)' : '#fff5f5' },
                 isLateAssessment && isActive && { borderColor: '#ef4444' },
-                isLateAssessment && !isActive && { borderColor: '#fca5a5' }
+                isLateAssessment && !isActive && { borderColor: isDark ? '#b91c1c' : '#fca5a5' }
               ]}
             >
               <View style={styles.listItemIconBox}>
@@ -851,7 +865,7 @@ function AssessmentList({ items, activeId, onPick }: { items: Assessment[]; acti
               </View>
               <View style={styles.listItemDetails}>
                 <View style={styles.listItemRow}>
-                  <Text style={styles.listItemTitle} numberOfLines={1}>{a.title}</Text>
+                  <Text style={[styles.listItemTitle, { color: currentColors.text }]} numberOfLines={1}>{a.title}</Text>
                   <View style={[styles.statusBadge, styles[statusBg as keyof typeof styles]]}>
                     <Text style={[styles.statusBadgeText, styles[statusText as keyof typeof styles]]}>
                       {statusLabel}
@@ -859,13 +873,14 @@ function AssessmentList({ items, activeId, onPick }: { items: Assessment[]; acti
                   </View>
                 </View>
                 <View style={styles.listItemSubRow}>
-                  <Text style={[styles.listItemMetaText, { flexShrink: 1 }]} numberOfLines={1}>{a.subject}</Text>
-                  <View style={styles.dot} />
-                  <Text style={styles.listItemMetaText}>{a.difficulty}</Text>
-                  <View style={styles.dot} />
+                  <Text style={[styles.listItemMetaText, { color: currentColors.subtext, flexShrink: 1 }]} numberOfLines={1}>{a.subject}</Text>
+                  <View style={[styles.dot, { backgroundColor: currentColors.border }]} />
+                  <Text style={[styles.listItemMetaText, { color: currentColors.subtext }]}>{a.difficulty}</Text>
+                  <View style={[styles.dot, { backgroundColor: currentColors.border }]} />
                   <Feather name="clock" size={10} color={isLateAssessment ? "#ef4444" : "#94a3b8"} />
                   <Text style={[
                     styles.listItemMetaText, 
+                    { color: currentColors.subtext },
                     isLateAssessment && { color: '#ef4444', fontWeight: 'bold' }
                   ]} numberOfLines={1}>
                     {a.deadline}
@@ -883,8 +898,8 @@ function AssessmentList({ items, activeId, onPick }: { items: Assessment[]; acti
 
                 {/* Mobile progress display */}
                 <View style={styles.listItemProgressRow}>
-                  <Text style={styles.listItemProgressText}>{a.progress}% complete</Text>
-                  <View style={styles.listItemProgressTrack}>
+                  <Text style={[styles.listItemProgressText, { color: currentColors.subtext }]}>{a.progress}% complete</Text>
+                  <View style={[styles.listItemProgressTrack, { backgroundColor: currentColors.divider }]}>
                     <View style={[styles.listItemProgressBar, { width: `${a.progress}%` }]} />
                   </View>
                 </View>

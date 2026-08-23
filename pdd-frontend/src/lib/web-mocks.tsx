@@ -96,4 +96,88 @@ export const Circle = (props: any) => <circle {...props} />;
 export const Rect = (props: any) => <rect {...props} />;
 export const G = ({ children, ...props }: any) => <g {...props}>{children}</g>;
 export const Text = ({ children, ...props }: any) => <text {...props}>{children}</text>;
+
+// Web mock for react-native-webview
+export const WebView = ({ source, style, ...props }: any) => {
+  const uri = source?.uri || source?.html || "";
+  const resolvedStyle = Array.isArray(style) ? Object.assign({}, ...style) : style || {};
+  return (
+    <iframe 
+      src={uri} 
+      style={{ border: "none", width: "100%", height: "100%", minHeight: 300, ...resolvedStyle }} 
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowFullScreen
+      {...props} 
+    />
+  );
+};
+
+// Web mock for expo-document-picker
+export const getDocumentAsync = async (options?: any) => {
+  return new Promise((resolve) => {
+    if (typeof document === "undefined") {
+      resolve({ canceled: true });
+      return;
+    }
+    const input = document.createElement("input");
+    input.type = "file";
+    if (options?.type) {
+      if (Array.isArray(options.type)) {
+        input.accept = options.type.join(",");
+      } else {
+        input.accept = options.type;
+      }
+    }
+    input.onchange = (e: any) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        resolve({
+          canceled: false,
+          assets: [{
+            name: file.name,
+            size: file.size,
+            uri: URL.createObjectURL(file),
+            mimeType: file.type
+          }],
+          name: file.name,
+          size: file.size,
+          uri: URL.createObjectURL(file),
+        });
+      } else {
+        resolve({ canceled: true });
+      }
+    };
+    input.click();
+  });
+};
+
+// Web mock for expo-file-system
+export const EncodingType = {
+  UTF8: "utf8",
+  Base64: "base64"
+};
+
+export const readAsStringAsync = async (uri: string, options?: any) => {
+  const response = await fetch(uri);
+  const blob = await response.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (options?.encoding === EncodingType.Base64) {
+        const result = reader.result as string;
+        const base64 = result.split(",")[1];
+        resolve(base64);
+      } else {
+        resolve(reader.result);
+      }
+    };
+    reader.onerror = () => reject(reader.error);
+    if (options?.encoding === EncodingType.Base64) {
+      reader.readAsDataURL(blob);
+    } else {
+      reader.readAsText(blob);
+    }
+  });
+};
+
 export default Svg;

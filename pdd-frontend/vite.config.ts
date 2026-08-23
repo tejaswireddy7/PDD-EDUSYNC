@@ -21,6 +21,9 @@ export default defineConfig({
       "expo-linear-gradient": path.resolve(__dirname, "./src/lib/web-mocks.tsx"),
       "@expo/vector-icons": path.resolve(__dirname, "./src/lib/web-mocks.tsx"),
       "expo-status-bar": path.resolve(__dirname, "./src/lib/web-mocks.tsx"),
+      "react-native-webview": path.resolve(__dirname, "./src/lib/web-mocks.tsx"),
+      "expo-document-picker": path.resolve(__dirname, "./src/lib/web-mocks.tsx"),
+      "expo-file-system": path.resolve(__dirname, "./src/lib/web-mocks.tsx"),
     },
   },
   build: {

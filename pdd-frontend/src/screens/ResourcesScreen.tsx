@@ -1,10 +1,13 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Dimensions, ActivityIndicator, Linking, Platform, Modal, Pressable, Alert, Image } from "react-native";
-import { Feather, FontAwesome } from "@expo/vector-icons";
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Dimensions, ActivityIndicator, Linking, Platform, Modal, Pressable, Alert, Image, RefreshControl } from "react-native";
+import { Feather, FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Header } from "../components/skillora/Header";
 import { useDashboardStore } from "../lib/store";
 import { fetchDBResources } from "../lib/supabase-db";
 import { supabase } from "../lib/supabase";
+import { WebView } from "react-native-webview";
+import * as DocumentPicker from "expo-document-picker";
+import * as FileSystem from "expo-file-system";
 
 type Resource = {
   id: string;
@@ -44,23 +47,71 @@ function BootstrapIcon({ name, size, color, style }: { name: string; size: numbe
       />
     );
   }
-  // Native fallback
-  let nativeName: any = "help-circle";
-  if (name.includes("plus")) nativeName = "plus";
-  else if (name.includes("search")) nativeName = "search";
-  else if (name.includes("x") || name.includes("close")) nativeName = "x";
-  else if (name.includes("sliders") || name.includes("filter")) nativeName = "sliders";
-  else if (name.includes("bookmark")) nativeName = "bookmark";
-  else if (name.includes("trash")) nativeName = "trash-2";
-  else if (name.includes("paperclip") || name.includes("attach")) nativeName = "paperclip";
-  else if (name.includes("download")) nativeName = "download";
-  else if (name.includes("star")) nativeName = "star";
-  else if (name.includes("trending") || name.includes("graph")) nativeName = "trending-up";
-  else if (name.includes("file-earmark-text")) nativeName = "file-text";
-  else if (name.includes("file-earmark-pdf") || name.includes("pdf")) nativeName = "file-text";
-  else if (name.includes("file-earmark-slides") || name.includes("slides")) nativeName = "image";
-  else if (name.includes("folder") || name.includes("project")) nativeName = "folder";
   
+  let nativeName: any = "help-circle";
+  let iconLibrary: "Feather" | "MaterialCommunityIcons" = "Feather";
+
+  if (name.includes("plus")) {
+    nativeName = "plus";
+  } else if (name.includes("search")) {
+    nativeName = "search";
+  } else if (name.includes("x") || name.includes("close")) {
+    nativeName = "x";
+  } else if (name.includes("chevron-up")) {
+    nativeName = "chevron-up";
+  } else if (name.includes("chevron-down")) {
+    nativeName = "chevron-down";
+  } else if (name.includes("arrow-left")) {
+    nativeName = "arrow-left";
+  } else if (name.includes("arrow-right")) {
+    nativeName = "arrow-right";
+  } else if (name.includes("check")) {
+    nativeName = "check";
+  } else if (name.includes("star")) {
+    nativeName = "star";
+  } else if (name.includes("layers")) {
+    nativeName = "layers";
+  } else if (name.includes("journal-code") || name.includes("notebook") || name.includes("journal") || name.includes("file-earmark-text") || name.includes("file-earmark-pdf")) {
+    nativeName = "book-open";
+  } else if (name.includes("clock")) {
+    nativeName = "clock";
+  } else if (name.includes("bullseye")) {
+    nativeName = "target";
+  } else if (name.includes("speedometer")) {
+    nativeName = "gauge";
+    iconLibrary = "MaterialCommunityIcons";
+  } else if (name.includes("fire")) {
+    nativeName = "fire";
+    iconLibrary = "MaterialCommunityIcons";
+  } else if (name.includes("graph") || name.includes("trending")) {
+    nativeName = "trending-up";
+  } else if (name.includes("award") || name.includes("trophy")) {
+    nativeName = "award";
+  } else if (name.includes("gear") || name.includes("settings")) {
+    nativeName = "settings";
+  } else if (name.includes("logout") || name.includes("box-arrow-right")) {
+    nativeName = "log-out";
+  } else if (name.includes("person-x") || name.includes("user-x")) {
+    nativeName = "user-x";
+  } else if (name.includes("checklist") || name.includes("list")) {
+    nativeName = "list";
+  } else if (name.includes("trash")) {
+    nativeName = "trash-2";
+  } else if (name.includes("paperclip")) {
+    nativeName = "paperclip";
+  } else if (name.includes("download")) {
+    nativeName = "download";
+  } else if (name.includes("sliders") || name.includes("filter")) {
+    nativeName = "sliders";
+  } else if (name.includes("folder") || name.includes("project")) {
+    nativeName = "folder";
+  } else if (name.includes("image")) {
+    nativeName = "image";
+  }
+
+  if (iconLibrary === "MaterialCommunityIcons") {
+    return <MaterialCommunityIcons name={nativeName} size={size} color={color} style={style} />;
+  }
   return <Feather name={nativeName} size={size} color={color} style={style} />;
 }
 
@@ -133,6 +184,7 @@ export default function ResourcesScreen() {
 
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [activeUserId, setActiveUserId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -173,11 +225,13 @@ export default function ResourcesScreen() {
 
   const handleDeleteResource = async (id: string) => {
     setResources((prev) => prev.filter((x) => x.id !== id));
-    const local = localStorage.getItem("uploaded_resources");
-    if (local) {
-      const localItems = JSON.parse(local);
-      const updated = localItems.filter((x: any) => x.id !== id);
-      localStorage.setItem("uploaded_resources", JSON.stringify(updated));
+    if (typeof window !== "undefined" && window.localStorage) {
+      const local = window.localStorage.getItem("uploaded_resources");
+      if (local) {
+        const localItems = JSON.parse(local);
+        const updated = localItems.filter((x: any) => x.id !== id);
+        window.localStorage.setItem("uploaded_resources", JSON.stringify(updated));
+      }
     }
     try {
       await supabase.from("resources").delete().eq("id", id);
@@ -187,13 +241,37 @@ export default function ResourcesScreen() {
     showNotice("Success", "Your uploaded resource has been deleted successfully.");
   };
 
-  const handleAttachClick = () => {
+  const handleAttachClick = async () => {
     if (Platform.OS === "web" && fileInputRef.current) {
       fileInputRef.current.click();
     } else {
-      setNewFileName("notes_expo.pdf");
-      setSelectedFileType("application/pdf");
-      setSelectedFileContent("mock_base64_data");
+      try {
+        const result = await DocumentPicker.getDocumentAsync({
+          type: "*/*",
+          copyToCacheDirectory: true,
+        });
+
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+          const file = result.assets[0];
+          setNewFileName(file.name);
+          const mime = file.mimeType || "application/octet-stream";
+          setSelectedFileType(mime);
+          
+          if (mime.startsWith("text/")) {
+            const content = await FileSystem.readAsStringAsync(file.uri, {
+              encoding: FileSystem.EncodingType.UTF8,
+            });
+            setSelectedFileContent(content);
+          } else {
+            const base64 = await FileSystem.readAsStringAsync(file.uri, {
+              encoding: FileSystem.EncodingType.Base64,
+            });
+            setSelectedFileContent(`data:${mime};base64,${base64}`);
+          }
+        }
+      } catch (err) {
+        console.warn("Document picker failed:", err);
+      }
     }
   };
 
@@ -230,8 +308,11 @@ export default function ResourcesScreen() {
       setResources(mapped as any);
     } catch (err) {
       console.warn("Failed to load resources from Supabase:", err);
-      const local = localStorage.getItem("uploaded_resources");
-      const localItems = local ? JSON.parse(local) : [];
+      let localItems: any[] = [];
+      if (typeof window !== "undefined" && window.localStorage) {
+        const local = window.localStorage.getItem("uploaded_resources");
+        localItems = local ? JSON.parse(local) : [];
+      }
       setResources(localItems);
     } finally {
       setLoading(false);
@@ -241,6 +322,12 @@ export default function ResourcesScreen() {
   useEffect(() => {
     loadResources();
   }, []);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadResources();
+    setRefreshing(false);
+  };
 
   const [q, setQ] = useState("");
   const [subject, setSubject] = useState("All");
@@ -276,7 +363,11 @@ export default function ResourcesScreen() {
 
   const handleUploadSubmit = async () => {
     if (!newTitle.trim()) {
-      alert("Please enter a resource title");
+      showNotice("Validation Error", "Please enter a resource title");
+      return;
+    }
+    if (!newFileName) {
+      showNotice("Validation Error", "Please attach a document before publishing.");
       return;
     }
     const uploadedResource: any = {
@@ -299,9 +390,11 @@ export default function ResourcesScreen() {
     setResources((prev) => [uploadedResource, ...prev]);
 
     // Save to localStorage for instant offline access
-    const local = localStorage.getItem("uploaded_resources");
-    const localItems = local ? JSON.parse(local) : [];
-    localStorage.setItem("uploaded_resources", JSON.stringify([uploadedResource, ...localItems]));
+    if (typeof window !== "undefined" && window.localStorage) {
+      const local = window.localStorage.getItem("uploaded_resources");
+      const localItems = local ? JSON.parse(local) : [];
+      window.localStorage.setItem("uploaded_resources", JSON.stringify([uploadedResource, ...localItems]));
+    }
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -356,7 +449,14 @@ export default function ResourcesScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
+    <ScrollView 
+      style={styles.container} 
+      contentContainerStyle={styles.contentContainer} 
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#6366f1"]} />
+      }
+    >
       <Header />
 
       {/* Main Intro */}
@@ -368,7 +468,13 @@ export default function ResourcesScreen() {
           </View>
           <TouchableOpacity 
             activeOpacity={0.85}
-            onPress={() => setShowUploadModal(true)}
+            onPress={() => {
+              setNewTitle("");
+              setNewFileName("");
+              setSelectedFileType(null);
+              setSelectedFileContent(null);
+              setShowUploadModal(true);
+            }}
             style={styles.uploadBtn}
           >
             <BootstrapIcon name="plus-lg" size={14} color="#ffffff" style={{ marginRight: 4 }} />
@@ -672,9 +778,35 @@ export default function ResourcesScreen() {
                   style={{ borderRadius: 16, border: "none" }}
                 />
               ) : (
-                <View style={{ flex: 1, backgroundColor: "#000", justifyContent: "center", alignItems: "center" }}>
-                  <Text style={{ color: "#fff" }}>Playback only supported on Web version.</Text>
-                </View>
+                <WebView
+                  style={{ flex: 1, borderRadius: 16 }}
+                  javaScriptEnabled={true}
+                  domStorageEnabled={true}
+                  allowsFullscreenVideo={true}
+                  source={{
+                    html: `
+                      <!DOCTYPE html>
+                      <html>
+                        <head>
+                          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                          <style>
+                            body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #000; }
+                            iframe { width: 100%; height: 100%; border: none; }
+                          </style>
+                        </head>
+                        <body>
+                          <iframe
+                            src="${videoUrl}?autoplay=1&origin=https://google.com"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowfullscreen
+                            referrerpolicy="strict-origin-when-cross-origin"
+                          ></iframe>
+                        </body>
+                      </html>
+                    `,
+                    baseUrl: "https://google.com"
+                  }}
+                />
               )}
             </View>
           </View>
@@ -736,8 +868,8 @@ export default function ResourcesScreen() {
                 // Preseeded / fallback notes text content
                 <View style={styles.notesTextContainer}>
                   <Text style={styles.notesTextContent}>
-                    {viewingResource?.title} description and details:\n\n
-                    This reference material has been prepared to help you study dynamic concepts related to {viewingResource?.subject || focusDomain}.\n\nRevisit this guide to prepare for checkpoints!
+                    {viewingResource?.title} description and details:{"\n\n"}
+                    This reference material has been prepared to help you study dynamic concepts related to {viewingResource?.subject || focusDomain}.{"\n\n"}Revisit this guide to prepare for checkpoints!
                   </Text>
                 </View>
               )}
@@ -1232,15 +1364,10 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(239, 68, 68, 0.08)",
   },
   viewerOverlay: {
-    position: (Platform.OS === "web" ? "fixed" : "absolute") as any,
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    flex: 1,
     backgroundColor: "rgba(15, 23, 42, 0.8)",
     justifyContent: "center",
     alignItems: "center",
-    zIndex: 9999,
     padding: 16,
   },
   viewerModal: {

@@ -14,11 +14,40 @@ export function Header({ hideSurvey = false }: HeaderProps) {
   const userName = store.user?.name || "Student";
   const [showNotifications, setShowNotifications] = React.useState(false);
 
-  const notifications = [
-    { id: "n1", text: "🔥 Daily streak active! Keep going.", time: "1h ago", read: false },
-    { id: "n2", text: "🎓 New React Native courses suggested.", time: "2h ago", read: false },
-    { id: "n3", text: "💬 Coach Anjali sent you a new message.", time: "Yesterday", read: true },
-  ];
+  const notifications = [];
+  if (store.user?.streak && store.user.streak > 0) {
+    notifications.push({
+      id: "n_streak",
+      text: `🔥 Daily study streak active! You are on a ${store.user.streak}-day streak.`,
+      time: "Just now",
+      read: false
+    });
+  }
+  if (store.user?.coursesCompleted && store.user.coursesCompleted > 0) {
+    notifications.push({
+      id: "n_courses",
+      text: `🏆 Congratulations! You have completed ${store.user.coursesCompleted} pathway course${store.user.coursesCompleted > 1 ? 's' : ''}.`,
+      time: "Today",
+      read: false
+    });
+  }
+  if (store.surveyAnswers?.focusDomain) {
+    notifications.push({
+      id: "n_domain",
+      text: `🎓 Personalized curriculum set for the ${store.surveyAnswers.focusDomain} track.`,
+      time: "Today",
+      read: true
+    });
+  }
+
+  if (notifications.length === 0) {
+    notifications.push({
+      id: "n_empty",
+      text: "✨ No notifications yet. Your learning path is up to date!",
+      time: "Just now",
+      read: true
+    });
+  }
 
   const handleLogout = async () => {
     const doLogout = async () => {

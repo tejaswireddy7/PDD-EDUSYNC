@@ -235,18 +235,36 @@ function getDifficultyMultiplier(
 }
 
 const GOAL_COURSE_MAPPING: Record<string, string> = {
+  // Frontend
+  html_css: "HTML5, CSS3, & Modern Grid",
+  js_basics: "JavaScript Fundamentals & DOM",
+  react_basics: "Intro to React & Component States",
   state_management: "React Router & Global Context",
   ssr_nextjs: "Next.js 14 App Router Mastery",
   tailwind_styling: "Tailwind CSS & Responsive Layouts",
   performance: "Web Performance & Core Web Vitals",
+  
+  // Backend
+  node_basics: "Intro to Node.js & REST API",
+  basic_sql: "SQL Fundamentals & Relational DBs",
   db_prisma: "PostgreSQL Queries & Optimization",
   docker: "Docker & Kubernetes Orchestration",
   microservices: "Java Spring Boot Microservices",
   caching: "Redis Caching & Task Queues",
+  
+  // Mobile
+  react_native_basics: "React Native & Expo Ecosystem",
+  expo_basics: "React Native & Expo Ecosystem",
+  mobile_flexbox: "Flexbox Layouts in Mobile Screens",
   navigation: "Advanced React Navigation v6",
   hardware_apis: "Native Features: Camera, GPS & Audio",
   native_bridges: "Native Bridges & Performance Tuning",
   deployment: "SwiftUI Mastery for iOS Platforms",
+  
+  // AI
+  python_basics: "Python Fundamentals & Packages",
+  pandas_numpy: "Pandas & Numpy Data Wrangling",
+  basic_stats: "Basic Statistics & Probability",
   pytorch: "Neural Networks with PyTorch",
   transformers_nlp: "Natural Language Processing (NLP)",
   mlops: "MLOps: CI/CD Pipeline for Models",
@@ -293,7 +311,7 @@ export function getRecommendations(
   });
 
   scoredCourses.sort((a, b) => b.score - a.score);
-  const courses = scoredCourses.slice(0, 3).map(x => x.course);
+  const courses = scoredCourses.slice(0, 8).map(x => x.course);
 
   // 2. Score & Rank Resources
   const resourceCandidates: RecommendedResource[] = [];

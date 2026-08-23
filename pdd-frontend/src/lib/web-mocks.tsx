@@ -56,7 +56,11 @@ export const MaterialCommunityIcons = ({ name, size, color, style }: any) => {
     "user": "User",
     "eye": "Eye",
     "eye-off": "EyeOff",
-    "arrow-right": "ArrowRight"
+    "arrow-right": "ArrowRight",
+    "more-vertical": "MoreVertical",
+    "user-x": "UserMinus",
+    "slash": "Ban",
+    "bar-chart-2": "BarChart3"
   };
 
   const lucideName = nameMap[name] || "Menu";

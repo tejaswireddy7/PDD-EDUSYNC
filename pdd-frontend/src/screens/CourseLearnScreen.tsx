@@ -4,7 +4,8 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useDashboardStore } from "../lib/store";
 import { supabase } from "../lib/supabase";
 import { useNavigate } from "@tanstack/react-router";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { WebView } from "react-native-webview";
 
 
 
@@ -58,6 +59,120 @@ function normalizeCourseTitle(title: string): string {
   return mapping[title] || title;
 }
 
+const COURSE_VIDEO_MAP: Record<string, string> = {
+  // Frontend
+  "HTML5, CSS3, & Modern Grid": "https://www.youtube.com/embed/0xMQfnTU6oo",
+  "JavaScript Fundamentals & DOM": "https://www.youtube.com/embed/hdI2bqOjy3c",
+  "Intro to React & Component States": "https://www.youtube.com/embed/Ke90Tje7VS0",
+  "React Router & Global Context": "https://www.youtube.com/embed/Ul3y1LXxzdU",
+  "Tailwind CSS & Responsive Layouts": "https://www.youtube.com/embed/m7OWXtbiXX8",
+  "TypeScript Essentials for Web": "https://www.youtube.com/embed/d56mG7DezGs",
+  "Next.js 14 App Router Mastery": "https://www.youtube.com/embed/wm5gMKuwSYk",
+  "Web Performance & Core Web Vitals": "https://www.youtube.com/embed/t5fjIW3tB00",
+  "Module Federation & Micro-Frontends": "https://www.youtube.com/embed/ICeH3uBGGeo",
+
+  // Backend
+  "Intro to Node.js & REST API": "https://www.youtube.com/embed/Oe421EPjeBE",
+  "SQL Fundamentals & Relational DBs": "https://www.youtube.com/embed/7S_tz1z_5bA",
+  "Basics of Routing & HTTP Methods": "https://www.youtube.com/embed/iYM2zFP3Zn0",
+  "Java Spring Boot Microservices": "https://www.youtube.com/embed/35EQXmHKZYs",
+  "PostgreSQL Queries & Optimization": "https://www.youtube.com/embed/qw--VYLpxG4",
+  "Redis Caching & Task Queues": "https://www.youtube.com/embed/jgpVdJB2sKQ",
+  "Distributed Systems & Scalability": "https://www.youtube.com/embed/oSkTPzOGMuw",
+  "Docker & Kubernetes Orchestration": "https://www.youtube.com/embed/rjjES5IsPdg",
+  "Go Concurrency & Channels Deep-Dive": "https://www.youtube.com/embed/un6ZyFkqFKo",
+
+  // Mobile
+  "React Native & Expo Ecosystem": "https://www.youtube.com/embed/0-S5a0eXPoc",
+  "Flexbox Layouts in Mobile Screens": "https://www.youtube.com/embed/kGtEax1WQFg",
+  "Navigation Containers & Tabs": "https://www.youtube.com/embed/ur6I5m2nTvk",
+  "Advanced React Navigation v6": "https://www.youtube.com/embed/UVUPEokN8Mw",
+  "Native Features: Camera, GPS & Audio": "https://www.youtube.com/embed/0-S5a0eXPoc",
+  "State Management in Native Apps": "https://www.youtube.com/embed/0-S5a0eXPoc",
+  "SwiftUI Mastery for iOS Platforms": "https://www.youtube.com/embed/HXoVSbwWUIk",
+  "Kotlin & Android Jetpack UI": "https://www.youtube.com/embed/6_wK_Ud8--0",
+  "Native Bridges & Performance Tuning": "https://www.youtube.com/embed/0-S5a0eXPoc",
+
+  // AI
+  "Python Fundamentals & Packages": "https://www.youtube.com/embed/_uQrJ0TkZlc",
+  "Pandas & Numpy Data Wrangling": "https://www.youtube.com/embed/F6kmIpWWEdU",
+  "Basic Statistics & Probability": "https://www.youtube.com/embed/xxpc-HPKN28",
+  "Neural Networks with PyTorch": "https://www.youtube.com/embed/V_xro1bcAuA",
+  "Natural Language Processing (NLP)": "https://www.youtube.com/embed/dIUTsFT2MeQ",
+  "Data Visualization with Recharts": "https://www.youtube.com/embed/F6kmIpWWEdU",
+  "Fine-Tuning Generative AI Models": "https://www.youtube.com/embed/V_xro1bcAuA",
+  "MLOps: CI/CD Pipeline for Models": "https://www.youtube.com/embed/V_xro1bcAuA",
+  "Transformer Architectures & Attention": "https://www.youtube.com/embed/V_xro1bcAuA"
+};
+
+function getFallbackVideoUrl(title: string): string {
+  // 1. Exact match
+  if (COURSE_VIDEO_MAP[title]) {
+    return COURSE_VIDEO_MAP[title];
+  }
+  
+  // 2. Keyword fallback matching
+  const lower = title.toLowerCase();
+  if (lower.includes("docker") || lower.includes("kubernetes") || lower.includes("devops")) {
+    return "https://www.youtube.com/embed/rjjES5IsPdg";
+  }
+  if (lower.includes("spring boot") || lower.includes("microservices")) {
+    return "https://www.youtube.com/embed/35EQXmHKZYs";
+  }
+  if (lower.includes("next.js") || lower.includes("nextjs") || lower.includes("ssr") || lower.includes("federation") || lower.includes("micro-frontends") || lower.includes("vitals")) {
+    return "https://www.youtube.com/embed/wm5gMKuwSYk";
+  }
+  if (lower.includes("tailwind")) {
+    return "https://www.youtube.com/embed/m7OWXtbiXX8";
+  }
+  if (lower.includes("typescript") || lower.includes("ts")) {
+    return "https://www.youtube.com/embed/d56mG7DezGs";
+  }
+  if (lower.includes("router") || lower.includes("context") || lower.includes("redux") || lower.includes("zustand") || lower.includes("state management")) {
+    return "https://www.youtube.com/embed/Ul3y1LXxzdU";
+  }
+  if (lower.includes("redis") || lower.includes("caching") || lower.includes("queue")) {
+    return "https://www.youtube.com/embed/jgpVdJB2sKQ";
+  }
+  if (lower.includes("distributed") || lower.includes("scalability")) {
+    return "https://www.youtube.com/embed/oSkTPzOGMuw";
+  }
+  if (lower.includes("statistics") || lower.includes("probability") || lower.includes("stats")) {
+    return "https://www.youtube.com/embed/xxpc-HPKN28";
+  }
+  if (lower.includes("nlp") || lower.includes("natural language")) {
+    return "https://www.youtube.com/embed/dIUTsFT2MeQ";
+  }
+  if (lower.includes("swiftui") || lower.includes("swift")) {
+    return "https://www.youtube.com/embed/HXoVSbwWUIk";
+  }
+  if (lower.includes("kotlin") || lower.includes("jetpack") || lower.includes("android")) {
+    return "https://www.youtube.com/embed/6_wK_Ud8--0";
+  }
+  if (lower.includes("go concurrency") || lower.includes("golang") || lower.includes("concurrency") || lower.includes("go ")) {
+    return "https://www.youtube.com/embed/un6ZyFkqFKo";
+  }
+  if (lower.includes("html") || lower.includes("css") || lower.includes("grid") || lower.includes("flexbox")) {
+    return "https://www.youtube.com/embed/0xMQfnTU6oo";
+  }
+  if (lower.includes("react") && !lower.includes("native")) {
+    return "https://www.youtube.com/embed/Ke90Tje7VS0";
+  }
+  if (lower.includes("native") || lower.includes("expo")) {
+    return "https://www.youtube.com/embed/0-S5a0eXPoc";
+  }
+  if (lower.includes("node") || lower.includes("rest api") || lower.includes("express") || lower.includes("routing")) {
+    return "https://www.youtube.com/embed/Oe421EPjeBE";
+  }
+  if (lower.includes("sql") || lower.includes("postgres") || lower.includes("database")) {
+    return "https://www.youtube.com/embed/7S_tz1z_5bA";
+  }
+  if (lower.includes("python") || lower.includes("numpy") || lower.includes("pytorch") || lower.includes("ai") || lower.includes("neural") || lower.includes("machine learning")) {
+    return "https://www.youtube.com/embed/V_xro1bcAuA";
+  }
+  return "https://www.youtube.com/embed/hdI2bqOjy3c"; // Default JavaScript video
+}
+
 export default function CourseLearnScreen() {
   const store = useDashboardStore();
   const navigate = useNavigate();
@@ -68,9 +183,18 @@ export default function CourseLearnScreen() {
     // Fail-safe
   }
   
+  let nativeParams: any = {};
+  try {
+    const route = useRoute();
+    nativeParams = route.params || {};
+  } catch (e) {
+    // Fail-safe
+  }
+  
   // Extract course title from search queries
-  const params = new URLSearchParams(Platform.OS === "web" ? window.location.search : "");
-  const courseTitle = params.get("course") || "React Native & Expo Ecosystem";
+  const courseTitle = Platform.OS === "web"
+    ? (new URLSearchParams(window.location.search).get("course") || "React Native & Expo Ecosystem")
+    : (nativeParams.course || "React Native & Expo Ecosystem");
   const normalizedTitle = normalizeCourseTitle(courseTitle);
 
   const defaultSections = [
@@ -96,7 +220,11 @@ export default function CourseLearnScreen() {
     }
   ];
 
-  const [videoUrl, setVideoUrl] = useState<string>("https://www.youtube.com/embed/hdI2bqOjy3c");
+  const [videoUrl, setVideoUrl] = useState<string>(() => getFallbackVideoUrl(courseTitle));
+
+  useEffect(() => {
+    setVideoUrl(getFallbackVideoUrl(courseTitle));
+  }, [courseTitle]);
   const [sections, setSections] = useState<any[]>(defaultSections);
   const [materials, setMaterials] = useState<any[]>([]);
 
@@ -178,7 +306,9 @@ export default function CourseLearnScreen() {
 
   // Listen for YouTube player state changes via postMessage (enablejsapi=1)
   useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
+    if (Platform.OS !== "web") return;
+
+    const handleMessage = (event: any) => {
       if (event.origin !== "https://www.youtube.com") return;
       try {
         const data = JSON.parse(event.data);
@@ -236,12 +366,14 @@ export default function CourseLearnScreen() {
         setQuizTriggered(true);
         setShowFifteenMinQuiz(true);
 
-        const iframe = document.querySelector("iframe");
-        if (iframe && iframe.contentWindow) {
-          iframe.contentWindow.postMessage(
-            JSON.stringify({ event: "command", func: "pauseVideo", args: [] }),
-            "*"
-          );
+        if (Platform.OS === "web") {
+          const iframe = document.querySelector("iframe");
+          if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.postMessage(
+              JSON.stringify({ event: "command", func: "pauseVideo", args: [] }),
+              "*"
+            );
+          }
         }
       }
     }
@@ -277,9 +409,12 @@ export default function CourseLearnScreen() {
   useEffect(() => {
     async function loadPeerMaterials() {
       try {
-        const local = localStorage.getItem("uploaded_resources");
-        const localItems = local ? JSON.parse(local) : [];
-        const courseLocal = localItems.filter((x: any) => x.courseTitle === courseTitle);
+        let courseLocal: any[] = [];
+        if (Platform.OS === "web") {
+          const local = localStorage.getItem("uploaded_resources");
+          const localItems = local ? JSON.parse(local) : [];
+          courseLocal = localItems.filter((x: any) => x.courseTitle === courseTitle);
+        }
 
         const { data, error } = await supabase
           .from("resources")
@@ -291,9 +426,12 @@ export default function CourseLearnScreen() {
         setPeerMaterials([...courseLocal, ...dbItems]);
       } catch (e) {
         console.warn("Failed to load peer materials:", e);
-        const local = localStorage.getItem("uploaded_resources");
-        const localItems = local ? JSON.parse(local) : [];
-        const courseLocal = localItems.filter((x: any) => x.courseTitle === courseTitle);
+        let courseLocal: any[] = [];
+        if (Platform.OS === "web") {
+          const local = localStorage.getItem("uploaded_resources");
+          const localItems = local ? JSON.parse(local) : [];
+          courseLocal = localItems.filter((x: any) => x.courseTitle === courseTitle);
+        }
         setPeerMaterials(courseLocal);
       }
     }
@@ -317,11 +455,13 @@ export default function CourseLearnScreen() {
 
   const handleDeletePeerMaterial = async (id: string) => {
     setPeerMaterials((prev) => prev.filter((x) => x.id !== id));
-    const local = localStorage.getItem("uploaded_resources");
-    if (local) {
-      const localItems = JSON.parse(local);
-      const updated = localItems.filter((x: any) => x.id !== id);
-      localStorage.setItem("uploaded_resources", JSON.stringify(updated));
+    if (Platform.OS === "web") {
+      const local = localStorage.getItem("uploaded_resources");
+      if (local) {
+        const localItems = JSON.parse(local);
+        const updated = localItems.filter((x: any) => x.id !== id);
+        localStorage.setItem("uploaded_resources", JSON.stringify(updated));
+      }
     }
     try {
       await supabase.from("resources").delete().eq("id", id);
@@ -422,25 +562,54 @@ export default function CourseLearnScreen() {
                 </View>
               )
             ) : (
-              <View style={{ flex: 1, backgroundColor: "#000", justifyContent: "center", alignItems: "center" }}>
-                <Text style={{ color: "#fff" }}>Playback only supported on Web version.</Text>
-              </View>
+              !showFifteenMinQuiz ? (
+                <WebView
+                  style={{ flex: 1, borderRadius: 20 }}
+                  javaScriptEnabled={true}
+                  domStorageEnabled={true}
+                  allowsFullscreenVideo={true}
+                  source={{
+                    html: `
+                      <!DOCTYPE html>
+                      <html>
+                        <head>
+                          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                          <style>
+                            body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #000; }
+                            iframe { width: 100%; height: 100%; border: none; }
+                          </style>
+                        </head>
+                        <body>
+                          <iframe
+                            src="${videoUrl}?autoplay=1&enablejsapi=1&origin=https://google.com&start=${activeStartSec}"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowfullscreen
+                            referrerpolicy="strict-origin-when-cross-origin"
+                          ></iframe>
+                        </body>
+                      </html>
+                    `,
+                    baseUrl: "https://google.com"
+                  }}
+                />
+              ) : (
+                <View style={{ flex: 1, backgroundColor: "#090d16", justifyContent: "center", alignItems: "center", borderRadius: 20 }}>
+                  <MaterialCommunityIcons name="video-off" size={48} color="#475569" style={{ marginBottom: 12 }} />
+                  <Text style={{ color: "#94a3b8", fontSize: 15, fontWeight: "600" }}>Lesson Paused for Checkpoint Quiz</Text>
+                  <Text style={{ color: "#64748b", fontSize: 12, marginTop: 4 }}>Resume watching after closing the quiz</Text>
+                </View>
+              )
             )}
           </View>
 
-          <View style={styles.videoFooterRow}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-              <MaterialCommunityIcons name="youtube" size={20} color="#ef4444" />
-              <Text style={{ color: "#f8fafc", fontSize: 13, fontWeight: "600" }}>Source Lesson Video</Text>
-            </View>
-            <TouchableOpacity
-              onPress={() => Linking.openURL(getWatchUrl(videoUrl) + (activeStartSec > 0 ? `&t=${activeStartSec}s` : ""))}
-              style={styles.watchOnYTBtn}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.watchOnYTText}>Watch on YouTube</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            onPress={() => Linking.openURL(getWatchUrl(videoUrl) + (activeStartSec > 0 ? `&t=${activeStartSec}s` : ""))}
+            style={styles.videoFooterRow}
+            activeOpacity={0.8}
+          >
+            <MaterialCommunityIcons name="youtube" size={16} color="#ef4444" />
+            <Text style={{ color: "#f8fafc", fontSize: 11, fontWeight: "600", marginLeft: 6 }}>Source Lesson Video</Text>
+          </TouchableOpacity>
         </View>
 
         {/* RIGHT COLUMN - LESSON TIMELINE & DOCUMENTS */}
@@ -1019,25 +1188,15 @@ const styles = StyleSheet.create({
   },
   videoFooterRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 14,
+    marginTop: 10,
     backgroundColor: "rgba(255,255,255,0.03)",
-    padding: 14,
-    borderRadius: 16,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.05)",
-  },
-  watchOnYTBtn: {
-    backgroundColor: "#ef4444",
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-  },
-  watchOnYTText: {
-    color: "#ffffff",
-    fontSize: 12,
-    fontWeight: "700",
+    alignSelf: "flex-start",
   },
   sectionsContainer: {
     backgroundColor: "rgba(255,255,255,0.03)",

@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { ScrollView, StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
+import React, { useEffect, useState } from "react";
+import { ScrollView, StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator, RefreshControl } from "react-native";
 import { Header } from "../components/skillora/Header";
 import { StatCards } from "../components/skillora/StatCards";
 import { ContinueLearning } from "../components/skillora/ContinueLearning";
@@ -11,6 +11,7 @@ import { useDashboardStore } from "../lib/store";
 
 export default function DashboardScreen() {
   const store = useDashboardStore();
+  const [refreshing, setRefreshing] = useState(false);
 
   const focusDomain = store.surveyAnswers?.focusDomain;
   const proficiency = store.surveyAnswers?.proficiency;
@@ -20,6 +21,17 @@ export default function DashboardScreen() {
       store.fetchRecommendations();
     }
   }, [store.token, focusDomain, proficiency]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await store.fetchRecommendations();
+    } catch (e) {
+      console.warn("Dashboard refresh failed:", e);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   return (
     <View style={styles.outerContainer}>
@@ -35,6 +47,9 @@ export default function DashboardScreen() {
           style={styles.container} 
           contentContainerStyle={styles.contentContainer}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#6366f1"]} />
+          }
         >
           <Header />
           <StatCards />
@@ -72,7 +87,7 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
   spacer: {
-    height: 40,
+    height: 100,
   },
   loadingContainer: {
     flex: 1,

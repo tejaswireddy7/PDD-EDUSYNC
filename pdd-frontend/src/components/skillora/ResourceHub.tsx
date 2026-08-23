@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Linking, Platform } from "rea
 import { Feather, FontAwesome } from "@expo/vector-icons";
 import { useDashboardStore } from "../../lib/store";
 import { useNavigate } from "@tanstack/react-router";
+import { WebView } from "react-native-webview";
 
 const RESOURCE_VIDEOS: Record<string, string> = {
   // Frontend
@@ -125,7 +126,7 @@ export function ResourceHub() {
       rating: 4.8 + (index * 0.05) > 5 ? 5.0 : parseFloat((4.8 + (index * 0.05)).toFixed(1)),
       downloads: `${4.5 + index}k`,
       trending: index === 0,
-      author: "EduSync AI Coach"
+      author: "EduSync Network"
     }));
   }, [store.recommendations?.resources, focusDomain, userProficiency]);
 
@@ -216,9 +217,35 @@ export function ResourceHub() {
                   style={{ borderRadius: 16, border: "none" }}
                 />
               ) : (
-                <View style={{ flex: 1, backgroundColor: "#000", justifyContent: "center", alignItems: "center" }}>
-                  <Text style={{ color: "#fff" }}>Playback only supported on Web version.</Text>
-                </View>
+                <WebView
+                  style={{ flex: 1, borderRadius: 16 }}
+                  javaScriptEnabled={true}
+                  domStorageEnabled={true}
+                  allowsFullscreenVideo={true}
+                  source={{
+                    html: `
+                      <!DOCTYPE html>
+                      <html>
+                        <head>
+                          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                          <style>
+                            body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #000; }
+                            iframe { width: 100%; height: 100%; border: none; }
+                          </style>
+                        </head>
+                        <body>
+                          <iframe
+                            src="${videoUrl}?autoplay=1&origin=https://google.com"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowfullscreen
+                            referrerpolicy="strict-origin-when-cross-origin"
+                          ></iframe>
+                        </body>
+                      </html>
+                    `,
+                    baseUrl: "https://google.com"
+                  }}
+                />
               )}
             </View>
           </View>

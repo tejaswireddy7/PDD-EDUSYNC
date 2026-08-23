@@ -181,13 +181,22 @@ export async function fetchDBCourses(focusDomain: string, proficiency: string): 
     const { data, error } = await supabase
       .from("courses")
       .select("*")
-      .eq("focus_domain", focusDomain)
-      .eq("difficulty", proficiency);
+      .eq("focus_domain", focusDomain);
 
     if (error) throw error;
     if (data && data.length > 0) {
+      const diffOrder = ["Beginner", "Intermediate", "Advanced"];
+      const sorted = [...data].sort((a, b) => {
+        const distA = Math.abs(diffOrder.indexOf(a.difficulty) - diffOrder.indexOf(proficiency));
+        const distB = Math.abs(diffOrder.indexOf(b.difficulty) - diffOrder.indexOf(proficiency));
+        if (distA !== distB) {
+          return distA - distB;
+        }
+        return diffOrder.indexOf(a.difficulty) - diffOrder.indexOf(b.difficulty);
+      });
+
       const seen = new Set<string>();
-      const uniqueCourses = data.filter((c: any) => {
+      const uniqueCourses = sorted.filter((c: any) => {
         const key = c.title.toLowerCase();
         if (seen.has(key)) return false;
         seen.add(key);
@@ -249,7 +258,7 @@ export async function fetchDBResources(focusDomain?: string, proficiency?: strin
       rating: parseFloat((4.8 + (index * 0.05)).toFixed(1)),
       downloads: 4800 + (index * 1400),
       trending: index === 0,
-      author: "EduSync AI Coach"
+      author: "EduSync Network"
     };
   });
 
@@ -1395,7 +1404,7 @@ export async function saveDBCourseProgress(userId: string, courses: DBCourse[]):
     // Sync individual course progress to user_enrollments table
     if (courses && courses.length > 0) {
       for (const course of courses) {
-        if (course.id) {
+        if (course.id && (course.progress || 0) > 0) {
           await supabase
             .from("user_enrollments")
             .upsert({
@@ -2106,6 +2115,168 @@ const COURSE_SECTIONS_FALLBACK: Record<string, DBSection[]> = {
   ]
 };
 
+function generateDynamicCourseSections(courseTitle: string): DBSection[] {
+  const lower = courseTitle.toLowerCase();
+  
+  if (lower.includes("python") || lower.includes("pandas") || lower.includes("numpy") || lower.includes("statistics") || lower.includes("pytorch") || lower.includes("nlp") || lower.includes("transformer") || lower.includes("generative") || lower.includes("mlops") || lower.includes("data visualization")) {
+    return [
+      {
+        title: "Section 1: Core Concepts & Data Structures",
+        startSec: 0,
+        duration: "12 mins",
+        quiz: {
+          question: lower.includes("python") 
+            ? "Which Python data structure is mutable and stores key-value pairs?"
+            : lower.includes("pandas") || lower.includes("numpy")
+            ? "Which library is optimized for multi-dimensional array operations?"
+            : lower.includes("pytorch") || lower.includes("neural")
+            ? "What is the function of backward() in PyTorch training loops?"
+            : lower.includes("transformer") || lower.includes("generative")
+            ? "What is the key mechanism in Transformer architectures?"
+            : "What is the primary language used in AI/ML engineering?",
+          options: lower.includes("python")
+            ? ["Tuple", "List", "Dictionary", "Set"]
+            : lower.includes("pandas") || lower.includes("numpy")
+            ? ["Pandas", "NumPy", "Matplotlib", "Requests"]
+            : lower.includes("pytorch") || lower.includes("neural")
+            ? ["Initialize weights", "Compute gradients", "Update optimizer", "Calculate loss value"]
+            : lower.includes("transformer") || lower.includes("generative")
+            ? ["Recurrent state connections", "Self-Attention mechanism", "Convolutional pooling layers", "Gradient clipping"]
+            : ["Python", "JavaScript", "C++", "Java"],
+          correctAnswer: lower.includes("python") ? 2 : lower.includes("pandas") || lower.includes("numpy") ? 1 : lower.includes("pytorch") || lower.includes("neural") ? 1 : lower.includes("transformer") || lower.includes("generative") ? 1 : 0
+        }
+      },
+      {
+        title: "Section 2: Workflows, Model Training & Data Prep",
+        startSec: 720,
+        duration: "15 mins",
+        quiz: {
+          question: lower.includes("pandas") || lower.includes("numpy")
+            ? "Which method drops rows with missing/null values in a Pandas DataFrame?"
+            : lower.includes("pytorch") || lower.includes("neural") || lower.includes("transformer")
+            ? "Why do we use an optimizer during neural network training?"
+            : "Which metric represents the center of a probability distribution?",
+          options: lower.includes("pandas") || lower.includes("numpy")
+            ? ["df.dropna()", "df.clean()", "df.isnull()", "df.remove()"]
+            : lower.includes("pytorch") || lower.includes("neural") || lower.includes("transformer")
+            ? ["To speed up data loading", "To update model weights based on loss gradients", "To store check-in parameters", "To shuffle the input dataloader"]
+            : ["Variance", "Standard Deviation", "Mean", "Median"],
+          correctAnswer: lower.includes("pandas") || lower.includes("numpy") ? 0 : lower.includes("pytorch") || lower.includes("neural") || lower.includes("transformer") ? 1 : 2
+        }
+      }
+    ];
+  }
+  
+  if (lower.includes("native") || lower.includes("expo") || lower.includes("mobile") || lower.includes("swiftui") || lower.includes("kotlin") || lower.includes("navigation")) {
+    return [
+      {
+        title: "Section 1: Navigation & UI Container Architecture",
+        startSec: 0,
+        duration: "10 mins",
+        quiz: {
+          question: lower.includes("swiftui")
+            ? "Which view wrapper serves as a list container in SwiftUI?"
+            : lower.includes("kotlin")
+            ? "Which UI toolkit is recommended for modern native Android development?"
+            : "Which container is used to handle tab-based navigation routing in React Native?",
+          options: lower.includes("swiftui")
+            ? ["VStack", "List", "ScrollView", "Form"]
+            : lower.includes("kotlin")
+            ? ["Android XML Layout", "Jetpack Compose", "React Native", "Flutter View"]
+            : ["Stack.Navigator", "Tab.Navigator", "Drawer.Navigator", "NavigationContainer"],
+          correctAnswer: lower.includes("swiftui") ? 1 : lower.includes("kotlin") ? 1 : 1
+        }
+      },
+      {
+        title: "Section 2: Device Hardware Integrations & Performance",
+        startSec: 600,
+        duration: "15 mins",
+        quiz: {
+          question: "How do React Native applications interact with native hardware features like GPS/Camera?",
+          options: ["Using native device webviews", "Through asynchronous native bridge channels / Expo SDKs", "By converting JavaScript to C++ compiles directly", "Using HTML5 WebRTC standard API interfaces"],
+          correctAnswer: 1
+        }
+      }
+    ];
+  }
+
+  if (lower.includes("node") || lower.includes("sql") || lower.includes("express") || lower.includes("spring boot") || lower.includes("postgres") || lower.includes("redis") || lower.includes("docker") || lower.includes("kubernetes") || lower.includes("microservices") || lower.includes("distributed") || lower.includes("go ")) {
+    return [
+      {
+        title: "Section 1: API Design & Server Architectures",
+        startSec: 0,
+        duration: "12 mins",
+        quiz: {
+          question: lower.includes("sql") || lower.includes("postgres")
+            ? "Which SQL statement is used to combine rows from multiple tables based on a related column?"
+            : lower.includes("docker") || lower.includes("kubernetes")
+            ? "What is the primary purpose of a Docker container?"
+            : "Which HTTP request method is standard for creating new resources in a REST API?",
+          options: lower.includes("sql") || lower.includes("postgres")
+            ? ["UNION", "GROUP BY", "JOIN", "CONNECT"]
+            : lower.includes("docker") || lower.includes("kubernetes")
+            ? ["To encrypt developer operating systems", "To isolate applications and their dependencies in a lightweight package", "To manage cloud database clusters", "To run local hypervisor virtual machines"]
+            : ["GET", "POST", "PUT", "DELETE"],
+          correctAnswer: lower.includes("sql") || lower.includes("postgres") ? 2 : lower.includes("docker") || lower.includes("kubernetes") ? 1 : 1
+        }
+      },
+      {
+        title: "Section 2: Caching, Persistence & Cloud Operations",
+        startSec: 720,
+        duration: "14 mins",
+        quiz: {
+          question: lower.includes("redis") || lower.includes("caching")
+            ? "Which database model does Redis implement for high-performance caching?"
+            : lower.includes("sql") || lower.includes("postgres")
+            ? "Which index type is best for speeding up exact value match queries?"
+            : "Which command starts a set of microservice containers declared in a compose file?",
+          options: lower.includes("redis") || lower.includes("caching")
+            ? ["Relational columns", "Key-Value store", "Document tree model", "Graph connections"]
+            : lower.includes("sql") || lower.includes("postgres")
+            ? ["B-Tree Index", "Hash Index", "Gist Index", "Brin Index"]
+            : ["docker run", "docker-compose up", "kubectl apply", "npm run compose"],
+          correctAnswer: lower.includes("redis") || lower.includes("caching") ? 1 : lower.includes("sql") || lower.includes("postgres") ? 0 : 1
+        }
+      }
+    ];
+  }
+
+  return [
+    {
+      title: "Section 1: Document Structure & Styling Systems",
+      startSec: 0,
+      duration: "10 mins",
+      quiz: {
+        question: lower.includes("tailwind")
+          ? "Which utility class adds absolute padding to the left and right in Tailwind CSS?"
+          : lower.includes("typescript")
+          ? "Which keyword is used to declare a contract structure for objects in TypeScript?"
+          : "Which HTML5 semantic element represents an independent, self-contained piece of content?",
+        options: lower.includes("tailwind")
+          ? ["py-4", "px-4", "m-4", "p-4"]
+          : lower.includes("typescript")
+          ? ["class", "interface", "type", "contract"]
+          : ["<section>", "<article>", "<header>", "<aside>"],
+        correctAnswer: lower.includes("tailwind") ? 1 : lower.includes("typescript") ? 1 : 1
+      }
+    },
+    {
+      title: "Section 2: Component Lifecycles & State Management",
+      startSec: 600,
+      duration: "15 mins",
+      quiz: {
+        question: lower.includes("next.js")
+          ? "Which directory structure is utilized for modern App Router file-based layouts in Next.js 14?"
+          : "Which React state hooks are recommended for triggering side-effects like API data fetching?",
+        options: lower.includes("next.js")
+          ? ["pages/", "src/routes/", "app/", "public/"]
+          : ["useState", "useMemo", "useEffect", "useCallback"],
+        correctAnswer: lower.includes("next.js") ? 2 : 2
+      }
+    }
+  ];
+}
+
 function normalizeCourseTitle(title: string): string {
   const mapping: Record<string, string> = {
     "HTML5, CSS3, & Modern Grid": "HTML5, CSS3, & Modern Grid",
@@ -2152,7 +2323,7 @@ export async function fetchDBCourseSections(courseTitle: string): Promise<DBSect
 
   // Local fallback
   const normalized = normalizeCourseTitle(courseTitle);
-  return (COURSE_SECTIONS_FALLBACK[normalized] || DEFAULT_SECTIONS_FALLBACK) as DBSection[];
+  return (COURSE_SECTIONS_FALLBACK[normalized] || generateDynamicCourseSections(courseTitle)) as DBSection[];
 }
 
 export async function fetchDBCourseMaterials(courseTitle: string): Promise<Array<{ label: string; url: string; type: "doc" | "tutorial" | "article" }>> {
@@ -2202,5 +2373,41 @@ export async function fetchDBAchievements(): Promise<DBAchievement[]> {
   return ACHIEVEMENTS_FALLBACK;
 }
 
+// 38. Fetch unread counts mapping per conversation
+export async function fetchDBConversationUnreadCounts(currentUserId: string): Promise<Record<string, number>> {
+  try {
+    const { data: myPart, error: partErr } = await supabase
+      .from("peer_conversation_participants")
+      .select("conversation_id")
+      .eq("user_id", currentUserId);
+    if (partErr) throw partErr;
 
+    if (!myPart || myPart.length === 0) return {};
+    const convIds = myPart.map(cp => cp.conversation_id);
 
+    const { data, error } = await supabase
+      .from("peer_messages")
+      .select("conversation_id")
+      .in("conversation_id", convIds)
+      .neq("sender_id", currentUserId)
+      .eq("is_read", false);
+      
+    if (error) throw error;
+    
+    const counts: Record<string, number> = {};
+    convIds.forEach(id => {
+      counts[id] = 0;
+    });
+    
+    data?.forEach(msg => {
+      if (msg.conversation_id) {
+        counts[msg.conversation_id] = (counts[msg.conversation_id] || 0) + 1;
+      }
+    });
+    
+    return counts;
+  } catch (e) {
+    console.warn("fetchDBConversationUnreadCounts failed:", e);
+    return {};
+  }
+}

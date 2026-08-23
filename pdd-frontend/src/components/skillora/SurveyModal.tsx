@@ -9,7 +9,7 @@ import {
   ScrollView,
   Pressable,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useDashboardStore, SurveyAnswers } from "../../lib/store";
 
@@ -19,22 +19,79 @@ interface SurveyModalProps {
 }
 
 const themeColors = {
-  light: { primary: "#64748b" },
-  indigo: { primary: "#6366f1" },
-  dark: { primary: "#0d9488" },
+  light: { primary: "#6366f1" },
+  dark: { primary: "#818cf8" },
 };
 
 const themeGradients = {
-  light: ["#94a3b8", "#64748b"] as const,
-  indigo: ["#8b5cf6", "#6366f1"] as const,
-  dark: ["#14b8a6", "#0d9488"] as const,
+  light: ["#8b5cf6", "#6366f1"] as const,
+  dark: ["#a5b4fc", "#818cf8"] as const,
 };
 
 function BootstrapIcon({ name, size, color, style }: { name: string; size: number; color: string; style?: any }) {
   if (Platform.OS === "web") {
     return <i className={`bi bi-${name}`} style={{ fontSize: size, color: color, display: "inline-block", lineHeight: 1, ...style }} />;
   }
-  return <Feather name="help-circle" size={size} color={color} style={style} />;
+  
+  let nativeName: any = "help-circle";
+  let iconLibrary: "Feather" | "MaterialCommunityIcons" = "Feather";
+
+  if (name.includes("plus")) {
+    nativeName = "plus";
+  } else if (name.includes("search")) {
+    nativeName = "search";
+  } else if (name.includes("x") || name.includes("close")) {
+    nativeName = "x";
+  } else if (name.includes("chevron-up")) {
+    nativeName = "chevron-up";
+  } else if (name.includes("chevron-down")) {
+    nativeName = "chevron-down";
+  } else if (name.includes("arrow-left")) {
+    nativeName = "arrow-left";
+  } else if (name.includes("arrow-right")) {
+    nativeName = "arrow-right";
+  } else if (name.includes("check")) {
+    nativeName = "check";
+  } else if (name.includes("star")) {
+    nativeName = "star";
+  } else if (name.includes("layers")) {
+    nativeName = "layers";
+  } else if (name.includes("journal-code") || name.includes("notebook") || name.includes("journal")) {
+    nativeName = "book-open";
+  } else if (name.includes("clock")) {
+    nativeName = "clock";
+  } else if (name.includes("bullseye")) {
+    nativeName = "target";
+  } else if (name.includes("speedometer")) {
+    nativeName = "gauge";
+    iconLibrary = "MaterialCommunityIcons";
+  } else if (name.includes("fire")) {
+    nativeName = "fire";
+    iconLibrary = "MaterialCommunityIcons";
+  } else if (name.includes("graph") || name.includes("trending")) {
+    nativeName = "trending-up";
+  } else if (name.includes("award") || name.includes("trophy")) {
+    nativeName = "award";
+  } else if (name.includes("gear") || name.includes("settings")) {
+    nativeName = "settings";
+  } else if (name.includes("logout") || name.includes("box-arrow-right")) {
+    nativeName = "log-out";
+  } else if (name.includes("person-x") || name.includes("user-x")) {
+    nativeName = "user-x";
+  } else if (name.includes("checklist") || name.includes("list")) {
+    nativeName = "list";
+  } else if (name.includes("trash")) {
+    nativeName = "trash-2";
+  } else if (name.includes("paperclip")) {
+    nativeName = "paperclip";
+  } else if (name.includes("download")) {
+    nativeName = "download";
+  }
+
+  if (iconLibrary === "MaterialCommunityIcons") {
+    return <MaterialCommunityIcons name={nativeName} size={size} color={color} style={style} />;
+  }
+  return <Feather name={nativeName} size={size} color={color} style={style} />;
 }
 
 const CONNECTING_QUESTIONS = {
@@ -93,48 +150,46 @@ const CONNECTING_QUESTIONS = {
 };
 
 const DOMAIN_OPTIONS = [
-  { id: "Frontend", label: "Frontend Dev" },
-  { id: "Backend", label: "Backend Systems" },
-  { id: "Mobile", label: "Mobile Apps" },
-  { id: "AI", label: "AI & Data Science" }
+  { id: "Frontend", label: "Frontend & Web Development" },
+  { id: "Backend", label: "Backend Systems & Database Design" },
+  { id: "Mobile", label: "Mobile Apps & Cross-Platform UI" },
+  { id: "AI", label: "Artificial Intelligence & Data Science" }
 ];
 
 const SUB_COURSES = {
   Frontend: [
-    { id: "react_basics", label: "React Basics" },
-    { id: "state_management", label: "State Management (Redux/Zustand)" },
-    { id: "ssr_nextjs", label: "Next.js & Server Components" },
-    { id: "tailwind_styling", label: "Tailwind CSS & Styling systems" },
-    { id: "performance", label: "Performance & Core Web Vitals" },
-    { id: "html_css", label: "HTML5/CSS3 Layouts (Flexbox, Grid)" },
-    { id: "js_basics", label: "JavaScript fundamentals & ES6" },
+    { id: "html_css", label: "Build responsive UIs using HTML5 & CSS Grid" },
+    { id: "js_basics", label: "Master Core JS Programming & DOM Manipulation" },
+    { id: "react_basics", label: "Develop component-driven web apps with React" },
+    { id: "state_management", label: "Manage scalable client state with Redux/Zustand" },
+    { id: "ssr_nextjs", label: "Deploy SEO-friendly Next.js server components" },
+    { id: "tailwind_styling", label: "Apply styling frameworks using Tailwind CSS" },
+    { id: "performance", label: "Audit, profile, and optimize Core Web Vitals" }
   ],
   Backend: [
-    { id: "node_basics", label: "Node.js runtime & npm package basics" },
-    { id: "express_apis", label: "REST APIs & Express routing" },
-    { id: "basic_sql", label: "Relational databases & SQL queries" },
-    { id: "db_prisma", label: "Database relations & Prisma ORM" },
-    { id: "docker", label: "Docker containerization & Kubernetes" },
-    { id: "microservices", label: "Java Spring Boot Microservices" },
-    { id: "caching", label: "Redis Caching & Queue servers" }
+    { id: "node_basics", label: "Build REST APIs with Node.js & Express" },
+    { id: "basic_sql", label: "Design relational database schemas & write SQL" },
+    { id: "db_prisma", label: "Manage database relations using Prisma ORM" },
+    { id: "docker", label: "Deploy isolated containers with Docker & Kubernetes" },
+    { id: "microservices", label: "Build enterprise Spring Boot Microservices" },
+    { id: "caching", label: "Configure high-throughput Redis Caching layers" }
   ],
   Mobile: [
-    { id: "react_native_basics", label: "React Native UI Components" },
-    { id: "expo_basics", label: "Expo framework CLI & SDKs" },
-    { id: "mobile_flexbox", label: "Flexbox layout scaling rules" },
-    { id: "navigation", label: "Advanced React Navigation" },
-    { id: "hardware_apis", label: "Hardware APIs (GPS, Camera, Sensors)" },
-    { id: "native_bridges", label: "Kotlin & Swift Native Bridges" },
-    { id: "deployment", label: "App Store & Play Store deployment" }
+    { id: "react_native_basics", label: "Build native UI screens with React Native" },
+    { id: "expo_basics", label: "Develop native apps quickly using Expo CLI" },
+    { id: "navigation", label: "Configure app screen mapping & tab navigation" },
+    { id: "hardware_apis", label: "Integrate device hardware (Camera, GPS, Sensors)" },
+    { id: "native_bridges", label: "Create Kotlin & Swift Native Platform Bridges" },
+    { id: "deployment", label: "Deploy builds to App Store & Google Play" }
   ],
   AI: [
-    { id: "python_basics", label: "Python language structure & modules" },
-    { id: "pandas_numpy", label: "Pandas & Numpy data preprocessing" },
-    { id: "basic_stats", label: "Probability & basic statistics math" },
-    { id: "pytorch", label: "Deep Learning (Neural Networks, PyTorch)" },
-    { id: "transformers_nlp", label: "Natural Language Processing & LLMs" },
-    { id: "mlops", label: "MLOps pipelines & AI model deployment" },
-    { id: "llm_finetuning", label: "Fine-tuning & Retrieval (RAG)" }
+    { id: "python_basics", label: "Master Python programming syntax & packages" },
+    { id: "pandas_numpy", label: "Preprocess and clean data with Pandas & NumPy" },
+    { id: "basic_stats", label: "Solve data challenges using stats & probability" },
+    { id: "pytorch", label: "Train deep learning neural networks with PyTorch" },
+    { id: "transformers_nlp", label: "Build Natural Language Processing models" },
+    { id: "mlops", label: "Automate model deployment pipelines with MLOps" },
+    { id: "llm_finetuning", label: "Fine-tune Generative AI models & LLMs" }
   ]
 };
 
@@ -227,9 +282,9 @@ export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
   const [existingKnowledge, setExistingKnowledge] = useState<string[]>([]);
   const [targetGoal, setTargetGoal] = useState<string>("react_basics");
 
-  const appTheme = store.appTheme || "indigo";
-  const currentColors = themeColors[appTheme] || themeColors.indigo;
-  const currentGradient = themeGradients[appTheme] || themeGradients.indigo;
+  const appTheme = store.appTheme || "light";
+  const currentColors = themeColors[appTheme as "light" | "dark"] || themeColors.light;
+  const currentGradient = themeGradients[appTheme as "light" | "dark"] || themeGradients.light;
 
   React.useEffect(() => {
     if (visible && store.surveyAnswers) {

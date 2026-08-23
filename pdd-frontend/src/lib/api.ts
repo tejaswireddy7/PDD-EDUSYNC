@@ -5,10 +5,11 @@
 // ============================================================
 
 export const API_BASE_URL =
-  process.env.EXPO_PUBLIC_VITE_API_BASE_URL ||
-  process.env.VITE_API_BASE_URL ||
+  (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_BASE_URL) ||
+  (typeof process !== "undefined" && process.env?.EXPO_PUBLIC_VITE_API_BASE_URL) ||
+  (typeof process !== "undefined" && process.env?.VITE_API_BASE_URL) ||
   (typeof window !== "undefined" && (window as any).env?.VITE_API_BASE_URL) ||
-  "http://localhost:3000/api";
+  "https://pdd-edusync.onrender.com/api";
 
 // ---- Generic fetch wrapper ------------------------------------
 

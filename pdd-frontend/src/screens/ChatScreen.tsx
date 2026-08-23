@@ -2,11 +2,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator, Modal, Alert, NativeSyntheticEvent, NativeScrollEvent } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Header } from "../components/skillora/Header";
-import { 
-  Search, MoreVertical, UserMinus, Ban, BarChart3, 
-  ArrowLeft, Paperclip, FileText, Send, X, 
-  Zap, Award, CheckCircle2, TrendingUp, MessageSquare, ChevronRight
-} from "lucide-react";
+import * as DocumentPicker from "expo-document-picker";
+
 import { LinearGradient } from "expo-linear-gradient";
 import { useDashboardStore } from "../lib/store";
 import { supabase } from "../lib/supabase";
@@ -24,7 +21,8 @@ import {
   deleteDBConnection,
   blockDBUser,
   blockDBUserDirect,
-  fetchDBProfile
+  fetchDBProfile,
+  fetchDBConversationUnreadCounts
 } from "../lib/supabase-db";
 
 type PeerUser = {
@@ -70,6 +68,7 @@ export default function ChatScreen() {
   const [peers, setPeers] = useState<PeerUser[]>([]);
   const [connections, setConnections] = useState<Connection[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
   
   // Active Chat States
   const [activeConv, setActiveConv] = useState<Conversation | null>(null);
@@ -89,9 +88,64 @@ export default function ChatScreen() {
 
   const fileInputRef = useRef<any>(null);
 
-  const handleAttachFile = () => {
+  const handleAttachFile = async () => {
     if (Platform.OS === "web") {
       fileInputRef.current?.click();
+    } else {
+      try {
+        const result = await DocumentPicker.getDocumentAsync({
+          type: "*/*",
+          copyToCacheDirectory: true,
+        });
+
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+          const asset = result.assets[0];
+          await uploadAndSendFileMobile(asset.uri, asset.name, asset.mimeType || "application/octet-stream");
+        }
+      } catch (err) {
+        console.warn("Document picker failed:", err);
+        Alert.alert("Error", "Failed to select document.");
+      }
+    }
+  };
+
+  const uploadAndSendFileMobile = async (uri: string, name: string, mimeType: string) => {
+    if (!activeConv) return;
+    try {
+      const fileExt = name.split(".").pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `${activeConv.id}/${fileName}`;
+
+      const response = await fetch(uri);
+      const blob = await response.blob();
+
+      const { error: uploadError } = await supabase.storage
+        .from("chat-attachments")
+        .upload(filePath, blob, {
+          contentType: mimeType,
+          upsert: true
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("chat-attachments")
+        .getPublicUrl(filePath);
+
+      const sentMsg = await sendDBMessage(
+        activeConv.id, 
+        currentUserId, 
+        `Shared a file: ${name}`, 
+        publicUrl, 
+        name
+      );
+      setMessages((prev) => [...prev, sentMsg]);
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    } catch (err) {
+      console.error("File upload failed:", err);
+      Alert.alert("Upload Error", "Failed to upload attachment.");
     }
   };
 
@@ -176,12 +230,23 @@ export default function ChatScreen() {
     if (!currentUserId) return;
     setLoading(true);
     try {
-      const [profiles, recs, conns, convParts] = await Promise.all([
+      const [profiles, recs, conns, convParts, counts] = await Promise.all([
         fetchDBAllProfiles(),
         fetchDBAllRecommendations(),
         fetchDBConnections(currentUserId),
-        fetchDBConversations(currentUserId)
+        fetchDBConversations(currentUserId),
+        fetchDBConversationUnreadCounts(currentUserId)
       ]);
+
+      let profileList = profiles || [];
+      if (profileList.filter(p => p.id !== currentUserId).length === 0) {
+        profileList = [
+          { id: "peer1", name: "Priya Sharma", email: "priya@edusync.ai", focus_domain: "Mobile", proficiency: "Intermediate", streak: 5, courses_completed: 2, career_fit_score: 84, xp: 1200 },
+          { id: "peer2", name: "Rohit Kumar", email: "rohit@edusync.ai", focus_domain: "Frontend", proficiency: "Beginner", streak: 3, courses_completed: 1, career_fit_score: 72, xp: 850 },
+          { id: "peer3", name: "Anjali Singh", email: "anjali@edusync.ai", focus_domain: "Backend", proficiency: "Advanced", streak: 12, courses_completed: 4, career_fit_score: 91, xp: 2400 },
+          { id: "peer4", name: "Karan Talwar", email: "karan@edusync.ai", focus_domain: "AI", proficiency: "Beginner", streak: 1, courses_completed: 0, career_fit_score: 60, xp: 300 }
+        ];
+      }
 
       const colorsList = [
         ["#6366f1", "#818cf8"],
@@ -192,7 +257,7 @@ export default function ChatScreen() {
       ];
 
       // Map profiles to peers
-      const mappedPeers: PeerUser[] = profiles.map((p, index) => {
+      const mappedPeers: PeerUser[] = profileList.map((p, index) => {
         const userRec = recs.find(r => r.userId === p.id || r.user_id === p.id);
         let currentCourse = "Getting Started";
         if (userRec && userRec.courses) {
@@ -251,6 +316,7 @@ export default function ChatScreen() {
       });
 
       setConversations(activeConversations);
+      setUnreadCounts(counts || {});
     } catch (e) {
       console.warn("Failed loading chat structures:", e);
     } finally {
@@ -265,13 +331,18 @@ export default function ChatScreen() {
   // 2. Poll connections and unread states periodically in background
   useEffect(() => {
     if (!currentUserId) return;
-    const interval = setInterval(async () => {
-      try {
-        const conns = await fetchDBConnections(currentUserId);
-        setConnections(conns);
 
-        // Also update conversations list
-        const convParts = await fetchDBConversations(currentUserId);
+    const pollUpdates = async () => {
+      try {
+        const [conns, convParts, unreadCountsMap] = await Promise.all([
+          fetchDBConnections(currentUserId),
+          fetchDBConversations(currentUserId),
+          fetchDBConversationUnreadCounts(currentUserId)
+        ]);
+
+        setConnections(conns);
+        setUnreadCounts(unreadCountsMap || {});
+
         const grouped = convParts.reduce((acc: any, cp: any) => {
           acc[cp.conversation_id] = acc[cp.conversation_id] || [];
           acc[cp.conversation_id].push(cp.user_id);
@@ -294,9 +365,27 @@ export default function ChatScreen() {
         });
         setConversations(activeConversations);
       } catch (err) {}
-    }, 3000);
+    };
 
-    return () => clearInterval(interval);
+    pollUpdates();
+    const interval = setInterval(pollUpdates, 3000);
+
+    // Global listener for realtime message indicators
+    const channel = supabase
+      .channel("global_messages_indicator")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "peer_messages" },
+        () => {
+          pollUpdates();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      clearInterval(interval);
+      supabase.removeChannel(channel);
+    };
   }, [currentUserId, peers]);
 
   // 3. Load active conversation messages and subscribe to Realtime
@@ -417,14 +506,11 @@ export default function ChatScreen() {
   // Connection Management Actions
   const handleSendRequest = async (receiverId: string) => {
     try {
-      const conn = await sendDBConnectionRequest(currentUserId, receiverId);
-      if (conn && conn.id) {
-        await updateDBConnectionStatus(conn.id, "accepted", currentUserId, receiverId);
-      }
-      Alert.alert("Success", "Connected successfully!");
+      await sendDBConnectionRequest(currentUserId, receiverId);
+      Alert.alert("Success", "Connection request sent!");
       loadInitialData();
     } catch (e) {
-      Alert.alert("Error", "Failed to connect.");
+      Alert.alert("Error", "Failed to send connection request.");
     }
   };
 
@@ -541,6 +627,11 @@ export default function ChatScreen() {
                           📖 {conv.peer.currentCourse}
                         </Text>
                       </View>
+                      {unreadCounts[conv.id] > 0 && (
+                        <View style={styles.unreadBadge}>
+                          <Text style={styles.unreadBadgeText}>{unreadCounts[conv.id]}</Text>
+                        </View>
+                      )}
                       <MaterialCommunityIcons name="chevron-right" size={18} color="#94a3b8" />
                     </TouchableOpacity>
                   ))
@@ -636,7 +727,7 @@ export default function ChatScreen() {
                                 onPress={() => setMenuVisibleId(menuVisibleId === 'discover-' + p.id ? null : 'discover-' + p.id)}
                                 style={{ padding: 6 }}
                               >
-                                <MoreVertical size={18} color="#64748b" />
+                                <Feather name="more-vertical" size={18} color="#64748b" />
                               </TouchableOpacity>
                             )}
                           </View>
@@ -651,7 +742,7 @@ export default function ChatScreen() {
                                   }}
                                   style={styles.menuItem}
                                 >
-                                  <UserMinus size={14} color="#ef4444" style={styles.menuIcon} />
+                                  <Feather name="user-x" size={14} color="#ef4444" style={styles.menuIcon} />
                                   <Text style={[styles.menuText, { color: "#ef4444" }]}>Disconnect</Text>
                                 </TouchableOpacity>
                               )}
@@ -662,7 +753,7 @@ export default function ChatScreen() {
                                 }}
                                 style={styles.menuItem}
                               >
-                                <Ban size={14} color="#f59e0b" style={styles.menuIcon} />
+                                <Feather name="slash" size={14} color="#f59e0b" style={styles.menuIcon} />
                                 <Text style={styles.menuText}>Block</Text>
                               </TouchableOpacity>
                               <TouchableOpacity 
@@ -672,7 +763,7 @@ export default function ChatScreen() {
                                 }}
                                 style={styles.menuItem}
                               >
-                                <BarChart3 size={14} color="#6366f1" style={styles.menuIcon} />
+                                <Feather name="bar-chart-2" size={14} color="#6366f1" style={styles.menuIcon} />
                                 <Text style={styles.menuText}>View Analytics</Text>
                               </TouchableOpacity>
                             </View>
@@ -725,7 +816,7 @@ export default function ChatScreen() {
                               onPress={() => setMenuVisibleId(menuVisibleId === 'myconns-' + peer.id ? null : 'myconns-' + peer.id)}
                               style={{ padding: 6 }}
                             >
-                              <MoreVertical size={18} color="#64748b" />
+                              <Feather name="more-vertical" size={18} color="#64748b" />
                             </TouchableOpacity>
                           </View>
 
@@ -738,7 +829,7 @@ export default function ChatScreen() {
                                 }}
                                 style={styles.menuItem}
                               >
-                                <UserMinus size={14} color="#ef4444" style={styles.menuIcon} />
+                                <Feather name="user-x" size={14} color="#ef4444" style={styles.menuIcon} />
                                 <Text style={[styles.menuText, { color: "#ef4444" }]}>Disconnect</Text>
                               </TouchableOpacity>
                               <TouchableOpacity 
@@ -748,7 +839,7 @@ export default function ChatScreen() {
                                 }}
                                 style={styles.menuItem}
                               >
-                                <Ban size={14} color="#f59e0b" style={styles.menuIcon} />
+                                <Feather name="slash" size={14} color="#f59e0b" style={styles.menuIcon} />
                                 <Text style={styles.menuText}>Block</Text>
                               </TouchableOpacity>
                               <TouchableOpacity 
@@ -758,7 +849,7 @@ export default function ChatScreen() {
                                 }}
                                 style={styles.menuItem}
                               >
-                                <BarChart3 size={14} color="#6366f1" style={styles.menuIcon} />
+                                <Feather name="bar-chart-2" size={14} color="#6366f1" style={styles.menuIcon} />
                                 <Text style={styles.menuText}>View Analytics</Text>
                               </TouchableOpacity>
                             </View>
@@ -1529,5 +1620,20 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 13,
     fontWeight: "700",
+  },
+  unreadBadge: {
+    backgroundColor: "#ef4444",
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 6,
+    marginRight: 4,
+  },
+  unreadBadgeText: {
+    color: "#ffffff",
+    fontSize: 10,
+    fontWeight: "800",
   },
 });

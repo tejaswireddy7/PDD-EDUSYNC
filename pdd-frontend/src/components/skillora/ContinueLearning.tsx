@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Linki
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigate } from "@tanstack/react-router";
+import { useNavigation } from "@react-navigation/native";
 import { useDashboardStore } from "../../lib/store";
 import { supabase } from "../../lib/supabase";
 import { fetchDBCourses } from "../../lib/supabase-db";
@@ -33,6 +34,12 @@ function getCourseImage(subject: string, title: string): string {
 export function ContinueLearning() {
   const store = useDashboardStore();
   const navigate = useNavigate();
+  let nativeNavigation: any;
+  try {
+    nativeNavigation = useNavigation();
+  } catch (e) {
+    // Fail-safe
+  }
   
   const allCourses = store.recommendations?.courses || [];
   const enrolled = store.enrolledCourses || [];
@@ -85,7 +92,11 @@ export function ContinueLearning() {
               style={styles.card}
               activeOpacity={0.9}
               onPress={() => {
-                navigate({ to: "/course-learn", search: { course: c.title } });
+                if (Platform.OS === "web") {
+                  navigate({ to: "/course-learn", search: { course: c.title } });
+                } else if (nativeNavigation) {
+                  nativeNavigation.navigate("CourseLearn", { course: c.title });
+                }
               }}
             >
               <View style={styles.cardHeader}>
@@ -256,7 +267,11 @@ export function ContinueLearning() {
                         return;
                       }
                       setShowAllCoursesModal(false);
-                      navigate({ to: "/course-learn", search: { course: c.title } });
+                      if (Platform.OS === "web") {
+                        navigate({ to: "/course-learn", search: { course: c.title } });
+                      } else if (nativeNavigation) {
+                        nativeNavigation.navigate("CourseLearn", { course: c.title });
+                      }
                     }}
                     activeOpacity={0.9}
                   >

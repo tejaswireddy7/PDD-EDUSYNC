@@ -87,7 +87,7 @@ export interface DashboardState {
   isLoadingProfile: boolean;
   lowDataMode: boolean;
   cachedMaterials: Array<{ title: string; url: string; cachedAt: number }>;
-  appTheme: "light" | "indigo" | "dark";
+  appTheme: "light" | "dark";
   isRecoveringPassword: boolean;
   isProfileHydrated: boolean;
 }
@@ -109,7 +109,7 @@ const DEFAULT_STATE: DashboardState = {
   isLoadingProfile: true,
   lowDataMode: false,
   cachedMaterials: [],
-  appTheme: "indigo",
+  appTheme: "light",
   isRecoveringPassword: false,
   isProfileHydrated: false,
 };
@@ -121,20 +121,21 @@ let state: DashboardState = { ...DEFAULT_STATE };
 if (typeof window !== "undefined" && window.localStorage) {
   const lastUserId = window.localStorage.getItem("last_logged_in_user_id");
   const savedToken = window.localStorage.getItem("supabase_session_token");
-  const savedTheme = (window.localStorage.getItem("app-theme") || "indigo") as "light" | "indigo" | "dark";
+  const savedTheme = (window.localStorage.getItem("app-theme") || "light") as "light" | "dark";
   state.appTheme = savedTheme;
   
   // Apply theme immediately
-  const root = document.documentElement;
-  if (savedTheme === "light") {
-    root.style.setProperty("--primary", "oklch(0.60 0.05 252)");
-    root.style.setProperty("--ring", "oklch(0.60 0.05 252)");
-  } else if (savedTheme === "indigo") {
-    root.style.setProperty("--primary", "oklch(0.62 0.2 255)");
-    root.style.setProperty("--ring", "oklch(0.62 0.2 255)");
-  } else if (savedTheme === "dark") {
-    root.style.setProperty("--primary", "oklch(0.72 0.15 165)");
-    root.style.setProperty("--ring", "oklch(0.72 0.15 165)");
+  if (typeof document !== "undefined") {
+    const root = document.documentElement;
+    if (savedTheme === "dark") {
+      root.classList.add("dark");
+      root.style.setProperty("--primary", "oklch(0.7 0.2 255)");
+      root.style.setProperty("--ring", "oklch(0.7 0.2 255)");
+    } else {
+      root.classList.remove("dark");
+      root.style.setProperty("--primary", "oklch(0.62 0.2 255)");
+      root.style.setProperty("--ring", "oklch(0.62 0.2 255)");
+    }
   }
 
   if (lastUserId && savedToken) {
@@ -244,7 +245,7 @@ export function useDashboardStore() {
       updateState({
         lowDataMode: mode === "true",
         cachedMaterials: cached ? JSON.parse(cached) : [],
-        appTheme: (window.localStorage.getItem("app-theme") || "indigo") as any,
+        appTheme: (window.localStorage.getItem("app-theme") || "light") as any,
         enrolledCourses: hydratedEnrolled.length > 0 ? hydratedEnrolled : state.enrolledCourses,
         suggestedCourses: hydratedSuggested.length > 0 ? hydratedSuggested : state.suggestedCourses,
         ...(hydratedUser ? {
@@ -607,6 +608,23 @@ export function useDashboardStore() {
             if (typeof window !== "undefined" && window.localStorage && session.user.id) {
               window.localStorage.setItem(`enrolled_courses_${session.user.id}`, JSON.stringify(enrolled));
               window.localStorage.setItem(`suggested_courses_${session.user.id}`, JSON.stringify(suggested));
+            }
+          } else {
+            // Fallback if survey answers are not available in authenticated session
+            const target = state.enrolledCourses.find(c => 
+              typeof courseIdOrTitle === "number" ? c.id === courseIdOrTitle : c.title.toLowerCase() === courseIdOrTitle.toLowerCase()
+            );
+            if (target) {
+              const updatedEnrolled = state.enrolledCourses.filter(c => 
+                typeof courseIdOrTitle === "number" ? c.id !== courseIdOrTitle : c.title.toLowerCase() !== courseIdOrTitle.toLowerCase()
+              );
+              const updatedSuggested = [...state.suggestedCourses, target];
+              updateState({ enrolledCourses: updatedEnrolled, suggestedCourses: updatedSuggested });
+              
+              if (typeof window !== "undefined" && window.localStorage) {
+                window.localStorage.setItem(`enrolled_courses_${session.user.id}`, JSON.stringify(updatedEnrolled));
+                window.localStorage.setItem(`suggested_courses_${session.user.id}`, JSON.stringify(updatedSuggested));
+              }
             }
           }
         } else {
@@ -1329,22 +1347,71 @@ export function useDashboardStore() {
       });
     },
 
-    setAppTheme: (themeKey: "light" | "indigo" | "dark") => {
+    hydrateStore: () => {
+      if (typeof window !== "undefined" && window.localStorage) {
+        const lastUserId = window.localStorage.getItem("last_logged_in_user_id");
+        const savedToken = window.localStorage.getItem("supabase_session_token");
+        const savedTheme = (window.localStorage.getItem("app-theme") || "light") as "light" | "dark";
+        
+        const nextState: Partial<DashboardState> = {
+          appTheme: savedTheme
+        };
+
+        if (lastUserId && savedToken) {
+          const savedProfile = window.localStorage.getItem(`user_profile_${lastUserId}`);
+          if (savedProfile) {
+            try {
+              const parsedProfile = JSON.parse(savedProfile);
+              nextState.user = {
+                id: lastUserId,
+                name: parsedProfile.name || "Student",
+                email: parsedProfile.email || "",
+                registeredAt: parsedProfile.created_at ? new Date(parsedProfile.created_at).getTime() : Date.now(),
+                streak: parsedProfile.streak ?? 1,
+                coursesCompleted: parsedProfile.courses_completed ?? 0,
+                careerFitScore: parsedProfile.career_fit_score ?? 0,
+                xp: parsedProfile.xp ?? 0
+              };
+              nextState.token = savedToken;
+              nextState.surveyCompleted = window.localStorage.getItem(`survey_completed_${parsedProfile.email}`) === "true";
+              nextState.isLoadingProfile = false;
+              
+              const savedAnswers = window.localStorage.getItem(`survey_answers_${parsedProfile.email}`);
+              if (savedAnswers) {
+                nextState.surveyAnswers = JSON.parse(savedAnswers);
+              }
+
+              const savedEnrolled = window.localStorage.getItem(`enrolled_courses_${lastUserId}`);
+              if (savedEnrolled) {
+                nextState.enrolledCourses = JSON.parse(savedEnrolled);
+              }
+
+              const savedSuggested = window.localStorage.getItem(`suggested_courses_${lastUserId}`);
+              if (savedSuggested) {
+                nextState.suggestedCourses = JSON.parse(savedSuggested);
+              }
+            } catch (e) {}
+          }
+        }
+        updateState(nextState);
+      }
+    },
+
+    setAppTheme: (themeKey: "light" | "dark") => {
       updateState({ appTheme: themeKey });
       if (typeof window !== "undefined" && window.localStorage) {
         window.localStorage.setItem("app-theme", themeKey);
       }
-      if (typeof window !== "undefined") {
+      if (typeof document !== "undefined") {
         const root = document.documentElement;
-        if (themeKey === "light") {
-          root.style.setProperty("--primary", "oklch(0.60 0.05 252)");
-          root.style.setProperty("--ring", "oklch(0.60 0.05 252)");
-        } else if (themeKey === "indigo") {
+        if (themeKey === "dark") {
+          root.classList.add("dark");
+          root.style.setProperty("--primary", "oklch(0.7 0.2 255)");
+          root.style.setProperty("--ring", "oklch(0.7 0.2 255)");
+        } else {
+          root.classList.remove("dark");
           root.style.setProperty("--primary", "oklch(0.62 0.2 255)");
           root.style.setProperty("--ring", "oklch(0.62 0.2 255)");
-        } else if (themeKey === "dark") {
-          root.style.setProperty("--primary", "oklch(0.72 0.15 165)");
-          root.style.setProperty("--ring", "oklch(0.72 0.15 165)");
         }
       }
     }

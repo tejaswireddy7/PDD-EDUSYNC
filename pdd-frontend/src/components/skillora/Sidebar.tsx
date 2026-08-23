@@ -62,7 +62,7 @@ export function Sidebar({ activeRoute = "Dashboard", onNavigate }: SidebarProps)
           <MaterialCommunityIcons name={"sparkles" as any} size={18} color="#ffffff" />
         </LinearGradient>
         <View style={styles.brandText}>
-          <Text style={styles.brandTitle}>Skillora</Text>
+          <Text style={styles.brandTitle}>EduSync</Text>
           <Text style={styles.brandSub}>AI Learning OS</Text>
         </View>
       </View>

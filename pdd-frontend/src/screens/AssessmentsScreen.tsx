@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Dimensions, Alert, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Dimensions, Alert, ActivityIndicator, Platform, RefreshControl } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Header } from "../components/skillora/Header";
 import { useDashboardStore } from "../lib/store";
 import { supabase } from "../lib/supabase";
 import { fetchDBAssessments, updateDBAssessment } from "../lib/supabase-db";
 import { useNavigate } from "@tanstack/react-router";
+import { useNavigation } from "@react-navigation/native";
 
 type Status = "open" | "in-progress" | "submitted";
 type Assessment = {
@@ -117,28 +118,36 @@ export default function AssessmentsScreen() {
   const [items, setItems] = useState<Assessment[]>([]);
   const [active, setActive] = useState<Assessment | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  useEffect(() => {
-    async function loadData() {
-      setLoading(true);
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const dbAssessments = await fetchDBAssessments(user.id, focusDomain, userProficiency);
-          setItems(dbAssessments as any);
-          if (dbAssessments.length > 0) {
-            setActive((prev) => dbAssessments.find((a) => a.id === prev?.id) || dbAssessments[0]);
-          }
+  const loadData = async (showLoadingIndicator = true) => {
+    if (showLoadingIndicator) setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const dbAssessments = await fetchDBAssessments(user.id, focusDomain, userProficiency);
+        setItems(dbAssessments as any);
+        if (dbAssessments.length > 0) {
+          setActive((prev) => dbAssessments.find((a) => a.id === prev?.id) || dbAssessments[0]);
         }
-      } catch (err) {
-        console.warn("Failed to load assessments from Supabase:", err);
-      } finally {
-        setLoading(false);
       }
+    } catch (err) {
+      console.warn("Failed to load assessments from Supabase:", err);
+    } finally {
+      if (showLoadingIndicator) setLoading(false);
     }
-    loadData();
+  };
+
+  useEffect(() => {
+    loadData(true);
   }, [focusDomain, userProficiency]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadData(false);
+    setRefreshing(false);
+  };
 
   useEffect(() => {
     if (active) {
@@ -174,7 +183,15 @@ export default function AssessmentsScreen() {
 
   if (items.length === 0) {
     return (
-      <ScrollView ref={scrollViewRef} style={styles.container} contentContainerStyle={[styles.contentContainer, { justifyContent: "center", alignItems: "center", minHeight: 500 }]} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        ref={scrollViewRef} 
+        style={styles.container} 
+        contentContainerStyle={[styles.contentContainer, { justifyContent: "center", alignItems: "center", minHeight: 500 }]} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#6366f1"]} />
+        }
+      >
         <Header />
         <View style={{ padding: 40, alignItems: "center", backgroundColor: "#fff", borderRadius: 16, borderStyle: "dashed", borderWidth: 2, borderColor: "#cbd5e1", marginTop: 40, width: "90%", maxWidth: 500 }}>
           <Text style={{ fontSize: 20, fontWeight: "bold", color: "#0f172a", marginBottom: 12 }}>No Assessments Available</Text>
@@ -195,7 +212,15 @@ export default function AssessmentsScreen() {
   }
 
   return (
-    <ScrollView ref={scrollViewRef} style={styles.container} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
+    <ScrollView 
+      ref={scrollViewRef} 
+      style={styles.container} 
+      contentContainerStyle={styles.contentContainer} 
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#6366f1"]} />
+      }
+    >
       <Header />
 
       {/* 1. Filterable Assessments List */}
@@ -348,6 +373,12 @@ const PROJECT_TEMPLATES: Record<string, Array<{ title: string; files: string[] }
 
 function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onUpdate: (patch: Partial<Assessment>) => void }) {
   const navigate = useNavigate();
+  let nativeNavigation: any;
+  try {
+    nativeNavigation = useNavigation();
+  } catch (e) {
+    // Fail-safe
+  }
   const [files, setFiles] = useState<Uploaded[]>([]);
   const [note, setNote] = useState("");
   const [githubUrl, setGithubUrl] = useState("");
@@ -504,7 +535,7 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
   const statusLabel = isLateAssessment ? "LATE" : (assessment.status === "in-progress" ? "in progress" : assessment.status);
 
   // SUBMITTED STATE VIEW
-  if (assessment.status === "submitted" && progress === 0) {
+  if (assessment.status === "submitted") {
     return (
       <View style={styles.panelCard}>
         <View style={styles.successCard}>
@@ -524,7 +555,13 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
           )}
 
           <TouchableOpacity
-            onPress={() => navigate({ to: "/evaluation" })}
+            onPress={() => {
+              if (Platform.OS === "web") {
+                navigate({ to: "/evaluation" });
+              } else if (nativeNavigation) {
+                nativeNavigation.navigate("Evaluation");
+              }
+            }}
             style={styles.successButton}
           >
             <MaterialCommunityIcons name="creation" size={16} color="#ffffff" />
@@ -762,8 +799,8 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
 function AssessmentList({ items, activeId, onPick }: { items: Assessment[]; activeId: string; onPick: (a: Assessment) => void }) {
   const [filter, setFilter] = useState<"all" | Status | "late">("all");
   const filtered = filter === "all" ? items 
-    : filter === "late" ? items.filter(i => isLate(i))
-    : filter === "open" ? items.filter(i => i.status === "open" && !isLate(i))
+    : filter === "late" ? items.filter(i => i.status !== "submitted" && isLate(i))
+    : filter === "open" ? items.filter(i => i.status !== "submitted")
     : items.filter((i) => i.status === filter);
   const tabs: Array<{ k: "all" | Status | "late"; label: string }> = [
     { k: "all", label: "All" }, { k: "open", label: "Open" }, { k: "late", label: "Late" }, { k: "submitted", label: "Submitted" },
@@ -822,7 +859,7 @@ function AssessmentList({ items, activeId, onPick }: { items: Assessment[]; acti
                   </View>
                 </View>
                 <View style={styles.listItemSubRow}>
-                  <Text style={styles.listItemMetaText}>{a.subject}</Text>
+                  <Text style={[styles.listItemMetaText, { flexShrink: 1 }]} numberOfLines={1}>{a.subject}</Text>
                   <View style={styles.dot} />
                   <Text style={styles.listItemMetaText}>{a.difficulty}</Text>
                   <View style={styles.dot} />

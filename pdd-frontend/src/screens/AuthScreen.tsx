@@ -160,6 +160,7 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
       if (data.session && data.user) {
         // Create user object matching existing store expectation
         const userObj = {
+          id: data.user.id,
           email: data.user.email,
           name: data.user.user_metadata?.full_name || name,
         };
@@ -195,6 +196,7 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
 
       if (data.session && data.user) {
         const userObj = {
+          id: data.user.id,
           email: data.user.email,
           name: data.user.user_metadata?.full_name || "User",
         };
@@ -223,6 +225,7 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
       } else if (data.session && data.user) {
         // If email confirmation is disabled in Supabase, we get a session immediately!
         const userObj = {
+          id: data.user.id,
           email: data.user.email,
           name: data.user.user_metadata?.full_name || name,
         };

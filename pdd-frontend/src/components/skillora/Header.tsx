@@ -4,6 +4,7 @@ import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useDashboardStore, themeColors } from "../../lib/store";
 import { supabase } from "../../lib/supabase";
+import { BootstrapIcon } from "../ui/BootstrapIcon";
 
 interface HeaderProps {
   hideSurvey?: boolean;
@@ -96,7 +97,7 @@ export function Header({ hideSurvey = false }: HeaderProps) {
 
       <View style={styles.actionsContainer}>
         <TouchableOpacity style={[styles.iconButton, { backgroundColor: currentColors.card, borderColor: currentColors.border }]} onPress={() => setShowNotifications(!showNotifications)}>
-          <Feather name="bell" size={20} color={currentColors.text} />
+          <BootstrapIcon name="bell" size={20} color={currentColors.text} />
           <View style={styles.badge} />
         </TouchableOpacity>
 

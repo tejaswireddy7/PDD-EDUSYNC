@@ -7,6 +7,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useDashboardStore, themeColors } from "../../lib/store";
 import { supabase } from "../../lib/supabase";
 import { fetchDBCourses } from "../../lib/supabase-db";
+import { BootstrapIcon } from "../ui/BootstrapIcon";
 
 
 
@@ -82,7 +83,7 @@ export function ContinueLearning() {
       >
         {enrolled.length === 0 ? (
           <View style={[styles.emptyEnrolledCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
-            <MaterialCommunityIcons name="book-open-blank-variant" size={24} color={currentColors.subtext} style={{ marginBottom: 6 }} />
+            <BootstrapIcon name="book" size={24} color={currentColors.subtext} style={{ marginBottom: 6 }} />
             <Text style={[styles.emptyEnrolledTitle, { color: currentColors.text }]}>No Enrolled Courses</Text>
             <Text style={[styles.emptyEnrolledText, { color: currentColors.subtext }]}>Select a suggested course below and click Enroll to start learning!</Text>
           </View>
@@ -116,18 +117,18 @@ export function ContinueLearning() {
                   </View>
                   {c.ai && (
                     <View style={styles.aiBadge}>
-                      <MaterialCommunityIcons name={"sparkles" as any} size={10} color="#6366f1" />
+                      <BootstrapIcon name="sparkles" size={10} color="#6366f1" />
                       <Text style={styles.aiText}>AI Pick</Text>
                     </View>
                   )}
                 </View>
                 <View style={styles.playButton}>
-                  <Feather name="play" size={16} color="#6366f1" style={styles.playIcon} />
+                  <BootstrapIcon name="play" size={16} color="#6366f1" style={styles.playIcon} />
                 </View>
               </View>
               <View style={[styles.cardBody, { backgroundColor: currentColors.card }]}>
                 <View style={styles.metaRow}>
-                  <Feather name="clock" size={12} color={currentColors.subtext} />
+                  <BootstrapIcon name="clock" size={12} color={currentColors.subtext} />
                   <Text style={[styles.metaText, { color: currentColors.subtext }]}>{c.time}</Text>
                   <View style={[styles.dot, { backgroundColor: currentColors.border }]} />
                   <Text style={[styles.metaText, { color: currentColors.subtext }]}>{c.difficulty}</Text>
@@ -174,7 +175,7 @@ export function ContinueLearning() {
                     </View>
                     {c.ai && (
                       <View style={styles.aiBadge}>
-                        <MaterialCommunityIcons name={"sparkles" as any} size={10} color="#6366f1" />
+                        <BootstrapIcon name="sparkles" size={10} color="#6366f1" />
                         <Text style={styles.aiText}>AI Pick</Text>
                       </View>
                     )}
@@ -182,7 +183,7 @@ export function ContinueLearning() {
                 </View>
                 <View style={[styles.cardBody, { backgroundColor: currentColors.card }]}>
                   <View style={styles.metaRow}>
-                    <Feather name="clock" size={12} color={currentColors.subtext} />
+                    <BootstrapIcon name="clock" size={12} color={currentColors.subtext} />
                     <Text style={[styles.metaText, { color: currentColors.subtext }]}>{c.time}</Text>
                     <View style={[styles.dot, { backgroundColor: currentColors.border }]} />
                     <Text style={[styles.metaText, { color: currentColors.subtext }]}>{c.difficulty}</Text>
@@ -200,7 +201,7 @@ export function ContinueLearning() {
                       }
                     }}
                   >
-                    <Feather name="plus-circle" size={14} color="#ffffff" style={{ marginRight: 6 }} />
+                    <BootstrapIcon name="plus-circle" size={14} color="#ffffff" style={{ marginRight: 6 }} />
                     <Text style={styles.enrollBtnText}>Enroll Course</Text>
                   </TouchableOpacity>
                 </View>
@@ -222,7 +223,7 @@ export function ContinueLearning() {
             <View style={[styles.modalHeader, { borderBottomColor: currentColors.divider }]}>
               <Text style={[styles.modalTitle, { color: currentColors.text }]}>{store.surveyAnswers?.focusDomain || "Mobile"} Pathway Courses</Text>
               <TouchableOpacity onPress={() => setShowAllCoursesModal(false)} style={styles.closeButton}>
-                <Feather name="x" size={20} color={currentColors.subtext} />
+                <BootstrapIcon name="x" size={20} color={currentColors.subtext} />
               </TouchableOpacity>
             </View>
 
@@ -251,7 +252,7 @@ export function ContinueLearning() {
             <ScrollView contentContainerStyle={styles.modalList} showsVerticalScrollIndicator={false}>
               {listToRender.length === 0 ? (
                 <View style={styles.modalEmptyState}>
-                  <Feather name="book-open" size={40} color={currentColors.subtext} style={{ marginBottom: 12 }} />
+                  <BootstrapIcon name="book" size={40} color={currentColors.subtext} style={{ marginBottom: 12 }} />
                   <Text style={[styles.modalEmptyText, { color: currentColors.text }]}>No active courses yet</Text>
                   <Text style={[styles.modalEmptySubText, { color: currentColors.subtext }]}>
                     You haven't started any lessons. Switch to "Explore All" to begin your pathway!
@@ -293,7 +294,7 @@ export function ContinueLearning() {
                         <Text style={[styles.modalCardTitle, { color: "#ffffff" }]}>{c.title}</Text>
                         <View style={{ flexDirection: "row", alignItems: "center", gap: 12, marginTop: 4 }}>
                           <Text style={styles.modalCardDuration}>
-                            <Feather name="clock" size={12} color="#ffffffaa" /> {c.time || "10 hrs"}
+                            <BootstrapIcon name="clock" size={12} color="#ffffffaa" /> {c.time || "10 hrs"}
                           </Text>
                           {c.progress > 0 && (
                             <Text style={[styles.modalCardDuration, { fontWeight: "700", color: "#2dd4bf" }]}>
@@ -319,7 +320,7 @@ export function ContinueLearning() {
                             >
                               <Text style={styles.modalEnrollText}>Drop</Text>
                             </TouchableOpacity>
-                            <Feather name="play-circle" size={32} color="#ffffff" />
+                            <BootstrapIcon name="play" size={32} color="#ffffff" />
                           </View>
                         ) : (
                           <TouchableOpacity

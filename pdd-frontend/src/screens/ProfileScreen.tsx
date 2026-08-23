@@ -30,71 +30,7 @@ const themeColors = {
   }
 };
 
-function BootstrapIcon({ name, size, color, style }: { name: string; size: number; color: string; style?: any }) {
-  if (Platform.OS === "web") {
-    return <i className={`bi bi-${name}`} style={{ fontSize: size, color: color, display: "inline-block", lineHeight: 1, ...style }} />;
-  }
-  
-  let nativeName: any = "help-circle";
-  let iconLibrary: "Feather" | "MaterialCommunityIcons" = "Feather";
-
-  if (name.includes("plus")) {
-    nativeName = "plus";
-  } else if (name.includes("search")) {
-    nativeName = "search";
-  } else if (name.includes("x") || name.includes("close")) {
-    nativeName = "x";
-  } else if (name.includes("chevron-up")) {
-    nativeName = "chevron-up";
-  } else if (name.includes("chevron-down")) {
-    nativeName = "chevron-down";
-  } else if (name.includes("arrow-left")) {
-    nativeName = "arrow-left";
-  } else if (name.includes("arrow-right")) {
-    nativeName = "arrow-right";
-  } else if (name.includes("check")) {
-    nativeName = "check";
-  } else if (name.includes("star")) {
-    nativeName = "star";
-  } else if (name.includes("layers")) {
-    nativeName = "layers";
-  } else if (name.includes("journal-code") || name.includes("notebook") || name.includes("journal")) {
-    nativeName = "book-open";
-  } else if (name.includes("clock")) {
-    nativeName = "clock";
-  } else if (name.includes("bullseye")) {
-    nativeName = "target";
-  } else if (name.includes("speedometer")) {
-    nativeName = "gauge";
-    iconLibrary = "MaterialCommunityIcons";
-  } else if (name.includes("fire")) {
-    nativeName = "fire";
-    iconLibrary = "MaterialCommunityIcons";
-  } else if (name.includes("graph") || name.includes("trending")) {
-    nativeName = "trending-up";
-  } else if (name.includes("award") || name.includes("trophy")) {
-    nativeName = "award";
-  } else if (name.includes("gear") || name.includes("settings")) {
-    nativeName = "settings";
-  } else if (name.includes("logout") || name.includes("box-arrow-right")) {
-    nativeName = "log-out";
-  } else if (name.includes("person-x") || name.includes("user-x")) {
-    nativeName = "user-x";
-  } else if (name.includes("checklist") || name.includes("list")) {
-    nativeName = "list";
-  } else if (name.includes("trash")) {
-    nativeName = "trash-2";
-  } else if (name.includes("paperclip")) {
-    nativeName = "paperclip";
-  } else if (name.includes("download")) {
-    nativeName = "download";
-  }
-
-  if (iconLibrary === "MaterialCommunityIcons") {
-    return <MaterialCommunityIcons name={nativeName} size={size} color={color} style={style} />;
-  }
-  return <Feather name={nativeName} size={size} color={color} style={style} />;
-}
+import { BootstrapIcon } from "../components/ui/BootstrapIcon";
 
 export default function ProfileScreen() {
   const store = useDashboardStore();

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { createRootRoute, Outlet, Link, useLocation } from "@tanstack/react-router";
-import { Home, BookOpen, MessageSquare, BarChart2, FolderOpen, LogOut, User } from "lucide-react";
+// Lucide icons replaced with Bootstrap Icons
 import AuthScreen from "../screens/AuthScreen";
 import { useDashboardStore } from "../lib/store";
 import { supabase } from "../lib/supabase";
@@ -113,12 +113,12 @@ function RootLayout() {
   }, [store.user, location.pathname]);
 
   const navItems = [
-    { to: "/", label: "Dashboard", icon: Home },
-    { to: "/assessments", label: "Assessments", icon: BookOpen, badge: openAssessmentsCount > 0 ? String(openAssessmentsCount) : undefined },
-    { to: "/chat", label: "Messenger", icon: MessageSquare, badge: unreadMessagesCount > 0 ? String(unreadMessagesCount) : undefined },
-    { to: "/evaluation", label: "Analytics", icon: BarChart2 },
-    { to: "/resources", label: "Resource Hub", icon: FolderOpen, badge: newResourcesCount > 0 ? String(newResourcesCount) : undefined },
-    { to: "/profile", label: "Profile", icon: User },
+    { to: "/", label: "Dashboard", icon: "house" },
+    { to: "/assessments", label: "Assessments", icon: "clipboard-check", badge: openAssessmentsCount > 0 ? String(openAssessmentsCount) : undefined },
+    { to: "/chat", label: "Messenger", icon: "chat-dots", badge: unreadMessagesCount > 0 ? String(unreadMessagesCount) : undefined },
+    { to: "/evaluation", label: "Analytics", icon: "bar-chart" },
+    { to: "/resources", label: "Resource Hub", icon: "folder", badge: newResourcesCount > 0 ? String(newResourcesCount) : undefined },
+    { to: "/profile", label: "Profile", icon: "person" },
   ];
 
   if (!isAuthenticated) {
@@ -156,7 +156,6 @@ function RootLayout() {
         {/* Desktop Nav Links */}
         <nav className="flex-1 space-y-1.5 px-4 py-6 overflow-y-auto">
           {navItems.map((item) => {
-            const Icon = item.icon;
             return (
               <Link
                 key={item.to}
@@ -174,7 +173,7 @@ function RootLayout() {
                 }}
                 className="flex items-center gap-3.5 px-4 py-3 rounded-lg text-sm transition-all duration-200 cursor-pointer"
               >
-                <Icon className="h-5 w-5 shrink-0" />
+                <i className={`bi bi-${item.icon} text-lg shrink-0`} />
                 <span className="flex-1 truncate">{item.label}</span>
                 {item.badge && (
                   <span className="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">
@@ -220,7 +219,6 @@ function RootLayout() {
         {/* ========================================================================= */}
         <nav className={`md:hidden fixed bottom-0 left-0 right-0 h-16 border-t flex items-center justify-around px-2 z-50 shadow-lg ${isDark ? "bg-[#151b2c]/95 border-[#1e293b] text-slate-200" : "bg-white/95 border-slate-200 text-slate-800"} backdrop-blur-md`}>
           {navItems.map((item) => {
-            const Icon = item.icon;
             return (
               <Link
                 key={item.to}
@@ -235,7 +233,7 @@ function RootLayout() {
                 className="flex flex-col items-center justify-center flex-1 py-1 transition-all duration-200 text-center cursor-pointer relative"
               >
                 <div className="relative flex items-center justify-center p-1 rounded-lg">
-                  <Icon className="h-5.5 w-5.5" />
+                  <i className={`bi bi-${item.icon} text-xl`} />
                   {item.badge && (
                     <span className="absolute -top-1.5 -right-1.5 bg-indigo-600 text-white text-[8px] font-bold h-4 w-4 rounded-full flex items-center justify-center border border-white">
                       {item.badge}

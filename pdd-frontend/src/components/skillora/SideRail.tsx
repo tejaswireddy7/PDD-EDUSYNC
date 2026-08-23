@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Modal, Alert, ScrollView, Swi
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useDashboardStore, themeColors } from "../../lib/store";
+import { BootstrapIcon } from "../ui/BootstrapIcon";
 
 export function SideRail() {
   const store = useDashboardStore();
@@ -50,7 +51,7 @@ export function SideRail() {
       <View style={[styles.card, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
         <View style={styles.cardHeader}>
           <View style={[styles.iconBox, styles.bgPrimary]}>
-            <Feather name="calendar" size={16} color="#6366f1" />
+            <BootstrapIcon name="calendar" size={16} color="#6366f1" />
           </View>
           <Text style={[styles.cardTitle, { color: currentColors.text }]}>Upcoming Assessments</Text>
         </View>
@@ -86,7 +87,7 @@ export function SideRail() {
           style={styles.xpCard}
         >
           <View style={styles.xpHeader}>
-            <Feather name="award" size={22} color="#ffffff" />
+            <BootstrapIcon name="award" size={22} color="#ffffff" />
             <Text style={styles.xpTitle}>{store.user?.xp !== undefined ? `${store.user.xp.toLocaleString()} XP` : "0 XP"} this week</Text>
           </View>
           <Text style={styles.xpSubtitle}>
@@ -111,7 +112,7 @@ export function SideRail() {
       >
         <View style={styles.offlineLeft}>
           <View style={[styles.iconBoxBeige, isDark && { backgroundColor: currentColors.divider }]}>
-            <Feather name="wifi-off" size={18} color={isDark ? currentColors.text : "#78350f"} />
+            <BootstrapIcon name="wifi-off" size={18} color={isDark ? currentColors.text : "#78350f"} />
           </View>
           <View style={styles.offlineText}>
             <Text style={[styles.offlineTitle, { color: currentColors.text }]}>Low-data mode</Text>
@@ -121,7 +122,7 @@ export function SideRail() {
           </View>
         </View>
         <TouchableOpacity style={styles.downloadBtn} onPress={() => setShowCacheManager(true)}>
-          <Feather name="download" size={14} color="#6366f1" />
+          <BootstrapIcon name="download" size={14} color="#6366f1" />
         </TouchableOpacity>
       </TouchableOpacity>
 
@@ -137,7 +138,7 @@ export function SideRail() {
             <View style={[styles.modalHeader, { borderBottomColor: currentColors.divider }]}>
               <Text style={[styles.modalTitle, { color: currentColors.text }]}>Offline Cache Settings</Text>
               <TouchableOpacity onPress={() => setShowCacheManager(false)} style={styles.closeBtn}>
-                <Feather name="x" size={18} color={currentColors.subtext} />
+                <BootstrapIcon name="x" size={18} color={currentColors.subtext} />
               </TouchableOpacity>
             </View>
 
@@ -164,7 +165,7 @@ export function SideRail() {
               ) : (
                 store.cachedMaterials.map((m, idx) => (
                   <View key={idx} style={styles.cachedItemRow}>
-                    <Feather name="file-text" size={12} color="#6366f1" style={{ marginRight: 6 }} />
+                    <BootstrapIcon name="file-text" size={12} color="#6366f1" style={{ marginRight: 6 }} />
                     <Text style={[styles.cachedItemText, { color: currentColors.text }]} numberOfLines={1}>
                       {m.title}
                     </Text>

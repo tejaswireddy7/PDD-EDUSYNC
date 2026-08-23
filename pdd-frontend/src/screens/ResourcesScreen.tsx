@@ -2,7 +2,7 @@ import React, { useMemo, useState, useEffect, useRef } from "react";
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Dimensions, ActivityIndicator, Linking, Platform, Modal, Pressable, Alert, Image, RefreshControl } from "react-native";
 import { Feather, FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Header } from "../components/skillora/Header";
-import { useDashboardStore } from "../lib/store";
+import { useDashboardStore, themeColors } from "../lib/store";
 import { fetchDBResources } from "../lib/supabase-db";
 import { supabase } from "../lib/supabase";
 import { WebView } from "react-native-webview";
@@ -179,6 +179,10 @@ const ALL_COURSES = [
 
 export default function ResourcesScreen() {
   const store = useDashboardStore();
+  const appTheme = store.appTheme || "light";
+  const currentColors = themeColors[appTheme as "light" | "dark"] || themeColors.light;
+  const isDark = appTheme === "dark";
+
   const focusDomain = store.surveyAnswers?.focusDomain || "Mobile";
   const userProficiency = store.surveyAnswers?.proficiency || "Beginner";
 
@@ -442,7 +446,7 @@ export default function ResourcesScreen() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#f8fafc" }}>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: currentColors.background }}>
         <ActivityIndicator size="large" color="#6366f1" />
       </View>
     );
@@ -450,7 +454,7 @@ export default function ResourcesScreen() {
 
   return (
     <ScrollView 
-      style={styles.container} 
+      style={[styles.container, { backgroundColor: currentColors.background }]} 
       contentContainerStyle={styles.contentContainer} 
       showsVerticalScrollIndicator={false}
       refreshControl={
@@ -463,8 +467,8 @@ export default function ResourcesScreen() {
       <View style={styles.introBox}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
           <View style={{ flex: 1, paddingRight: 12 }}>
-            <Text style={styles.introTitle}>Collaborative Resource Hub</Text>
-            <Text style={styles.introSub}>Notes, PDFs and mini-projects shared by peers and mentors.</Text>
+            <Text style={[styles.introTitle, { color: currentColors.text }]}>Collaborative Resource Hub</Text>
+            <Text style={[styles.introSub, { color: currentColors.subtext }]}>Notes, PDFs and mini-projects shared by peers and mentors.</Text>
           </View>
           <TouchableOpacity 
             activeOpacity={0.85}
@@ -484,28 +488,28 @@ export default function ResourcesScreen() {
       </View>
 
       {/* Search and Filters Toggle Card */}
-      <View style={styles.filterCard}>
+      <View style={[styles.filterCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
         <View style={styles.searchRow}>
-          <View style={styles.searchBar}>
-            <BootstrapIcon name="search" size={14} color="#64748b" />
+          <View style={[styles.searchBar, { backgroundColor: isDark ? "#1f2937" : "#f1f5f9" }]}>
+            <BootstrapIcon name="search" size={14} color={currentColors.subtext} />
             <TextInput
               value={q}
               onChangeText={setQ}
               placeholder="Search by topic, subject, or author…"
-              placeholderTextColor="#94a3b8"
-              style={styles.searchInput}
+              placeholderTextColor={currentColors.subtext}
+              style={[styles.searchInput, { color: currentColors.text }]}
             />
             {q !== "" && (
               <TouchableOpacity onPress={() => setQ("")}>
-                <BootstrapIcon name="x-lg" size={14} color="#64748b" />
+                <BootstrapIcon name="x-lg" size={14} color={currentColors.subtext} />
               </TouchableOpacity>
             )}
           </View>
           <TouchableOpacity 
             onPress={() => setShowFilters(!showFilters)}
-            style={[styles.filterToggle, showFilters && styles.filterToggleActive]}
+            style={[styles.filterToggle, { backgroundColor: isDark ? "#1f2937" : "#f1f5f9" }, showFilters && styles.filterToggleActive]}
           >
-            <BootstrapIcon name="sliders" size={14} color={showFilters ? "#6366f1" : "#64748b"} />
+            <BootstrapIcon name="sliders" size={14} color={showFilters ? "#6366f1" : currentColors.subtext} />
             {activeFiltersCount > 0 && (
               <View style={styles.badgeCount}>
                 <Text style={styles.badgeCountText}>{activeFiltersCount}</Text>
@@ -527,8 +531,8 @@ export default function ResourcesScreen() {
 
       {/* Stats row */}
       <View style={styles.statsRow}>
-        <Text style={styles.statsCount}>{results.length} resources found</Text>
-        <Text style={styles.statsSort}>Sorted by: <Text style={styles.statsBold}>{sort}</Text></Text>
+        <Text style={[styles.statsCount, { color: currentColors.subtext }]}>{results.length} resources found</Text>
+        <Text style={[styles.statsSort, { color: currentColors.subtext }]}>Sorted by: <Text style={[styles.statsBold, { color: currentColors.text }]}>{sort}</Text></Text>
       </View>
 
       {/* Resources items list */}
@@ -538,7 +542,7 @@ export default function ResourcesScreen() {
           return (
             <TouchableOpacity 
               key={r.id} 
-              style={styles.resourceCard}
+              style={[styles.resourceCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}
               onPress={() => handleOpenResource(r)}
               activeOpacity={0.85}
             >
@@ -551,7 +555,7 @@ export default function ResourcesScreen() {
                     <BootstrapIcon 
                       name={isBookmarked ? "bookmark-fill" : "bookmark"} 
                       size={16} 
-                      color={isBookmarked ? "#6366f1" : "#64748b"} 
+                      color={isBookmarked ? "#6366f1" : currentColors.subtext} 
                     />
                   </TouchableOpacity>
                   {r.userId === activeUserId && (
@@ -573,8 +577,8 @@ export default function ResourcesScreen() {
                 <View style={[styles.badge, styles.bgPrimary]}>
                   <Text style={[styles.badgeText, styles.textPrimary]}>{r.subject}</Text>
                 </View>
-                <View style={[styles.badge, styles.bgMuted]}>
-                  <Text style={[styles.badgeText, styles.textGray]}>{r.level}</Text>
+                <View style={[styles.badge, styles.bgMuted, { backgroundColor: isDark ? "rgba(255, 255, 255, 0.1)" : "#f1f5f9" }]}>
+                  <Text style={[styles.badgeText, styles.textGray, { color: currentColors.subtext }]}>{r.level}</Text>
                 </View>
                 <View style={[styles.badge, styles.bgAccent]}>
                   <Text style={[styles.badgeText, styles.textAccent]}>{r.type}</Text>
@@ -587,20 +591,20 @@ export default function ResourcesScreen() {
                 )}
               </View>
 
-              <Text style={styles.resourceTitle} numberOfLines={2}>
+              <Text style={[styles.resourceTitle, { color: currentColors.text }]} numberOfLines={2}>
                 {r.title}
               </Text>
 
               <View style={styles.resourceFooter}>
-                <Text style={styles.author} numberOfLines={1}>by {r.author}</Text>
+                <Text style={[styles.author, { color: currentColors.subtext }]} numberOfLines={1}>by {r.author}</Text>
                 <View style={styles.stats}>
                   <View style={styles.statItem}>
                     <BootstrapIcon name="star-fill" size={10} color="#0d9488" />
-                    <Text style={styles.statText}>{r.rating}</Text>
+                    <Text style={[styles.statText, { color: currentColors.subtext }]}>{r.rating}</Text>
                   </View>
                   <View style={styles.statItem}>
-                    <BootstrapIcon name="download" size={10} color="#64748b" />
-                    <Text style={styles.statText}>{r.downloads}</Text>
+                    <BootstrapIcon name="download" size={10} color={currentColors.subtext} />
+                    <Text style={[styles.statText, { color: currentColors.subtext }]}>{r.downloads}</Text>
                   </View>
                 </View>
               </View>
@@ -609,9 +613,9 @@ export default function ResourcesScreen() {
         })}
 
         {results.length === 0 && (
-          <View style={styles.emptyCard}>
-            <BootstrapIcon name="file-earmark-x" size={24} color="#94a3b8" style={styles.emptyIcon} />
-            <Text style={styles.emptyText}>No matching study resources found for your filter criteria.</Text>
+          <View style={[styles.emptyCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
+            <BootstrapIcon name="file-earmark-x" size={24} color={currentColors.subtext} style={styles.emptyIcon} />
+            <Text style={[styles.emptyText, { color: currentColors.subtext }]}>No matching study resources found for your filter criteria.</Text>
           </View>
         )}
       </View>
@@ -624,25 +628,25 @@ export default function ResourcesScreen() {
         onRequestClose={() => setShowUploadModal(false)}
       >
         <Pressable style={styles.overlay} onPress={() => setShowUploadModal(false)}>
-          <Pressable style={styles.modalCard} onPress={(e: any) => e.stopPropagation()}>
+          <Pressable style={[styles.modalCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }]} onPress={(e: any) => e.stopPropagation()}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Upload Study Resource</Text>
+              <Text style={[styles.modalTitle, { color: currentColors.text }]}>Upload Study Resource</Text>
               <TouchableOpacity onPress={() => setShowUploadModal(false)}>
-                <BootstrapIcon name="x-lg" size={18} color="#64748b" />
+                <BootstrapIcon name="x-lg" size={18} color={currentColors.subtext} />
               </TouchableOpacity>
             </View>
 
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
-              <Text style={styles.inputLabel}>Title</Text>
+              <Text style={[styles.inputLabel, { color: currentColors.subtext }]}>Title</Text>
               <TextInput
                 value={newTitle}
                 onChangeText={setNewTitle}
                 placeholder="e.g. Next.js Routing Cheatsheet"
-                placeholderTextColor="#94a3b8"
-                style={styles.textInput}
+                placeholderTextColor={currentColors.subtext}
+                style={[styles.textInput, { backgroundColor: isDark ? "#1f2937" : "#f8fafc", borderColor: currentColors.border, color: currentColors.text }]}
               />
 
-              <Text style={styles.inputLabel}>Associate with Course</Text>
+              <Text style={[styles.inputLabel, { color: currentColors.subtext }]}>Associate with Course</Text>
               <View style={{ marginBottom: 12 }}>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingVertical: 4 }}>
                   {ALL_COURSES.map((course) => {
@@ -651,17 +655,17 @@ export default function ResourcesScreen() {
                       <TouchableOpacity
                         key={course}
                         onPress={() => setSelectedCourse(course)}
-                        style={[styles.pickerChip, active && styles.pickerChipActive]}
+                        style={[styles.pickerChip, active ? styles.pickerChipActive : { backgroundColor: isDark ? "#1f2937" : "#f1f5f9", borderColor: currentColors.border }]}
                         activeOpacity={0.7}
                       >
-                        <Text style={[styles.pickerText, active && styles.pickerTextActive, { fontSize: 10 }]}>{course}</Text>
+                        <Text style={[styles.pickerText, active ? styles.pickerTextActive : { color: currentColors.subtext }, { fontSize: 10 }]}>{course}</Text>
                       </TouchableOpacity>
                     );
                   })}
                 </ScrollView>
               </View>
 
-              <Text style={styles.inputLabel}>Subject Focus</Text>
+              <Text style={[styles.inputLabel, { color: currentColors.subtext }]}>Subject Focus</Text>
               <View style={styles.pickerRow}>
                 {["Frontend", "Backend", "Mobile", "AI", "General"].map((sub) => {
                   const active = newSubject === sub;
@@ -669,15 +673,15 @@ export default function ResourcesScreen() {
                     <TouchableOpacity
                       key={sub}
                       onPress={() => setNewSubject(sub)}
-                      style={[styles.pickerChip, active && styles.pickerChipActive]}
+                      style={[styles.pickerChip, active ? styles.pickerChipActive : { backgroundColor: isDark ? "#1f2937" : "#f1f5f9", borderColor: currentColors.border }]}
                     >
-                      <Text style={[styles.pickerText, active && styles.pickerTextActive]}>{sub}</Text>
+                      <Text style={[styles.pickerText, active ? styles.pickerTextActive : { color: currentColors.subtext }]}>{sub}</Text>
                     </TouchableOpacity>
                   );
                 })}
               </View>
 
-              <Text style={styles.inputLabel}>Proficiency Level</Text>
+              <Text style={[styles.inputLabel, { color: currentColors.subtext }]}>Proficiency Level</Text>
               <View style={styles.pickerRow}>
                 {["Beginner", "Intermediate", "Advanced"].map((lv) => {
                   const active = newLevel === lv;
@@ -685,15 +689,15 @@ export default function ResourcesScreen() {
                     <TouchableOpacity
                       key={lv}
                       onPress={() => setNewLevel(lv)}
-                      style={[styles.pickerChip, active && styles.pickerChipActive]}
+                      style={[styles.pickerChip, active ? styles.pickerChipActive : { backgroundColor: isDark ? "#1f2937" : "#f1f5f9", borderColor: currentColors.border }]}
                     >
-                      <Text style={[styles.pickerText, active && styles.pickerTextActive]}>{lv}</Text>
+                      <Text style={[styles.pickerText, active ? styles.pickerTextActive : { color: currentColors.subtext }]}>{lv}</Text>
                     </TouchableOpacity>
                   );
                 })}
               </View>
 
-              <Text style={styles.inputLabel}>Resource Type</Text>
+              <Text style={[styles.inputLabel, { color: currentColors.subtext }]}>Resource Type</Text>
               <View style={styles.pickerRow}>
                 {["Notes", "PDF", "Slides", "Project"].map((tp) => {
                   const active = newType === tp;
@@ -701,18 +705,18 @@ export default function ResourcesScreen() {
                     <TouchableOpacity
                       key={tp}
                       onPress={() => setNewType(tp as any)}
-                      style={[styles.pickerChip, active && styles.pickerChipActive]}
+                      style={[styles.pickerChip, active ? styles.pickerChipActive : { backgroundColor: isDark ? "#1f2937" : "#f1f5f9", borderColor: currentColors.border }]}
                     >
-                      <Text style={[styles.pickerText, active && styles.pickerTextActive]}>{tp}</Text>
+                      <Text style={[styles.pickerText, active ? styles.pickerTextActive : { color: currentColors.subtext }]}>{tp}</Text>
                     </TouchableOpacity>
                   );
                 })}
               </View>
 
-              <Text style={styles.inputLabel}>Attach Document</Text>
-              <TouchableOpacity style={styles.attachBox} onPress={handleAttachClick}>
-                <BootstrapIcon name="paperclip" size={16} color="#64748b" style={{ marginRight: 6 }} />
-                <Text style={{ fontSize: 12, color: "#475569" }}>
+              <Text style={[styles.inputLabel, { color: currentColors.subtext }]}>Attach Document</Text>
+              <TouchableOpacity style={[styles.attachBox, { backgroundColor: isDark ? "#1f2937" : "#f8fafc", borderColor: currentColors.border }]} onPress={handleAttachClick}>
+                <BootstrapIcon name="paperclip" size={16} color={currentColors.subtext} style={{ marginRight: 6 }} />
+                <Text style={{ fontSize: 12, color: currentColors.text }}>
                   {newFileName || "Choose image, PDF, or text notes file..."}
                 </Text>
               </TouchableOpacity>
@@ -744,8 +748,8 @@ export default function ResourcesScreen() {
             </ScrollView>
 
             <View style={styles.modalFooter}>
-              <TouchableOpacity style={styles.cancelBtn} onPress={() => setShowUploadModal(false)}>
-                <Text style={styles.cancelBtnText}>Cancel</Text>
+              <TouchableOpacity style={[styles.cancelBtn, { backgroundColor: isDark ? "#1f2937" : "#f1f5f9" }]} onPress={() => setShowUploadModal(false)}>
+                <Text style={[styles.cancelBtnText, { color: currentColors.subtext }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.publishBtn} onPress={handleUploadSubmit}>
                 <Text style={styles.publishBtnText}>Publish</Text>
@@ -821,16 +825,16 @@ export default function ResourcesScreen() {
         onRequestClose={() => setViewingResource(null)}
       >
         <View style={styles.viewerOverlay}>
-          <View style={styles.viewerModal}>
+          <View style={[styles.viewerModal, { backgroundColor: currentColors.card }]}>
             <View style={styles.viewerHeader}>
               <View style={{ flex: 1, marginRight: 8 }}>
-                <Text style={styles.viewerTitle} numberOfLines={1}>{viewingResource?.title}</Text>
-                <Text style={styles.viewerSubtitle}>
+                <Text style={[styles.viewerTitle, { color: currentColors.text }]} numberOfLines={1}>{viewingResource?.title}</Text>
+                <Text style={[styles.viewerSubtitle, { color: currentColors.subtext }]}>
                   Uploaded by {viewingResource?.author} • {viewingResource?.type}
                 </Text>
               </View>
               <TouchableOpacity onPress={() => setViewingResource(null)} style={styles.viewerCloseBtn}>
-                <BootstrapIcon name="x-lg" size={18} color="#ffffff" />
+                <BootstrapIcon name="x-lg" size={18} color={currentColors.text} />
               </TouchableOpacity>
             </View>
 
@@ -859,15 +863,15 @@ export default function ResourcesScreen() {
                     )
                   ) : (
                     // Plain text notes/files
-                    <View style={styles.notesTextContainer}>
-                      <Text style={styles.notesTextContent}>{viewingResource.fileContent}</Text>
+                    <View style={[styles.notesTextContainer, { backgroundColor: isDark ? "#1f2937" : "#0f172a" }]}>
+                      <Text style={[styles.notesTextContent, { color: isDark ? "#f3f4f6" : "#cbd5e1" }]}>{viewingResource.fileContent}</Text>
                     </View>
                   )}
                 </>
               ) : (
                 // Preseeded / fallback notes text content
-                <View style={styles.notesTextContainer}>
-                  <Text style={styles.notesTextContent}>
+                <View style={[styles.notesTextContainer, { backgroundColor: isDark ? "#1f2937" : "#0f172a" }]}>
+                  <Text style={[styles.notesTextContent, { color: isDark ? "#f3f4f6" : "#cbd5e1" }]}>
                     {viewingResource?.title} description and details:{"\n\n"}
                     This reference material has been prepared to help you study dynamic concepts related to {viewingResource?.subject || focusDomain}.{"\n\n"}Revisit this guide to prepare for checkpoints!
                   </Text>
@@ -884,9 +888,14 @@ export default function ResourcesScreen() {
 }
 
 function FilterGroup({ label, options, value, onChange }: { label: string; options: readonly string[]; value: string; onChange: (x: any) => void }) {
+  const store = useDashboardStore();
+  const appTheme = store.appTheme || "light";
+  const currentColors = themeColors[appTheme as "light" | "dark"] || themeColors.light;
+  const isDark = appTheme === "dark";
+
   return (
     <View style={styles.group}>
-      <Text style={styles.groupLabel}>{label}:</Text>
+      <Text style={[styles.groupLabel, { color: currentColors.subtext }]}>{label}:</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.groupScroll}>
         {options.map((opt) => {
           const active = value === opt;
@@ -894,9 +903,9 @@ function FilterGroup({ label, options, value, onChange }: { label: string; optio
             <TouchableOpacity 
               key={opt} 
               onPress={() => onChange(opt)}
-              style={[styles.chip, active ? styles.chipActive : styles.chipInactive]}
+              style={[styles.chip, active ? styles.chipActive : [styles.chipInactive, { backgroundColor: isDark ? "#1f2937" : "#f1f5f9", borderColor: currentColors.border }]]}
             >
-              <Text style={[styles.chipText, active ? styles.chipTextActive : styles.chipTextInactive]}>{opt}</Text>
+              <Text style={[styles.chipText, active ? styles.chipTextActive : [styles.chipTextInactive, { color: currentColors.subtext }]]}>{opt}</Text>
             </TouchableOpacity>
           );
         })}

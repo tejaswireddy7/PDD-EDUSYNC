@@ -5,7 +5,7 @@ import { Header } from "../components/skillora/Header";
 import * as DocumentPicker from "expo-document-picker";
 
 import { LinearGradient } from "expo-linear-gradient";
-import { useDashboardStore } from "../lib/store";
+import { useDashboardStore, themeColors } from "../lib/store";
 import { supabase } from "../lib/supabase";
 import { 
   fetchDBAllProfiles, 
@@ -60,6 +60,9 @@ type Conversation = {
 export default function ChatScreen() {
   const store = useDashboardStore();
   const currentUserId = store.user?.id || "";
+  const appTheme = store.appTheme || "light";
+  const currentColors = themeColors[appTheme as "light" | "dark"] || themeColors.light;
+  const isDark = appTheme === "dark";
 
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"chats" | "connections">("chats");
@@ -555,9 +558,9 @@ export default function ChatScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingWrapper}>
+      <View style={[styles.loadingWrapper, { backgroundColor: currentColors.background }]}>
         <ActivityIndicator size="large" color="#6366f1" />
-        <Text style={styles.loadingText}>Initializing Secure Messenger...</Text>
+        <Text style={[styles.loadingText, { color: currentColors.subtext }]}>Initializing Secure Messenger...</Text>
       </View>
     );
   }
@@ -566,32 +569,32 @@ export default function ChatScreen() {
     <KeyboardAvoidingView 
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-      style={styles.container}
+      style={[styles.container, { backgroundColor: currentColors.background }]}
     >
       {!activeConv ? (
         // Directory Panel
         <View style={{ flex: 1 }}>
           <ScrollView style={styles.scrollWrapper} showsVerticalScrollIndicator={false}>
             <Header />
-            <Text style={styles.paneTitle}>Student Chats</Text>
+            <Text style={[styles.paneTitle, { color: currentColors.text }]}>Student Chats</Text>
 
             {/* Sub-Tabs */}
-            <View style={styles.tabBar}>
+            <View style={[styles.tabBar, { backgroundColor: isDark ? "#1f2937" : "#e2e8f0" }]}>
               <TouchableOpacity 
                 onPress={() => setTab("chats")} 
-                style={[styles.tabItem, tab === "chats" && styles.tabItemActive]}
+                style={[styles.tabItem, tab === "chats" && styles.tabItemActive, tab === "chats" && { backgroundColor: currentColors.card }]}
               >
-                <Text style={[styles.tabText, tab === "chats" && styles.tabTextActive]}>Chats ({conversations.length})</Text>
+                <Text style={[styles.tabText, { color: currentColors.subtext }, tab === "chats" && [styles.tabTextActive, { color: currentColors.text }]]}>Chats ({conversations.length})</Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 onPress={() => setTab("connections")} 
-                style={[styles.tabItem, tab === "connections" && styles.tabItemActive]}
+                style={[styles.tabItem, tab === "connections" && styles.tabItemActive, tab === "connections" && { backgroundColor: currentColors.card }]}
               >
                 {/* Calculate pending incoming request counts */}
                 {(() => {
                   const pendingCount = connections.filter(c => c.receiver_id === currentUserId && c.status === "pending").length;
                   return (
-                    <Text style={[styles.tabText, tab === "connections" && styles.tabTextActive]}>
+                    <Text style={[styles.tabText, { color: currentColors.subtext }, tab === "connections" && [styles.tabTextActive, { color: currentColors.text }]]}>
                       Connections {pendingCount > 0 ? `(${pendingCount} pending)` : ""}
                     </Text>
                   );
@@ -604,16 +607,16 @@ export default function ChatScreen() {
               <View style={styles.contactsList}>
                 {conversations.length === 0 ? (
                   <View style={styles.emptyView}>
-                    <MaterialCommunityIcons name="message-text-outline" size={48} color="#94a3b8" />
-                    <Text style={styles.emptyTitle}>No Chats Yet</Text>
-                    <Text style={styles.emptyDesc}>Head over to the Connections tab to find other student peers and request connections!</Text>
+                    <MaterialCommunityIcons name="message-text-outline" size={48} color={currentColors.subtext} />
+                    <Text style={[styles.emptyTitle, { color: isDark ? "#ffffff" : "#475569" }]}>No Chats Yet</Text>
+                    <Text style={[styles.emptyDesc, { color: currentColors.subtext }]}>Head over to the Connections tab to find other student peers and request connections!</Text>
                   </View>
                 ) : (
                   conversations.map((conv) => (
                     <TouchableOpacity
                       key={conv.id}
                       onPress={() => setActiveConv(conv)}
-                      style={styles.contactItem}
+                      style={[styles.contactItem, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}
                     >
                       <View style={styles.avatarContainer}>
                         <LinearGradient
@@ -627,8 +630,8 @@ export default function ChatScreen() {
                       </View>
 
                       <View style={styles.contactDetails}>
-                        <Text style={styles.contactName}>{conv.peer.name}</Text>
-                        <Text style={styles.contactLastMsg} numberOfLines={1}>
+                        <Text style={[styles.contactName, { color: currentColors.text }]}>{conv.peer.name}</Text>
+                        <Text style={[styles.contactLastMsg, { color: currentColors.subtext }]} numberOfLines={1}>
                           Track: {conv.peer.focusDomain} ({conv.peer.proficiency})
                         </Text>
                         <Text style={styles.contactCourse} numberOfLines={1}>
@@ -640,7 +643,7 @@ export default function ChatScreen() {
                           <Text style={styles.unreadBadgeText}>{unreadCounts[conv.id]}</Text>
                         </View>
                       )}
-                      <MaterialCommunityIcons name="chevron-right" size={18} color="#94a3b8" />
+                      <MaterialCommunityIcons name="chevron-right" size={18} color={currentColors.subtext} />
                     </TouchableOpacity>
                   ))
                 )}
@@ -649,23 +652,23 @@ export default function ChatScreen() {
               // 2. Connection requests search and review page
               <View style={styles.connectionsPane}>
                 {/* Search Registered Users */}
-                <View style={styles.searchBar}>
-                  <MaterialCommunityIcons name="magnify" size={16} color="#64748b" />
+                <View style={[styles.searchBar, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
+                  <MaterialCommunityIcons name="magnify" size={16} color={currentColors.subtext} />
                   <TextInput
                     value={searchQuery}
                     onChangeText={setSearchQuery}
                     placeholder="Search peers to connect with..."
-                    placeholderTextColor="#94a3b8"
-                    style={styles.searchInput}
+                    placeholderTextColor={currentColors.subtext}
+                    style={[styles.searchInput, { color: currentColors.text }]}
                   />
                 </View>
 
-                <View style={[styles.searchResults, menuVisibleId ? { zIndex: 50, position: "relative" } : null]}>
-                  <Text style={styles.sectionHeader}>
+                <View style={[styles.searchResults, { backgroundColor: currentColors.card, borderColor: currentColors.border }, menuVisibleId ? { zIndex: 50, position: "relative" } : null]}>
+                  <Text style={[styles.sectionHeader, { color: currentColors.subtext }]}>
                     {searchQuery.trim().length > 0 ? "Search Results" : "Discover Peers"}
                   </Text>
                   {searchablePeers.length === 0 ? (
-                    <Text style={styles.emptyText}>
+                    <Text style={[styles.emptyText, { color: currentColors.subtext }]}>
                       {searchQuery.trim().length > 0 ? "No users matched your search query." : "No peers available to discover."}
                     </Text>
                   ) : (
@@ -676,10 +679,10 @@ export default function ChatScreen() {
                       );
 
                       return (
-                        <View key={p.id} style={[styles.searchItem, menuVisibleId === 'discover-' + p.id ? { zIndex: 100, position: "relative" } : null]}>
+                        <View key={p.id} style={[styles.searchItem, { borderBottomColor: currentColors.border }, menuVisibleId === 'discover-' + p.id ? { zIndex: 100, position: "relative" } : null]}>
                           <View style={styles.peerMeta}>
-                            <Text style={styles.peerName}>{p.name}</Text>
-                            <Text style={styles.peerTrack}>{p.focusDomain} · {p.proficiency}</Text>
+                            <Text style={[styles.peerName, { color: currentColors.text }]}>{p.name}</Text>
+                            <Text style={[styles.peerTrack, { color: currentColors.subtext }]}>{p.focusDomain} · {p.proficiency}</Text>
                           </View>
                           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                             {!conn ? (
@@ -691,7 +694,7 @@ export default function ChatScreen() {
                               </TouchableOpacity>
                             ) : conn.status === "pending" ? (
                               conn.sender_id === currentUserId ? (
-                                <Text style={styles.statusLabel}>Pending Sent</Text>
+                                <Text style={[styles.statusLabel, { color: currentColors.subtext }]}>Pending Sent</Text>
                               ) : (
                                 <View style={styles.rowButtons}>
                                   <TouchableOpacity 
@@ -727,7 +730,7 @@ export default function ChatScreen() {
                                 <Text style={styles.actionBtnText}>Chat</Text>
                               </TouchableOpacity>
                             ) : (
-                              <Text style={styles.statusLabel}>Rejected</Text>
+                              <Text style={[styles.statusLabel, { color: currentColors.subtext }]}>Rejected</Text>
                             )}
 
                             {(!conn || conn.status !== "blocked") && (
@@ -783,22 +786,22 @@ export default function ChatScreen() {
                 </View>
 
                 {/* My Connections */}
-                <View style={[styles.connBlock, menuVisibleId ? { zIndex: 40, position: "relative" } : null]}>
-                  <Text style={styles.sectionHeader}>My Connections</Text>
+                <View style={[styles.connBlock, { backgroundColor: currentColors.card, borderColor: currentColors.border }, menuVisibleId ? { zIndex: 40, position: "relative" } : null]}>
+                  <Text style={[styles.sectionHeader, { color: currentColors.subtext }]}>My Connections</Text>
                   {(() => {
                     const acceptedConns = connections.filter(c => c.status === "accepted");
                     if (acceptedConns.length === 0) {
-                      return <Text style={styles.emptyText}>No active connections yet.</Text>;
+                      return <Text style={[styles.emptyText, { color: currentColors.subtext }]}>No active connections yet.</Text>;
                     }
                     return acceptedConns.map(c => {
                       const peerId = c.sender_id === currentUserId ? c.receiver_id : c.sender_id;
                       const peer = peers.find(p => p.id === peerId);
                       if (!peer) return null;
                       return (
-                        <View key={c.id} style={[styles.searchItem, menuVisibleId === 'myconns-' + peer.id ? { zIndex: 100, position: "relative" } : null]}>
+                        <View key={c.id} style={[styles.searchItem, { borderBottomColor: currentColors.border }, menuVisibleId === 'myconns-' + peer.id ? { zIndex: 100, position: "relative" } : null]}>
                           <View style={styles.peerMeta}>
-                            <Text style={styles.peerName}>{peer.name}</Text>
-                            <Text style={styles.peerTrack}>{peer.focusDomain} · {peer.proficiency}</Text>
+                            <Text style={[styles.peerName, { color: currentColors.text }]}>{peer.name}</Text>
+                            <Text style={[styles.peerTrack, { color: currentColors.subtext }]}>{peer.focusDomain} · {peer.proficiency}</Text>
                           </View>
 
                           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
@@ -824,12 +827,12 @@ export default function ChatScreen() {
                               onPress={() => setMenuVisibleId(menuVisibleId === 'myconns-' + peer.id ? null : 'myconns-' + peer.id)}
                               style={{ padding: 6 }}
                             >
-                              <Feather name="more-vertical" size={18} color="#64748b" />
+                              <Feather name="more-vertical" size={18} color={currentColors.subtext} />
                             </TouchableOpacity>
                           </View>
 
                           {menuVisibleId === 'myconns-' + peer.id && (
-                            <View style={styles.dropdownMenu}>
+                            <View style={[styles.dropdownMenu, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
                               <TouchableOpacity 
                                 onPress={() => {
                                   setMenuVisibleId(null);
@@ -848,7 +851,7 @@ export default function ChatScreen() {
                                 style={styles.menuItem}
                               >
                                 <Feather name="slash" size={14} color="#f59e0b" style={styles.menuIcon} />
-                                <Text style={styles.menuText}>Block</Text>
+                                <Text style={[styles.menuText, { color: currentColors.text }]}>Block</Text>
                               </TouchableOpacity>
                               <TouchableOpacity 
                                 onPress={() => {
@@ -858,7 +861,7 @@ export default function ChatScreen() {
                                 style={styles.menuItem}
                               >
                                 <Feather name="bar-chart-2" size={14} color="#6366f1" style={styles.menuIcon} />
-                                <Text style={styles.menuText}>View Analytics</Text>
+                                <Text style={[styles.menuText, { color: currentColors.text }]}>View Analytics</Text>
                               </TouchableOpacity>
                             </View>
                           )}
@@ -869,23 +872,23 @@ export default function ChatScreen() {
                 </View>
 
                 {/* Incoming Pending Connections */}
-                <View style={styles.connBlock}>
-                  <Text style={styles.sectionHeader}>Incoming Requests</Text>
+                <View style={[styles.connBlock, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
+                  <Text style={[styles.sectionHeader, { color: currentColors.subtext }]}>Incoming Requests</Text>
                   {(() => {
                     const incoming = connections.filter(c => c.receiver_id === currentUserId && c.status === "pending");
                     if (incoming.length === 0) {
-                      return <Text style={styles.emptyText}>No incoming connection requests.</Text>;
+                      return <Text style={[styles.emptyText, { color: currentColors.subtext }]}>No incoming connection requests.</Text>;
                     }
                     return incoming.map(c => {
                       const sender = peers.find(p => p.id === c.sender_id);
                       if (!sender) return null;
                       return (
-                        <View key={c.id} style={styles.searchItem}>
+                        <View key={c.id} style={[styles.searchItem, { borderBottomColor: currentColors.border }]}>
                           <View style={styles.peerMeta}>
-                            <Text style={styles.peerName}>{sender.name}</Text>
-                            <Text style={styles.peerTrack}>{sender.focusDomain} · {sender.proficiency}</Text>
+                            <Text style={[styles.peerName, { color: currentColors.text }]}>{sender.name}</Text>
+                            <Text style={[styles.peerTrack, { color: currentColors.subtext }]}>{sender.focusDomain} · {sender.proficiency}</Text>
                           </View>
-                          <View style={styles.rowButtons}>
+                          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                             <TouchableOpacity 
                               onPress={() => handleUpdateRequest(c.id, "accepted", c.sender_id)}
                               style={[styles.smallBtn, { backgroundColor: "#10b981" }]}
@@ -906,23 +909,23 @@ export default function ChatScreen() {
                 </View>
 
                 {/* Outgoing Pending Requests */}
-                <View style={styles.connBlock}>
-                  <Text style={styles.sectionHeader}>Outgoing Requests</Text>
+                <View style={[styles.connBlock, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
+                  <Text style={[styles.sectionHeader, { color: currentColors.subtext }]}>Outgoing Requests</Text>
                   {(() => {
                     const outgoing = connections.filter(c => c.sender_id === currentUserId && c.status === "pending");
                     if (outgoing.length === 0) {
-                      return <Text style={styles.emptyText}>No outgoing requests sent.</Text>;
+                      return <Text style={[styles.emptyText, { color: currentColors.subtext }]}>No outgoing requests sent.</Text>;
                     }
                     return outgoing.map(c => {
                       const receiver = peers.find(p => p.id === c.receiver_id);
                       if (!receiver) return null;
                       return (
-                        <View key={c.id} style={styles.searchItem}>
+                        <View key={c.id} style={[styles.searchItem, { borderBottomColor: currentColors.border }]}>
                           <View style={styles.peerMeta}>
-                            <Text style={styles.peerName}>{receiver.name}</Text>
-                            <Text style={styles.peerTrack}>{receiver.focusDomain} · {receiver.proficiency}</Text>
+                            <Text style={[styles.peerName, { color: currentColors.text }]}>{receiver.name}</Text>
+                            <Text style={[styles.peerTrack, { color: currentColors.subtext }]}>{receiver.focusDomain} · {receiver.proficiency}</Text>
                           </View>
-                          <Text style={styles.statusLabel}>Pending Approval</Text>
+                          <Text style={[styles.statusLabel, { color: currentColors.subtext }]}>Pending Approval</Text>
                         </View>
                       );
                     });
@@ -934,11 +937,11 @@ export default function ChatScreen() {
         </View>
       ) : (
         // Active Conversational Thread
-        <View style={styles.chatPane}>
+        <View style={[styles.chatPane, { backgroundColor: currentColors.background }]}>
           {/* Header */}
-          <View style={styles.chatHeader}>
+          <View style={[styles.chatHeader, { backgroundColor: currentColors.card, borderBottomColor: currentColors.border }]}>
             <TouchableOpacity onPress={() => setActiveConv(null)} style={styles.backButton}>
-              <MaterialCommunityIcons name="arrow-left" size={20} color="#0f172a" />
+              <MaterialCommunityIcons name="arrow-left" size={20} color={currentColors.text} />
             </TouchableOpacity>
 
             <View style={styles.chatHeaderAvatarWrapper}>
@@ -953,8 +956,8 @@ export default function ChatScreen() {
             </View>
 
             <View style={styles.chatHeaderMeta}>
-              <Text style={styles.headerName} numberOfLines={1}>{activeConv.peer.name}</Text>
-              <Text style={styles.headerSubtitle} numberOfLines={1}>
+              <Text style={[styles.headerName, { color: currentColors.text }]} numberOfLines={1}>{activeConv.peer.name}</Text>
+              <Text style={[styles.headerSubtitle, { color: currentColors.subtext }]} numberOfLines={1}>
                 Track: {activeConv.peer.focusDomain} · {activeConv.peer.currentCourse}
               </Text>
             </View>
@@ -965,7 +968,7 @@ export default function ChatScreen() {
             ref={scrollViewRef}
             onScroll={handleScroll}
             scrollEventThrottle={16}
-            style={styles.messagesContainer}
+            style={[styles.messagesContainer, { backgroundColor: currentColors.background }]}
             contentContainerStyle={styles.messagesContent}
             showsVerticalScrollIndicator={false}
           >
@@ -975,14 +978,14 @@ export default function ChatScreen() {
                const isMe = m.sender_id === currentUserId;
                return (
                  <View key={m.id} style={[styles.msgRow, isMe ? styles.msgRowMe : styles.msgRowThem]}>
-                   <View style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleThem]}>
-                     <Text style={[styles.bubbleText, isMe ? styles.textWhite : styles.textDark]}>
+                   <View style={[styles.bubble, isMe ? styles.bubbleMe : [styles.bubbleThem, { backgroundColor: currentColors.card, borderColor: currentColors.border }]]}>
+                     <Text style={[styles.bubbleText, isMe ? styles.textWhite : [styles.textDark, { color: currentColors.text }]]}>
                        {m.message}
                      </Text>
                      {m.attachment_url && (
                        <TouchableOpacity 
                          onPress={() => window.open(m.attachment_url, "_blank")}
-                         style={[styles.attachmentBadge, isMe ? styles.attachmentMe : styles.attachmentThem]}
+                         style={[styles.attachmentBadge, isMe ? styles.attachmentMe : [styles.attachmentThem, { backgroundColor: isDark ? "#1f2937" : "#f1f5f9", borderColor: currentColors.border }]]}
                        >
                          <MaterialCommunityIcons name="file-document-outline" size={14} color={isMe ? "#ffffff" : "#6366f1"} />
                          <Text style={[styles.attachmentText, isMe ? styles.textWhite : styles.textPrimary]} numberOfLines={1}>
@@ -991,7 +994,7 @@ export default function ChatScreen() {
                        </TouchableOpacity>
                      )}
                      <View style={styles.msgMeta}>
-                       <Text style={[styles.msgTime, isMe ? styles.timeMe : styles.timeThem]}>
+                       <Text style={[styles.msgTime, isMe ? styles.timeMe : [styles.timeThem, { color: currentColors.subtext }]]}>
                          {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                        </Text>
                        {isMe && (
@@ -1019,19 +1022,19 @@ export default function ChatScreen() {
            )}
  
            {/* Footer Input Bar */}
-           <View style={styles.chatFooter}>
+           <View style={[styles.chatFooter, { backgroundColor: currentColors.card, borderTopColor: currentColors.border }]}>
              <TouchableOpacity 
                onPress={handleAttachFile} 
                style={styles.attachButton}
              >
-               <MaterialCommunityIcons name="paperclip" size={20} color="#64748b" />
+               <MaterialCommunityIcons name="paperclip" size={20} color={currentColors.subtext} />
              </TouchableOpacity>
              <TextInput
                value={draft}
                onChangeText={setDraft}
                placeholder="Type your message..."
-               placeholderTextColor="#94a3b8"
-               style={styles.input}
+               placeholderTextColor={currentColors.subtext}
+               style={[styles.input, { backgroundColor: isDark ? "#1f2937" : "#f1f5f9", color: currentColors.text }]}
              />
              <TouchableOpacity 
                onPress={handleSend} 
@@ -1052,11 +1055,11 @@ export default function ChatScreen() {
         onRequestClose={() => setShowAnalyticsModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.analyticsCard}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Student Analytics</Text>
+          <View style={[styles.analyticsCard, { backgroundColor: currentColors.card }]}>
+            <View style={[styles.modalHeader, { borderBottomColor: currentColors.border }]}>
+              <Text style={[styles.modalTitle, { color: currentColors.text }]}>Student Analytics</Text>
               <TouchableOpacity onPress={() => setShowAnalyticsModal(false)}>
-                <MaterialCommunityIcons name="close" size={20} color="#64748b" />
+                <MaterialCommunityIcons name="close" size={20} color={currentColors.subtext} />
               </TouchableOpacity>
             </View>
 
@@ -1068,36 +1071,36 @@ export default function ChatScreen() {
                       {(selectedPeerProfile.name || "Student")[0].toUpperCase()}
                     </Text>
                   </View>
-                  <Text style={styles.profileName}>{selectedPeerProfile.name || "Student"}</Text>
-                  <Text style={styles.profileEmail}>{selectedPeerProfile.email}</Text>
-                  <Text style={styles.profileTrackBadge}>
+                  <Text style={[styles.profileName, { color: currentColors.text }]}>{selectedPeerProfile.name || "Student"}</Text>
+                  <Text style={[styles.profileEmail, { color: currentColors.subtext }]}>{selectedPeerProfile.email}</Text>
+                  <Text style={[styles.profileTrackBadge, { color: isDark ? "#818cf8" : "#6366f1", backgroundColor: isDark ? "rgba(99, 102, 241, 0.2)" : "#e0e7ff" }]}>
                     {selectedPeerProfile.focus_domain || selectedPeerProfile.focusDomain || "Frontend"} Track
                   </Text>
                 </View>
 
                 <View style={styles.statsGrid}>
-                  <View style={styles.statBox}>
+                  <View style={[styles.statBox, { backgroundColor: isDark ? "#1f2937" : "#f8fafc", borderColor: currentColors.border }]}>
                     <Feather name="zap" size={16} color="#ef4444" />
-                    <Text style={styles.statVal}>{selectedPeerProfile.xp ?? 0} XP</Text>
-                    <Text style={styles.statLabel}>Total XP</Text>
+                    <Text style={[styles.statVal, { color: currentColors.text }]}>{selectedPeerProfile.xp ?? 0} XP</Text>
+                    <Text style={[styles.statLabel, { color: currentColors.subtext }]}>Total XP</Text>
                   </View>
 
-                  <View style={styles.statBox}>
+                  <View style={[styles.statBox, { backgroundColor: isDark ? "#1f2937" : "#f8fafc", borderColor: currentColors.border }]}>
                     <Feather name="award" size={16} color="#f59e0b" />
-                    <Text style={styles.statVal}>{selectedPeerProfile.streak ?? 1} days</Text>
-                    <Text style={styles.statLabel}>Streak</Text>
+                    <Text style={[styles.statVal, { color: currentColors.text }]}>{selectedPeerProfile.streak ?? 1} days</Text>
+                    <Text style={[styles.statLabel, { color: currentColors.subtext }]}>Streak</Text>
                   </View>
 
-                  <View style={styles.statBox}>
+                  <View style={[styles.statBox, { backgroundColor: isDark ? "#1f2937" : "#f8fafc", borderColor: currentColors.border }]}>
                     <MaterialCommunityIcons name="check-circle" size={16} color="#10b981" />
-                    <Text style={styles.statVal}>{selectedPeerProfile.courses_completed ?? selectedPeerProfile.coursesCompleted ?? 0}</Text>
-                    <Text style={styles.statLabel}>Completed</Text>
+                    <Text style={[styles.statVal, { color: currentColors.text }]}>{selectedPeerProfile.courses_completed ?? selectedPeerProfile.coursesCompleted ?? 0}</Text>
+                    <Text style={[styles.statLabel, { color: currentColors.subtext }]}>Completed</Text>
                   </View>
 
-                  <View style={styles.statBox}>
+                  <View style={[styles.statBox, { backgroundColor: isDark ? "#1f2937" : "#f8fafc", borderColor: currentColors.border }]}>
                     <MaterialCommunityIcons name="trending-up" size={16} color="#6366f1" />
-                    <Text style={styles.statVal}>{selectedPeerProfile.career_fit_score ?? selectedPeerProfile.careerFitScore ?? 0}%</Text>
-                    <Text style={styles.statLabel}>Career Fit</Text>
+                    <Text style={[styles.statVal, { color: currentColors.text }]}>{selectedPeerProfile.career_fit_score ?? selectedPeerProfile.careerFitScore ?? 0}%</Text>
+                    <Text style={[styles.statLabel, { color: currentColors.subtext }]}>Career Fit</Text>
                   </View>
                 </View>
 

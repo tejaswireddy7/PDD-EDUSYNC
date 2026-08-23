@@ -542,6 +542,13 @@ export function useDashboardStore() {
               .delete()
               .eq("user_id", session.user.id)
               .eq("course_id", targetId);
+
+            // Proactively delete any associated assessments for this course
+            await supabase
+              .from("assessments")
+              .delete()
+              .eq("user_id", session.user.id)
+              .like("id", `course_${targetId}_%`);
           }
 
           const answers = state.surveyAnswers;

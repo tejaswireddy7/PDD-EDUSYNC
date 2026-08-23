@@ -295,6 +295,7 @@ export default function ChatScreen() {
 
       // Construct Conversations list based on accepted connection participants matching public profiles
       const activeConversations: Conversation[] = [];
+      const seenPeerIds = new Set<string>();
       const grouped = convParts.reduce((acc: any, cp: any) => {
         acc[cp.conversation_id] = acc[cp.conversation_id] || [];
         acc[cp.conversation_id].push(cp.user_id);
@@ -305,12 +306,15 @@ export default function ChatScreen() {
         const members = grouped[convId];
         if (members.includes(currentUserId)) {
           const peerId = members.find((mId: string) => mId !== currentUserId);
-          const peerObj = mappedPeers.find(p => p.id === peerId);
-          if (peerObj) {
-            activeConversations.push({
-              id: convId,
-              peer: peerObj
-            });
+          if (peerId && !seenPeerIds.has(peerId)) {
+            const peerObj = mappedPeers.find(p => p.id === peerId);
+            if (peerObj) {
+              seenPeerIds.add(peerId);
+              activeConversations.push({
+                id: convId,
+                peer: peerObj
+              });
+            }
           }
         }
       });
@@ -350,16 +354,20 @@ export default function ChatScreen() {
         }, {});
 
         const activeConversations: Conversation[] = [];
+        const seenPeerIds = new Set<string>();
         Object.keys(grouped).forEach(convId => {
           const members = grouped[convId];
           if (members.includes(currentUserId)) {
             const peerId = members.find((mId: string) => mId !== currentUserId);
-            const peerObj = peers.find(p => p.id === peerId);
-            if (peerObj) {
-              activeConversations.push({
-                id: convId,
-                peer: peerObj
-              });
+            if (peerId && !seenPeerIds.has(peerId)) {
+              const peerObj = peers.find(p => p.id === peerId);
+              if (peerObj) {
+                seenPeerIds.add(peerId);
+                activeConversations.push({
+                  id: convId,
+                  peer: peerObj
+                });
+              }
             }
           }
         });

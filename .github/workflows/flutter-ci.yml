@@ -191,47 +191,55 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Download selenium node_modules
-        uses: actions/download-artifact@v4
-        with:
-          name: selenium-node-modules
-          path: selenium-tests/node_modules
+      - name: Install selenium-tests dependencies
+        working-directory: selenium-tests
+        run: npm install
 
       - name: Setup Chrome and ChromeDriver
         run: |
-          # ubuntu-latest runners already have Google Chrome pre-installed.
-          # Just verify it exists and locate it.
-          CHROME_BIN=$(which google-chrome-stable || which google-chrome || which chromium-browser || true)
-          if [ -z "$CHROME_BIN" ]; then
-            echo "Chrome not found, installing..."
-            sudo apt-get update -qq
-            sudo apt-get install -y google-chrome-stable
-            CHROME_BIN=$(which google-chrome-stable)
-          fi
-          echo "Chrome binary: $CHROME_BIN"
-          $CHROME_BIN --version
-
-          # Install chromedriver via npm (automatically matches Chrome version)
-          npm install -g chromedriver --quiet 2>/dev/null || \
-            npx --yes chromedriver --version
-
-          DRIVER_BIN=$(which chromedriver || npx --yes chromedriver --detect-chrome 2>/dev/null || true)
-          if [ -z "$DRIVER_BIN" ]; then
-            # Manual fallback: download latest stable chromedriver
-            STABLE=$(curl -sf https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_STABLE || echo "")
-            if [ -n "$STABLE" ]; then
-              curl -Lo /tmp/cd.zip "https://storage.googleapis.com/chrome-for-testing-public/${STABLE}/linux64/chromedriver-linux64.zip"
-              unzip -q /tmp/cd.zip -d /tmp/cde
-              sudo mv "$(find /tmp/cde -name chromedriver -type f | head -1)" /usr/local/bin/chromedriver
-              sudo chmod +x /usr/local/bin/chromedriver
-              DRIVER_BIN=/usr/local/bin/chromedriver
+          # ----- Locate Chrome (pre-installed on ubuntu-latest) -----
+          CHROME_BIN=""
+          for candidate in google-chrome-stable google-chrome chromium-browser chromium; do
+            if command -v "$candidate" &>/dev/null; then
+              CHROME_BIN=$(command -v "$candidate")
+              break
             fi
+          done
+
+          if [ -z "$CHROME_BIN" ]; then
+            echo "Chrome not found — installing google-chrome-stable via apt"
+            curl -fsSL https://dl.google.com/linux/linux_signing_key.pub \
+              | sudo gpg --batch --yes --dearmor \
+              -o /usr/share/keyrings/google-chrome.gpg
+            echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] \
+              http://dl.google.com/linux/chrome/deb/ stable main" \
+              | sudo tee /etc/apt/sources.list.d/google-chrome.list > /dev/null
+            sudo apt-get update -qq && sudo apt-get install -y google-chrome-stable
+            CHROME_BIN=$(command -v google-chrome-stable)
           fi
 
-          echo "ChromeDriver binary: $DRIVER_BIN"
-          $DRIVER_BIN --version
+          echo "Chrome : $CHROME_BIN"
+          "$CHROME_BIN" --version
           echo "CHROME_BIN=$CHROME_BIN" >> $GITHUB_ENV
-          echo "CHROMEDRIVER_PATH=$DRIVER_BIN" >> $GITHUB_ENV
+
+          # ----- Install matching ChromeDriver -----
+          CHROME_MAJOR=$("$CHROME_BIN" --version | grep -oP '\d+' | head -1)
+          echo "Chrome major version: $CHROME_MAJOR"
+
+          # Fetch the exact full version for this milestone
+          FULL_VER=$(curl -sf \
+            "https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_${CHROME_MAJOR}" \
+            || curl -sf \
+            "https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_STABLE")
+          echo "Using ChromeDriver version: $FULL_VER"
+
+          curl -Lo /tmp/cd.zip \
+            "https://storage.googleapis.com/chrome-for-testing-public/${FULL_VER}/linux64/chromedriver-linux64.zip"
+          unzip -q /tmp/cd.zip -d /tmp/cde
+          sudo mv "$(find /tmp/cde -name chromedriver -type f | head -1)" /usr/local/bin/chromedriver
+          sudo chmod +x /usr/local/bin/chromedriver
+          chromedriver --version
+          echo "CHROMEDRIVER_PATH=/usr/local/bin/chromedriver" >> $GITHUB_ENV
 
       - name: Run Selenium Web Tests
         working-directory: selenium-tests
@@ -334,63 +342,63 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Download load-tests node_modules
-        uses: actions/download-artifact@v4
-        with:
-          name: loadtests-node-modules
-          path: load-tests/node_modules
-
-      - name: Download backend node_modules
-        uses: actions/download-artifact@v4
-        with:
-          name: backend-node-modules
-          path: pdd-backend/node_modules
+      - name: Install load-tests dependencies
+        working-directory: load-tests
+        run: npm install
 
       - name: Install k6
         run: |
-          # Install k6 using the official binary (no GPG keyserver needed)
+          # Download k6 binary directly from GitHub — no GPG/keyserver needed
           K6_VER=$(curl -sf https://api.github.com/repos/grafana/k6/releases/latest \
-            | python3 -c "import sys,json; print(json.load(sys.stdin)['tag_name'].lstrip('v'))" 2>/dev/null || echo "0.54.0")
-          echo "Installing k6 v$K6_VER"
+            | python3 -c "import sys,json; print(json.load(sys.stdin)['tag_name'].lstrip('v'))" \
+            2>/dev/null || echo "0.54.0")
+          echo "Installing k6 v${K6_VER}"
           curl -Lo /tmp/k6.tar.gz \
             "https://github.com/grafana/k6/releases/download/v${K6_VER}/k6-v${K6_VER}-linux-amd64.tar.gz"
           tar -xzf /tmp/k6.tar.gz -C /tmp
-          sudo mv /tmp/k6-v${K6_VER}-linux-amd64/k6 /usr/local/bin/k6
+          sudo mv "/tmp/k6-v${K6_VER}-linux-amd64/k6" /usr/local/bin/k6
           k6 version
 
-      - name: Install backend dependencies (fresh)
+      - name: Install backend dependencies
         working-directory: pdd-backend
-        run: npm install --prefer-offline || npm install
+        run: npm ci
 
-      - name: Start EduSync backend (in-memory mode)
+      - name: Start EduSync backend
         working-directory: pdd-backend
         run: |
-          # Use local ts-node binary directly (avoids npx resolution failures)
-          node node_modules/.bin/ts-node src/index.ts > /tmp/backend.log 2>&1 &
+          # Use the local ts-node binary installed by npm ci
+          LOCAL_TSNODE="$(pwd)/node_modules/.bin/ts-node"
+          if [ ! -f "$LOCAL_TSNODE" ]; then
+            echo "ts-node not found at $LOCAL_TSNODE"
+            ls node_modules/.bin/ | grep ts || true
+            exit 1
+          fi
+
+          echo "Starting backend with: $LOCAL_TSNODE src/index.ts"
+          node "$LOCAL_TSNODE" src/index.ts > /tmp/backend.log 2>&1 &
           BACKEND_PID=$!
           echo "Backend PID: $BACKEND_PID"
-          echo $BACKEND_PID > /tmp/backend.pid
 
-          # Wait up to 60s for the server to become healthy
+          echo "Waiting for http://localhost:5000/api/health ..."
+          READY=false
           for i in $(seq 1 30); do
             sleep 2
             if curl -sf http://localhost:5000/api/health > /dev/null 2>&1; then
-              echo "✅ Backend is ready on port 5000 (after ${i}x2s)"
+              echo "✅ Backend ready after $((i*2))s"
+              READY=true
               break
             fi
-            echo "Waiting for backend... attempt $i/30"
-            # Show last log line to help debug
-            tail -1 /tmp/backend.log 2>/dev/null || true
+            # If the process has died, stop waiting
             if ! kill -0 $BACKEND_PID 2>/dev/null; then
-              echo "❌ Backend process died! Last logs:"
+              echo "❌ Backend process exited. Full log:"
               cat /tmp/backend.log
               exit 1
             fi
+            echo "  attempt $i/30 — last log: $(tail -1 /tmp/backend.log 2>/dev/null)"
           done
 
-          # Final check
-          if ! curl -sf http://localhost:5000/api/health > /dev/null 2>&1; then
-            echo "❌ Backend never became ready. Logs:"
+          if [ "$READY" = false ]; then
+            echo "❌ Backend did not become ready in 60s. Full log:"
             cat /tmp/backend.log
             exit 1
           fi

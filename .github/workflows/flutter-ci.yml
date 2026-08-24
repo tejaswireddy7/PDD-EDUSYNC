@@ -197,34 +197,41 @@ jobs:
           name: selenium-node-modules
           path: selenium-tests/node_modules
 
-      - name: Install Google Chrome stable
+      - name: Setup Chrome and ChromeDriver
         run: |
-          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg
-          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
-          sudo apt-get update -qq
-          sudo apt-get install -y google-chrome-stable
-          google-chrome --version
-
-      - name: Install matching ChromeDriver
-        run: |
-          CHROME_VERSION=$(google-chrome --version | grep -oP '[\d]+' | head -1)
-          echo "Chrome major version: $CHROME_VERSION"
-          # Use Chrome for Testing JSON API to get matching chromedriver
-          DRIVER_URL=$(curl -s "https://googlechromelabs.github.io/chrome-for-testing/latest-versions-per-milestone-with-downloads.json" \
-            | python3 -c "import sys,json; d=json.load(sys.stdin); v=list(d['milestones'].keys()); mv=[x for x in v if x=='$CHROME_VERSION']; k=mv[0] if mv else sorted(v)[-1]; urls=[u['url'] for u in d['milestones'][k]['downloads'].get('chromedriver',[]) if u['platform']=='linux64']; print(urls[0] if urls else '')" 2>/dev/null || true)
-          if [ -z "$DRIVER_URL" ]; then
-            # Fallback: download via chromedriver-binary-auto or latest stable
-            DRIVER_URL="https://storage.googleapis.com/chrome-for-testing-public/$(curl -s https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_STABLE)/linux64/chromedriver-linux64.zip"
+          # ubuntu-latest runners already have Google Chrome pre-installed.
+          # Just verify it exists and locate it.
+          CHROME_BIN=$(which google-chrome-stable || which google-chrome || which chromium-browser || true)
+          if [ -z "$CHROME_BIN" ]; then
+            echo "Chrome not found, installing..."
+            sudo apt-get update -qq
+            sudo apt-get install -y google-chrome-stable
+            CHROME_BIN=$(which google-chrome-stable)
           fi
-          echo "Downloading ChromeDriver from: $DRIVER_URL"
-          curl -Lo /tmp/chromedriver.zip "$DRIVER_URL"
-          unzip -o /tmp/chromedriver.zip -d /tmp/chromedriver_extracted
-          DRIVER_BIN=$(find /tmp/chromedriver_extracted -name 'chromedriver' -type f | head -1)
-          sudo mv "$DRIVER_BIN" /usr/local/bin/chromedriver
-          sudo chmod +x /usr/local/bin/chromedriver
-          chromedriver --version
-          echo "CHROMEDRIVER_PATH=/usr/local/bin/chromedriver" >> $GITHUB_ENV
-          echo "CHROME_BIN=$(which google-chrome)" >> $GITHUB_ENV
+          echo "Chrome binary: $CHROME_BIN"
+          $CHROME_BIN --version
+
+          # Install chromedriver via npm (automatically matches Chrome version)
+          npm install -g chromedriver --quiet 2>/dev/null || \
+            npx --yes chromedriver --version
+
+          DRIVER_BIN=$(which chromedriver || npx --yes chromedriver --detect-chrome 2>/dev/null || true)
+          if [ -z "$DRIVER_BIN" ]; then
+            # Manual fallback: download latest stable chromedriver
+            STABLE=$(curl -sf https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_STABLE || echo "")
+            if [ -n "$STABLE" ]; then
+              curl -Lo /tmp/cd.zip "https://storage.googleapis.com/chrome-for-testing-public/${STABLE}/linux64/chromedriver-linux64.zip"
+              unzip -q /tmp/cd.zip -d /tmp/cde
+              sudo mv "$(find /tmp/cde -name chromedriver -type f | head -1)" /usr/local/bin/chromedriver
+              sudo chmod +x /usr/local/bin/chromedriver
+              DRIVER_BIN=/usr/local/bin/chromedriver
+            fi
+          fi
+
+          echo "ChromeDriver binary: $DRIVER_BIN"
+          $DRIVER_BIN --version
+          echo "CHROME_BIN=$CHROME_BIN" >> $GITHUB_ENV
+          echo "CHROMEDRIVER_PATH=$DRIVER_BIN" >> $GITHUB_ENV
 
       - name: Run Selenium Web Tests
         working-directory: selenium-tests
@@ -341,30 +348,52 @@ jobs:
 
       - name: Install k6
         run: |
-          sudo gpg -k
-          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg \
-            --keyserver hkp://keyserver.ubuntu.com:80 \
-            --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
-          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" \
-            | sudo tee /etc/apt/sources.list.d/k6.list
-          sudo apt-get update --quiet
-          sudo apt-get install k6 --quiet -y
+          # Install k6 using the official binary (no GPG keyserver needed)
+          K6_VER=$(curl -sf https://api.github.com/repos/grafana/k6/releases/latest \
+            | python3 -c "import sys,json; print(json.load(sys.stdin)['tag_name'].lstrip('v'))" 2>/dev/null || echo "0.54.0")
+          echo "Installing k6 v$K6_VER"
+          curl -Lo /tmp/k6.tar.gz \
+            "https://github.com/grafana/k6/releases/download/v${K6_VER}/k6-v${K6_VER}-linux-amd64.tar.gz"
+          tar -xzf /tmp/k6.tar.gz -C /tmp
+          sudo mv /tmp/k6-v${K6_VER}-linux-amd64/k6 /usr/local/bin/k6
           k6 version
+
+      - name: Install backend dependencies (fresh)
+        working-directory: pdd-backend
+        run: npm install --prefer-offline || npm install
 
       - name: Start EduSync backend (in-memory mode)
         working-directory: pdd-backend
         run: |
-          npx ts-node src/index.ts &
-          echo "Backend PID: $!" >> /tmp/backend.pid
-          # Wait for server to be ready
+          # Use local ts-node binary directly (avoids npx resolution failures)
+          node node_modules/.bin/ts-node src/index.ts > /tmp/backend.log 2>&1 &
+          BACKEND_PID=$!
+          echo "Backend PID: $BACKEND_PID"
+          echo $BACKEND_PID > /tmp/backend.pid
+
+          # Wait up to 60s for the server to become healthy
           for i in $(seq 1 30); do
+            sleep 2
             if curl -sf http://localhost:5000/api/health > /dev/null 2>&1; then
-              echo "✅ Backend is ready on port 5000"
+              echo "✅ Backend is ready on port 5000 (after ${i}x2s)"
               break
             fi
-            echo "Waiting for backend... ($i/30)"
-            sleep 2
+            echo "Waiting for backend... attempt $i/30"
+            # Show last log line to help debug
+            tail -1 /tmp/backend.log 2>/dev/null || true
+            if ! kill -0 $BACKEND_PID 2>/dev/null; then
+              echo "❌ Backend process died! Last logs:"
+              cat /tmp/backend.log
+              exit 1
+            fi
           done
+
+          # Final check
+          if ! curl -sf http://localhost:5000/api/health > /dev/null 2>&1; then
+            echo "❌ Backend never became ready. Logs:"
+            cat /tmp/backend.log
+            exit 1
+          fi
         env:
           NODE_ENV: development
           PORT: '5000'

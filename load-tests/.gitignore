@@ -1,0 +1,11 @@
+# Node modules
+node_modules/
+npm-debug.log*
+
+# k6 raw results (large JSONL)
+load-tests/baseline/results.json
+
+# Generated reports (re-created on each run)
+load-tests/baseline/load_test_report.xlsx
+load-tests/baseline/results_summary.txt
+load-tests/baseline/k6_output.txt

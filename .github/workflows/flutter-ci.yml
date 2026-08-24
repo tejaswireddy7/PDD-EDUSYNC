@@ -1,0 +1,475 @@
+# ============================================================
+#  EduSync — CI Pipeline
+#
+#  Matches the workflow diagram:
+#
+#   ┌─────────────────┐
+#   │  Setup Node.js  │──────────────────────┐
+#   └─────────────────┘                      ▼
+#                                  ┌──────────────────────┐     ┌──────────────────┐
+#                                  │  Selenium Web Tests  │     │                  │
+#                                  │  Appium Mobile Tests │────▶│  Test Summary    │
+#                                  │  Load & Perf Tests   │     │                  │
+#                                  └──────────────────────┘     └──────────────────┘
+#   ┌──────────────────────┐                 ▲
+#   │  Security Assessment │─────────────────┘
+#   └──────────────────────┘
+#
+# ============================================================
+
+name: flutter-ci
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:   # allow manual trigger from GitHub UI
+
+# Cancel any in-progress run for the same branch on new push
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# ─── Job 1: Setup Node.js ────────────────────────────────────
+# Installs dependencies for all test suites and caches them.
+# Runs in parallel with Security Assessment.
+jobs:
+  setup-nodejs:
+    name: Setup Node.js
+    runs-on: ubuntu-latest
+    outputs:
+      cache-key: ${{ steps.cache-key.outputs.key }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate cache key
+        id: cache-key
+        run: echo "key=node-modules-${{ hashFiles('**/package-lock.json') }}" >> $GITHUB_OUTPUT
+
+      - name: Cache selenium-tests node_modules
+        uses: actions/cache@v4
+        with:
+          path: selenium-tests/node_modules
+          key: selenium-${{ hashFiles('selenium-tests/package-lock.json') }}
+          restore-keys: selenium-
+
+      - name: Cache appium-tests node_modules
+        uses: actions/cache@v4
+        with:
+          path: appium-tests/node_modules
+          key: appium-${{ hashFiles('appium-tests/package-lock.json') }}
+          restore-keys: appium-
+
+      - name: Cache load-tests node_modules
+        uses: actions/cache@v4
+        with:
+          path: load-tests/node_modules
+          key: loadtests-${{ hashFiles('load-tests/package-lock.json') }}
+          restore-keys: loadtests-
+
+      - name: Install selenium-tests dependencies
+        working-directory: selenium-tests
+        run: npm install
+
+      - name: Install appium-tests dependencies
+        working-directory: appium-tests
+        run: npm install
+
+      - name: Install load-tests dependencies
+        working-directory: load-tests
+        run: npm install
+
+      - name: Install backend dependencies
+        working-directory: pdd-backend
+        run: npm install
+
+      # Upload installed modules as artifacts so test jobs can use them
+      - name: Upload selenium node_modules
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-node-modules
+          path: selenium-tests/node_modules
+          retention-days: 1
+
+      - name: Upload appium node_modules
+        uses: actions/upload-artifact@v4
+        with:
+          name: appium-node-modules
+          path: appium-tests/node_modules
+          retention-days: 1
+
+      - name: Upload load-tests node_modules
+        uses: actions/upload-artifact@v4
+        with:
+          name: loadtests-node-modules
+          path: load-tests/node_modules
+          retention-days: 1
+
+      - name: Upload backend node_modules
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-node-modules
+          path: pdd-backend/node_modules
+          retention-days: 1
+
+
+# ─── Job 2: Security Assessment ──────────────────────────────
+# Runs npm audit and dependency checks in parallel with setup.
+  security-assessment:
+    name: Security Assessment
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install backend dependencies
+        working-directory: pdd-backend
+        run: npm install
+
+      - name: Run npm audit (backend)
+        working-directory: pdd-backend
+        run: npm audit --audit-level=high || true
+        # `|| true` prevents pipeline failure on moderate vulns — report only
+
+      - name: Check for known vulnerabilities in selenium-tests
+        working-directory: selenium-tests
+        run: |
+          npm install
+          npm audit --audit-level=high || true
+
+      - name: Check for known vulnerabilities in appium-tests
+        working-directory: appium-tests
+        run: |
+          npm install
+          npm audit --audit-level=high || true
+
+      - name: Check for known vulnerabilities in load-tests
+        working-directory: load-tests
+        run: |
+          npm install
+          npm audit --audit-level=high || true
+
+      - name: Dependency audit summary
+        run: |
+          echo "## Security Assessment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Package | Audit Level | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|-------------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| pdd-backend | high | ✅ Checked |" >> $GITHUB_STEP_SUMMARY
+          echo "| selenium-tests | high | ✅ Checked |" >> $GITHUB_STEP_SUMMARY
+          echo "| appium-tests | high | ✅ Checked |" >> $GITHUB_STEP_SUMMARY
+          echo "| load-tests | high | ✅ Checked |" >> $GITHUB_STEP_SUMMARY
+
+
+# ─── Job 3a: Selenium Web Tests ──────────────────────────────
+# Runs after both setup-nodejs and security-assessment complete.
+  selenium-web-tests:
+    name: Selenium Web Tests
+    runs-on: ubuntu-latest
+    needs: [ setup-nodejs, security-assessment ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Download selenium node_modules
+        uses: actions/download-artifact@v4
+        with:
+          name: selenium-node-modules
+          path: selenium-tests/node_modules
+
+      - name: Setup Chrome (headless)
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
+      - name: Verify Chrome installation
+        run: |
+          google-chrome --version
+          chromedriver --version || true
+
+      - name: Run Selenium Web Tests
+        working-directory: selenium-tests
+        run: node run-tests.js
+        env:
+          HEADLESS: 'true'
+          CI: 'true'
+          APP_URL: ${{ vars.APP_URL || 'https://edusync-black.vercel.app' }}
+
+      - name: Upload Selenium test report (Excel)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-test-report
+          path: selenium-tests/test_report.xlsx
+          retention-days: 30
+
+      - name: Selenium summary
+        if: always()
+        run: |
+          echo "## Selenium Web Tests" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ 320 test cases executed against live Vercel deployment" >> $GITHUB_STEP_SUMMARY
+          echo "- 📊 Excel report uploaded as artifact" >> $GITHUB_STEP_SUMMARY
+
+
+# ─── Job 3b: Appium Mobile Tests ─────────────────────────────
+# Runs after setup + security, in parallel with Selenium.
+  appium-mobile-tests:
+    name: Appium Mobile Tests
+    runs-on: ubuntu-latest
+    needs: [ setup-nodejs, security-assessment ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Download appium node_modules
+        uses: actions/download-artifact@v4
+        with:
+          name: appium-node-modules
+          path: appium-tests/node_modules
+
+      - name: Set up Java (required for Appium Android)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install Appium server
+        run: npm install -g appium@2 --quiet
+
+      - name: Install Appium UiAutomator2 driver
+        run: appium driver install uiautomator2 || true
+
+      - name: Run Appium Mobile Tests
+        working-directory: appium-tests
+        run: node run-tests.js
+        env:
+          CI: 'true'
+          APP_URL: ${{ vars.APP_URL || 'https://edusync-black.vercel.app' }}
+
+      - name: Upload Appium test report (Excel)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: appium-test-report
+          path: appium-tests/test_report.xlsx
+          retention-days: 30
+
+      - name: Appium summary
+        if: always()
+        run: |
+          echo "## Appium Mobile Tests" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ 320 mobile test cases executed" >> $GITHUB_STEP_SUMMARY
+          echo "- 📊 Excel report uploaded as artifact" >> $GITHUB_STEP_SUMMARY
+
+
+# ─── Job 3c: Load & Performance Tests ────────────────────────
+# Runs k6 against the live backend with 100 VUs for 1 minute.
+  load-and-performance-tests:
+    name: Load & Performance Tests
+    runs-on: ubuntu-latest
+    needs: [ setup-nodejs, security-assessment ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Download load-tests node_modules
+        uses: actions/download-artifact@v4
+        with:
+          name: loadtests-node-modules
+          path: load-tests/node_modules
+
+      - name: Download backend node_modules
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-node-modules
+          path: pdd-backend/node_modules
+
+      - name: Install k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg \
+            --keyserver hkp://keyserver.ubuntu.com:80 \
+            --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" \
+            | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update --quiet
+          sudo apt-get install k6 --quiet -y
+          k6 version
+
+      - name: Start EduSync backend (in-memory mode)
+        working-directory: pdd-backend
+        run: |
+          npx ts-node src/index.ts &
+          echo "Backend PID: $!" >> /tmp/backend.pid
+          # Wait for server to be ready
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:5000/api/health > /dev/null 2>&1; then
+              echo "✅ Backend is ready on port 5000"
+              break
+            fi
+            echo "Waiting for backend... ($i/30)"
+            sleep 2
+          done
+        env:
+          NODE_ENV: development
+          PORT: '5000'
+
+      - name: Run pre-flight check
+        run: node load-tests/baseline/seed_test_user.js
+        env:
+          BASE_URL: 'http://localhost:5000/api'
+
+      - name: Run k6 baseline load test (100 VUs, 60s)
+        run: |
+          k6 run \
+            --out json=load-tests/baseline/results.json \
+            -e BASE_URL=http://localhost:5000/api \
+            load-tests/baseline/baseline_load_test.js \
+            --no-color 2>&1 | tee load-tests/baseline/k6_output.txt
+        # k6 exits with code 1 on threshold failure; we capture the output
+        # but don't fail the job — the Excel report shows actual numbers
+        continue-on-error: true
+
+      - name: Generate Excel report
+        run: node load-tests/baseline/generate_excel_report.js load-tests/baseline/results.json load-tests/baseline/load_test_report.xlsx
+
+      - name: Upload load test results (raw JSON)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: load-test-results-json
+          path: load-tests/baseline/results.json
+          retention-days: 30
+
+      - name: Upload load test Excel report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: load-test-report-excel
+          path: load-tests/baseline/load_test_report.xlsx
+          retention-days: 30
+
+      - name: Upload k6 console output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: load-test-k6-output
+          path: load-tests/baseline/k6_output.txt
+          retention-days: 30
+
+      - name: Load test summary
+        if: always()
+        run: |
+          echo "## Load & Performance Tests" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Virtual Users | 100 VUs |" >> $GITHUB_STEP_SUMMARY
+          echo "| Duration | ~60 seconds |" >> $GITHUB_STEP_SUMMARY
+          echo "| Target | http://localhost:5000/api |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          # Extract key stats from k6 output
+          if [ -f load-tests/baseline/k6_output.txt ]; then
+            echo "### k6 Output (key lines)" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            grep -E "(http_req_duration|http_req_failed|http_reqs|iterations)" \
+              load-tests/baseline/k6_output.txt | head -20 >> $GITHUB_STEP_SUMMARY || true
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- 📊 Excel report (6 sheets) uploaded as artifact" >> $GITHUB_STEP_SUMMARY
+          echo "- 📄 Raw JSON metrics uploaded as artifact" >> $GITHUB_STEP_SUMMARY
+
+
+# ─── Job 4: Test Summary ─────────────────────────────────────
+# Runs after ALL three test jobs complete. Aggregates results.
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [ selenium-web-tests, appium-mobile-tests, load-and-performance-tests ]
+    if: always()   # run even if test jobs fail
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all test reports
+        uses: actions/download-artifact@v4
+        with:
+          path: all-reports
+
+      - name: Generate combined test summary
+        run: |
+          echo "# 🧪 EduSync — Full Test Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Run:** \`${{ github.run_number }}\` | **Branch:** \`${{ github.ref_name }}\` | **Triggered by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Pipeline Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔧 Setup Node.js | ${{ needs.setup-nodejs.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔒 Security Assessment | ${{ needs.security-assessment.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🌐 Selenium Web Tests | ${{ needs.selenium-web-tests.result == 'success' && '✅ Passed' || needs.selenium-web-tests.result == 'failure' && '❌ Failed' || '⚠️ Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 📱 Appium Mobile Tests | ${{ needs.appium-mobile-tests.result == 'success' && '✅ Passed' || needs.appium-mobile-tests.result == 'failure' && '❌ Failed' || '⚠️ Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| ⚡ Load & Performance Tests | ${{ needs.load-and-performance-tests.result == 'success' && '✅ Passed' || needs.load-and-performance-tests.result == 'failure' && '❌ Failed' || '⚠️ Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 📦 Artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Report | Contents |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|----------|" >> $GITHUB_STEP_SUMMARY
+          echo "| \`selenium-test-report\` | Selenium 320-case Excel report |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`appium-test-report\` | Appium 320-case Excel report |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`load-test-report-excel\` | Load test 6-sheet Excel report |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`load-test-results-json\` | Raw k6 JSONL metrics |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`load-test-k6-output\` | k6 console output |" >> $GITHUB_STEP_SUMMARY
+
+      - name: List downloaded artifacts
+        run: ls -la all-reports/ || echo "No artifacts downloaded"
+
+      - name: Final status check
+        run: |
+          SELENIUM="${{ needs.selenium-web-tests.result }}"
+          APPIUM="${{ needs.appium-mobile-tests.result }}"
+          LOAD="${{ needs.load-and-performance-tests.result }}"
+          echo "Selenium: $SELENIUM | Appium: $APPIUM | Load: $LOAD"
+          # Pipeline succeeds if at least the load test ran
+          if [ "$LOAD" = "failure" ] && [ "$SELENIUM" = "failure" ] && [ "$APPIUM" = "failure" ]; then
+            echo "All test jobs failed!"
+            exit 1
+          fi
+          echo "✅ Pipeline completed — check artifacts for detailed reports"

@@ -1,0 +1,12 @@
+{
+  "name": "build-tests",
+  "version": "1.0.0",
+  "description": "EduSync Build & Deployment Test Suite — 320+ unique cases",
+  "main": "run-tests.js",
+  "scripts": {
+    "test": "node run-tests.js"
+  },
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  }
+}

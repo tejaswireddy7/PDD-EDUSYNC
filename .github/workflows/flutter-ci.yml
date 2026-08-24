@@ -11,6 +11,7 @@
 #                                  │  Appium Mobile Tests     │────▶│  Test Summary    │
 #                                  │  Load & Perf Tests       │     │                  │
 #                                  │  Vulnerability Tests     │     └──────────────────┘
+#                                  │  Build Tests             │
 #                                  └──────────────────────────┘
 #   ┌──────────────────────┐                     ▲
 #   │  Security Assessment │─────────────────────┘
@@ -580,12 +581,63 @@ jobs:
           echo "- 📄 Raw JSON results uploaded as artifact" >> $GITHUB_STEP_SUMMARY
 
 
+# ─── Job 3e: Build Tests ─────────────────────────────────────
+# Runs 320 build & deployment test cases and uploads Excel report.
+# Runs in parallel with all other test jobs.
+  build-tests:
+    name: Build Tests
+    runs-on: ubuntu-latest
+    needs: [ setup-nodejs, security-assessment ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install build-tests dependencies
+        working-directory: build-tests
+        run: npm install
+
+      - name: Run Build Tests (320 cases)
+        working-directory: build-tests
+        run: node run-tests.js
+
+      - name: Upload Build Test Report (Excel)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-test-report
+          path: build-tests/build test report.xlsx
+          retention-days: 30
+
+      - name: Build test summary
+        if: always()
+        run: |
+          echo "## 🏗️ Build Tests" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Module | Cases |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend Build & Compilation | 50 |" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend Build & TypeScript | 50 |" >> $GITHUB_STEP_SUMMARY
+          echo "| Dependency & Package Integrity | 50 |" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment & Config Validation | 50 |" >> $GITHUB_STEP_SUMMARY
+          echo "| CI/CD Pipeline & GitHub Actions | 60 |" >> $GITHUB_STEP_SUMMARY
+          echo "| Deployment & Production Readiness | 60 |" >> $GITHUB_STEP_SUMMARY
+          echo "| **TOTAL** | **320** |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- 📊 Excel report (2 sheets) uploaded as artifact" >> $GITHUB_STEP_SUMMARY
+
+
 # ─── Job 4: Test Summary ─────────────────────────────────────
-# Runs after ALL four test jobs complete. Aggregates results.
+# Runs after ALL five test jobs complete. Aggregates results.
   test-summary:
     name: Test Summary
     runs-on: ubuntu-latest
-    needs: [ selenium-web-tests, appium-mobile-tests, load-and-performance-tests, vulnerability-tests ]
+    needs: [ selenium-web-tests, appium-mobile-tests, load-and-performance-tests, vulnerability-tests, build-tests ]
     if: always()   # run even if test jobs fail
 
     steps:
@@ -613,6 +665,7 @@ jobs:
           echo "| 📱 Appium Mobile Tests | ${{ needs.appium-mobile-tests.result == 'success' && '✅ Passed' || needs.appium-mobile-tests.result == 'failure' && '❌ Failed' || '⚠️ Skipped' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| ⚡ Load & Performance Tests | ${{ needs.load-and-performance-tests.result == 'success' && '✅ Passed' || needs.load-and-performance-tests.result == 'failure' && '❌ Failed' || '⚠️ Skipped' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 🔐 Vulnerability Tests | ${{ needs.vulnerability-tests.result == 'success' && '✅ Passed' || needs.vulnerability-tests.result == 'failure' && '❌ Failed' || '⚠️ Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🏗️ Build Tests | ${{ needs.build-tests.result == 'success' && '✅ Passed' || needs.build-tests.result == 'failure' && '❌ Failed' || '⚠️ Skipped' }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## 📦 Artifacts" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -625,6 +678,7 @@ jobs:
           echo "| \`load-test-k6-output\` | k6 console output |" >> $GITHUB_STEP_SUMMARY
           echo "| \`vulnerability-test-report\` | OWASP vulnerability 3-sheet Excel |" >> $GITHUB_STEP_SUMMARY
           echo "| \`vulnerability-test-results-json\` | Raw vulnerability JSON results |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`build-test-report\` | Build 320-case 2-sheet Excel report |" >> $GITHUB_STEP_SUMMARY
 
       - name: List downloaded artifacts
         run: ls -la all-reports/ || echo "No artifacts downloaded"
@@ -635,9 +689,10 @@ jobs:
           APPIUM="${{ needs.appium-mobile-tests.result }}"
           LOAD="${{ needs.load-and-performance-tests.result }}"
           VULN="${{ needs.vulnerability-tests.result }}"
-          echo "Selenium: $SELENIUM | Appium: $APPIUM | Load: $LOAD | Vuln: $VULN"
+          BUILD="${{ needs.build-tests.result }}"
+          echo "Selenium: $SELENIUM | Appium: $APPIUM | Load: $LOAD | Vuln: $VULN | Build: $BUILD"
           # Pipeline succeeds if at least one test job ran
-          if [ "$LOAD" = "failure" ] && [ "$SELENIUM" = "failure" ] && [ "$APPIUM" = "failure" ] && [ "$VULN" = "failure" ]; then
+          if [ "$LOAD" = "failure" ] && [ "$SELENIUM" = "failure" ] && [ "$APPIUM" = "failure" ] && [ "$VULN" = "failure" ] && [ "$BUILD" = "failure" ]; then
             echo "All test jobs failed!"
             exit 1
           fi

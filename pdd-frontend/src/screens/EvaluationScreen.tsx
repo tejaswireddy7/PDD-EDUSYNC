@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator } from "react-native";
-import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
+import { BootstrapIcon } from "../components/ui/BootstrapIcon";
 import { Header } from "../components/skillora/Header";
 import { LinearGradient } from "expo-linear-gradient";
 import { useDashboardStore, themeColors } from "../lib/store";
@@ -101,7 +101,7 @@ export default function EvaluationScreen() {
             style={styles.emptyStateGradient}
           >
             <View style={[styles.emptyIconCircle, isDark && { backgroundColor: currentColors.divider }]}>
-              <Feather name="award" size={32} color="#6366f1" />
+              <BootstrapIcon name="award" size={32} color="#6366f1" />
             </View>
             <Text style={[styles.emptyTitle, { color: currentColors.text }]}>AI Gradebook Ready</Text>
             <Text style={[styles.emptyDescription, { color: currentColors.subtext }]}>
@@ -170,7 +170,7 @@ export default function EvaluationScreen() {
           </View>
           <View style={styles.scoreContainer}>
             <View style={styles.scoreIconWrapper}>
-              <Feather name="award" size={18} color="#0d9488" />
+              <BootstrapIcon name="award" size={18} color="#0d9488" />
             </View>
             <View style={styles.scoreTextWrapper}>
               <Text style={styles.scoreNumberText}>
@@ -183,7 +183,7 @@ export default function EvaluationScreen() {
         
         {/* AI generated feedback banner */}
         <View style={styles.feedbackBanner}>
-          <MaterialCommunityIcons name="creation" size={16} color="#6366f1" style={styles.feedbackIcon} />
+          <BootstrapIcon name="sparkles" size={16} color="#6366f1" style={styles.feedbackIcon} />
           <View style={styles.feedbackDetails}>
             <Text style={[styles.feedbackTitle, { color: currentColors.text }]}>AI-generated feedback</Text>
             <Text style={[styles.feedbackText, { color: currentColors.subtext }]}>
@@ -222,7 +222,7 @@ export default function EvaluationScreen() {
       {/* Answer Sheet Card */}
       <View style={[styles.rubricBreakdownCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
         <View style={styles.cardHeader}>
-          <Feather name="file-text" size={16} color="#6366f1" />
+          <BootstrapIcon name="file-earmark-text" size={16} color="#6366f1" />
           <Text style={[styles.cardTitle, { color: currentColors.text }]}>Evaluated Answer Sheet</Text>
         </View>
         
@@ -230,7 +230,7 @@ export default function EvaluationScreen() {
           {dynamicAnswers.map((a, i) => {
             const isCorrect = a.verdict === "correct";
             const isPartial = a.verdict === "partial";
-            const icon = isCorrect ? "check-circle" : isPartial ? "alert-circle" : "x-circle";
+            const icon = isCorrect ? "check-circle" : isPartial ? "exclamation-circle" : "x-circle";
             const tintColor = isCorrect ? "#0d9488" : isPartial ? "#6366f1" : "#ef4444";
             const bgClass = isCorrect ? styles.bgMint : isPartial ? styles.bgPrimary : styles.bgDestructive;
 
@@ -238,7 +238,7 @@ export default function EvaluationScreen() {
               <View key={i} style={[styles.answerItem, { borderColor: currentColors.border }]}>
                 <View style={styles.answerHeader}>
                   <View style={[styles.answerIconBox, bgClass]}>
-                    <Feather name={icon} size={14} color={tintColor} />
+                    <BootstrapIcon name={icon} size={14} color={tintColor} />
                   </View>
                   <Text style={[styles.answerQuestion, { color: currentColors.text }]}>{a.q}</Text>
                   <Text style={[styles.answerMarks, { color: currentColors.text }]}>{a.marks}</Text>

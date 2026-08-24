@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Keyboa
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Header } from "../components/skillora/Header";
 import * as DocumentPicker from "expo-document-picker";
+import { BootstrapIcon } from "../components/ui/BootstrapIcon";
 
 import { LinearGradient } from "expo-linear-gradient";
 import { useDashboardStore, themeColors } from "../lib/store";
@@ -738,7 +739,7 @@ export default function ChatScreen() {
                                 onPress={() => setMenuVisibleId(menuVisibleId === 'discover-' + p.id ? null : 'discover-' + p.id)}
                                 style={{ padding: 6 }}
                               >
-                                <Feather name="more-vertical" size={18} color="#64748b" />
+                                <BootstrapIcon name="three-dots-vertical" size={18} color="#64748b" />
                               </TouchableOpacity>
                             )}
                           </View>
@@ -753,7 +754,7 @@ export default function ChatScreen() {
                                   }}
                                   style={styles.menuItem}
                                 >
-                                  <Feather name="user-x" size={14} color="#ef4444" style={styles.menuIcon} />
+                                  <BootstrapIcon name="person-x" size={14} color="#ef4444" style={styles.menuIcon} />
                                   <Text style={[styles.menuText, { color: "#ef4444" }]}>Disconnect</Text>
                                 </TouchableOpacity>
                               )}
@@ -764,7 +765,7 @@ export default function ChatScreen() {
                                 }}
                                 style={styles.menuItem}
                               >
-                                <Feather name="slash" size={14} color="#f59e0b" style={styles.menuIcon} />
+                                <BootstrapIcon name="ban" size={14} color="#f59e0b" style={styles.menuIcon} />
                                 <Text style={styles.menuText}>Block</Text>
                               </TouchableOpacity>
                               <TouchableOpacity 
@@ -774,7 +775,7 @@ export default function ChatScreen() {
                                 }}
                                 style={styles.menuItem}
                               >
-                                <Feather name="bar-chart-2" size={14} color="#6366f1" style={styles.menuIcon} />
+                                <BootstrapIcon name="bar-chart-line" size={14} color="#6366f1" style={styles.menuIcon} />
                                 <Text style={styles.menuText}>View Analytics</Text>
                               </TouchableOpacity>
                             </View>
@@ -827,7 +828,7 @@ export default function ChatScreen() {
                               onPress={() => setMenuVisibleId(menuVisibleId === 'myconns-' + peer.id ? null : 'myconns-' + peer.id)}
                               style={{ padding: 6 }}
                             >
-                              <Feather name="more-vertical" size={18} color={currentColors.subtext} />
+                              <BootstrapIcon name="three-dots-vertical" size={18} color={currentColors.subtext} />
                             </TouchableOpacity>
                           </View>
 
@@ -840,7 +841,7 @@ export default function ChatScreen() {
                                 }}
                                 style={styles.menuItem}
                               >
-                                <Feather name="user-x" size={14} color="#ef4444" style={styles.menuIcon} />
+                                <BootstrapIcon name="person-x" size={14} color="#ef4444" style={styles.menuIcon} />
                                 <Text style={[styles.menuText, { color: "#ef4444" }]}>Disconnect</Text>
                               </TouchableOpacity>
                               <TouchableOpacity 
@@ -850,7 +851,7 @@ export default function ChatScreen() {
                                 }}
                                 style={styles.menuItem}
                               >
-                                <Feather name="slash" size={14} color="#f59e0b" style={styles.menuIcon} />
+                                <BootstrapIcon name="ban" size={14} color="#f59e0b" style={styles.menuIcon} />
                                 <Text style={[styles.menuText, { color: currentColors.text }]}>Block</Text>
                               </TouchableOpacity>
                               <TouchableOpacity 
@@ -860,7 +861,7 @@ export default function ChatScreen() {
                                 }}
                                 style={styles.menuItem}
                               >
-                                <Feather name="bar-chart-2" size={14} color="#6366f1" style={styles.menuIcon} />
+                                <BootstrapIcon name="bar-chart-line" size={14} color="#6366f1" style={styles.menuIcon} />
                                 <Text style={[styles.menuText, { color: currentColors.text }]}>View Analytics</Text>
                               </TouchableOpacity>
                             </View>
@@ -1080,25 +1081,25 @@ export default function ChatScreen() {
 
                 <View style={styles.statsGrid}>
                   <View style={[styles.statBox, { backgroundColor: isDark ? "#1f2937" : "#f8fafc", borderColor: currentColors.border }]}>
-                    <Feather name="zap" size={16} color="#ef4444" />
+                    <BootstrapIcon name="zap" size={16} color="#ef4444" />
                     <Text style={[styles.statVal, { color: currentColors.text }]}>{selectedPeerProfile.xp ?? 0} XP</Text>
                     <Text style={[styles.statLabel, { color: currentColors.subtext }]}>Total XP</Text>
                   </View>
 
                   <View style={[styles.statBox, { backgroundColor: isDark ? "#1f2937" : "#f8fafc", borderColor: currentColors.border }]}>
-                    <Feather name="award" size={16} color="#f59e0b" />
+                    <BootstrapIcon name="award" size={16} color="#f59e0b" />
                     <Text style={[styles.statVal, { color: currentColors.text }]}>{selectedPeerProfile.streak ?? 1} days</Text>
                     <Text style={[styles.statLabel, { color: currentColors.subtext }]}>Streak</Text>
                   </View>
 
                   <View style={[styles.statBox, { backgroundColor: isDark ? "#1f2937" : "#f8fafc", borderColor: currentColors.border }]}>
-                    <MaterialCommunityIcons name="check-circle" size={16} color="#10b981" />
+                    <BootstrapIcon name="check-circle" size={16} color="#10b981" />
                     <Text style={[styles.statVal, { color: currentColors.text }]}>{selectedPeerProfile.courses_completed ?? selectedPeerProfile.coursesCompleted ?? 0}</Text>
                     <Text style={[styles.statLabel, { color: currentColors.subtext }]}>Completed</Text>
                   </View>
 
                   <View style={[styles.statBox, { backgroundColor: isDark ? "#1f2937" : "#f8fafc", borderColor: currentColors.border }]}>
-                    <MaterialCommunityIcons name="trending-up" size={16} color="#6366f1" />
+                    <BootstrapIcon name="graph-up-arrow" size={16} color="#6366f1" />
                     <Text style={[styles.statVal, { color: currentColors.text }]}>{selectedPeerProfile.career_fit_score ?? selectedPeerProfile.careerFitScore ?? 0}%</Text>
                     <Text style={[styles.statLabel, { color: currentColors.subtext }]}>Career Fit</Text>
                   </View>

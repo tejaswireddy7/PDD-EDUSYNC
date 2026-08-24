@@ -12,7 +12,7 @@ import {
   Image,
   ActivityIndicator,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { BootstrapIcon } from "../components/ui/BootstrapIcon";
 import { LinearGradient } from "expo-linear-gradient";
 import logo from "../assets/logo.png";
 import { useDashboardStore } from "../lib/store";
@@ -309,21 +309,21 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
 
           {error && (
             <View style={styles.errorContainer}>
-              <Feather name="alert-circle" size={14} color="#ef4444" />
+              <BootstrapIcon name="exclamation-circle" size={14} color="#ef4444" />
               <Text style={styles.errorText}>{error}</Text>
             </View>
           )}
 
           {successMessage && (
             <View style={[styles.errorContainer, { backgroundColor: "#ecfdf5" }]}>
-              <Feather name="check-circle" size={14} color="#10b981" />
+              <BootstrapIcon name="check-circle" size={14} color="#10b981" />
               <Text style={[styles.errorText, { color: "#10b981" }]}>{successMessage}</Text>
             </View>
           )}
 
           {forgotPasswordStep === 'email' ? (
             <View style={styles.inputContainer}>
-              <Feather name="mail" size={20} color="#94a3b8" style={styles.inputIcon} />
+              <BootstrapIcon name="envelope" size={20} color="#94a3b8" style={styles.inputIcon} />
               <TextInput
                 placeholder="Email address"
                 placeholderTextColor="#94a3b8"
@@ -337,7 +337,7 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
             </View>
           ) : forgotPasswordStep === 'otp' ? (
             <View style={styles.inputContainer}>
-              <Feather name="key" size={20} color="#94a3b8" style={styles.inputIcon} />
+              <BootstrapIcon name="key" size={20} color="#94a3b8" style={styles.inputIcon} />
               <TextInput
                 placeholder="6-Digit OTP Code"
                 placeholderTextColor="#94a3b8"
@@ -350,7 +350,7 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
             </View>
           ) : forgotPasswordStep === 'password' ? (
             <View style={styles.inputContainer}>
-              <Feather name="lock" size={20} color="#94a3b8" style={styles.inputIcon} />
+              <BootstrapIcon name="lock" size={20} color="#94a3b8" style={styles.inputIcon} />
               <TextInput
                 placeholder="New Password"
                 placeholderTextColor="#94a3b8"
@@ -362,8 +362,8 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
                 autoCorrect={false}
               />
               <TouchableOpacity onPress={() => setShowNewPassword(!showNewPassword)}>
-                <Feather
-                  name={showNewPassword ? "eye-off" : "eye"}
+                <BootstrapIcon
+                  name={showNewPassword ? "eye-slash" : "eye"}
                   size={18}
                   color="#94a3b8"
                   style={styles.eyeIcon}
@@ -372,7 +372,7 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
             </View>
           ) : isOtpMode ? (
             <View style={styles.inputContainer}>
-              <Feather name="key" size={20} color="#94a3b8" style={styles.inputIcon} />
+              <BootstrapIcon name="key" size={20} color="#94a3b8" style={styles.inputIcon} />
               <TextInput
                 placeholder="6-Digit OTP Code"
                 placeholderTextColor="#94a3b8"
@@ -389,7 +389,7 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
             {/* Full Name Input (Signup Mode Only) */}
             {!isLogin && (
               <View style={styles.inputContainer}>
-                <Feather name="user" size={20} color="#94a3b8" style={styles.inputIcon} />
+                <BootstrapIcon name="person" size={20} color="#94a3b8" style={styles.inputIcon} />
                 <TextInput
                   placeholder="Full name"
                   placeholderTextColor="#94a3b8"
@@ -403,7 +403,7 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
 
             {/* Email Address Input */}
             <View style={styles.inputContainer}>
-              <Feather name="mail" size={20} color="#94a3b8" style={styles.inputIcon} />
+              <BootstrapIcon name="envelope" size={20} color="#94a3b8" style={styles.inputIcon} />
               <TextInput
                 placeholder="Email address"
                 placeholderTextColor="#94a3b8"
@@ -418,7 +418,7 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
 
             {/* Password Input */}
             <View style={styles.inputContainer}>
-              <Feather name="lock" size={20} color="#94a3b8" style={styles.inputIcon} />
+              <BootstrapIcon name="lock" size={20} color="#94a3b8" style={styles.inputIcon} />
               <TextInput
                 placeholder="Password"
                 placeholderTextColor="#94a3b8"
@@ -430,8 +430,8 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
                 autoCorrect={false}
               />
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                <Feather
-                  name={showPassword ? "eye-off" : "eye"}
+                <BootstrapIcon
+                  name={showPassword ? "eye-slash" : "eye"}
                   size={18}
                   color="#94a3b8"
                   style={styles.eyeIcon}
@@ -498,7 +498,7 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
                       ? "Sign In"
                       : "Sign Up"}
                   </Text>
-                  <Feather name="arrow-right" size={18} color="#ffffff" style={styles.arrowIcon} />
+                  <BootstrapIcon name="arrow-right" size={18} color="#ffffff" style={styles.arrowIcon} />
                 </>
               )}
             </LinearGradient>

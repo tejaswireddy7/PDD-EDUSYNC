@@ -451,8 +451,8 @@ export default function ProfileScreen() {
                   onPress={() => store.setAppTheme(th.key)}
                   activeOpacity={0.8}
                 >
-                  <MaterialCommunityIcons 
-                    name={th.key === "dark" ? "weather-night" : "weather-sunny"} 
+                  <BootstrapIcon 
+                    name={th.key === "dark" ? "moon" : "sun"} 
                     size={16} 
                     color={selected ? th.color : currentColors.subtext} 
                     style={{ marginRight: 6 }} 

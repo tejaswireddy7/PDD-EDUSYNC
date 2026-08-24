@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Dimensions, Alert, ActivityIndicator, Platform, RefreshControl } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Header } from "../components/skillora/Header";
+import { BootstrapIcon } from "../components/ui/BootstrapIcon";
 import { useDashboardStore, themeColors } from "../lib/store";
 import { supabase } from "../lib/supabase";
 import { fetchDBAssessments, updateDBAssessment } from "../lib/supabase-db";
@@ -27,10 +28,10 @@ type Assessment = {
 };
 
 const typeIcon = {
-  Project: "file-text",
-  Coding: "code",
+  Project: "file-earmark-text",
+  Coding: "code-slash",
   Lab: "flask",
-  Essay: "edit-3",
+  Essay: "pencil-square",
 };
 
 const tintByStatus: Record<Status, string> = {
@@ -548,7 +549,7 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
       <View style={[styles.panelCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
         <View style={styles.successCard}>
           <View style={styles.successIconBox}>
-            <Feather name="check-circle" size={24} color="#0d9488" />
+            <BootstrapIcon name="check-circle" size={24} color="#0d9488" />
           </View>
           <Text style={[styles.successTitle, { color: currentColors.text }]}>Assessment Submitted!</Text>
 
@@ -612,7 +613,7 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
         { backgroundColor: isDark ? currentColors.divider : "#f8fafc" },
         isLateAssessment && { backgroundColor: isDark ? 'rgba(239, 68, 68, 0.08)' : '#fef2f2', borderColor: '#fee2e2', borderWidth: 1 }
       ]}>
-        <Feather name="clock" size={14} color={isLateAssessment ? "#ef4444" : "#6366f1"} />
+        <BootstrapIcon name="clock" size={14} color={isLateAssessment ? "#ef4444" : "#6366f1"} />
         <View style={{ flex: 1 }}>
           <Text style={[styles.deadlineLabel, { color: currentColors.subtext }]}>Deadline</Text>
           <Text style={[styles.deadlineValue, { color: currentColors.text }, isLateAssessment && { color: '#ef4444', fontWeight: 'bold' }]}>
@@ -692,10 +693,10 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
                       style={styles.fileToggleRow}
                     >
                       <View style={styles.fileToggleLeft}>
-                        <Feather name="file" size={12} color="#64748b" />
+                        <BootstrapIcon name="file-earmark" size={12} color="#64748b" />
                         <Text style={[styles.fileToggleText, { color: currentColors.text }]}>{fileName}</Text>
                       </View>
-                      <Feather
+                      <BootstrapIcon
                         name={included ? "check-square" : "square"}
                         size={14}
                         color={included ? "#6366f1" : "#94a3b8"}
@@ -728,13 +729,13 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
               <View style={styles.filesList}>
                 {files.map((f, idx) => (
                   <View key={idx} style={[styles.fileItem, { backgroundColor: isDark ? currentColors.divider : "#f1f5f9" }]}>
-                    <Feather name="file-text" size={14} color="#6366f1" />
+                    <BootstrapIcon name="file-earmark-text" size={14} color="#6366f1" />
                     <View style={styles.fileDetails}>
                       <Text style={[styles.fileName, { color: currentColors.text }]} numberOfLines={1}>{f.name}</Text>
                       <Text style={[styles.fileSize, { color: currentColors.subtext }]}>{(f.size / 1024).toFixed(1)} KB</Text>
                     </View>
                     <TouchableOpacity onPress={() => removeFile(idx)}>
-                      <Feather name="x" size={14} color="#ef4444" />
+                      <BootstrapIcon name="x-lg" size={14} color="#ef4444" />
                     </TouchableOpacity>
                   </View>
                 ))}
@@ -861,7 +862,7 @@ function AssessmentList({ items, activeId, onPick }: { items: Assessment[]; acti
               ]}
             >
               <View style={styles.listItemIconBox}>
-                <Feather name={icon as any} size={16} color="#6366f1" />
+                <BootstrapIcon name={icon} size={16} color="#6366f1" />
               </View>
               <View style={styles.listItemDetails}>
                 <View style={styles.listItemRow}>
@@ -877,7 +878,7 @@ function AssessmentList({ items, activeId, onPick }: { items: Assessment[]; acti
                   <View style={[styles.dot, { backgroundColor: currentColors.border }]} />
                   <Text style={[styles.listItemMetaText, { color: currentColors.subtext }]}>{a.difficulty}</Text>
                   <View style={[styles.dot, { backgroundColor: currentColors.border }]} />
-                  <Feather name="clock" size={10} color={isLateAssessment ? "#ef4444" : "#94a3b8"} />
+                  <BootstrapIcon name="clock" size={10} color={isLateAssessment ? "#ef4444" : "#94a3b8"} />
                   <Text style={[
                     styles.listItemMetaText, 
                     { color: currentColors.subtext },
@@ -889,7 +890,7 @@ function AssessmentList({ items, activeId, onPick }: { items: Assessment[]; acti
 
                 {isLateAssessment && (
                   <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-                    <Feather name="alert-triangle" size={12} color="#ef4444" style={{ marginRight: 4 }} />
+                    <BootstrapIcon name="exclamation-triangle" size={12} color="#ef4444" style={{ marginRight: 4 }} />
                     <Text style={{ color: '#ef4444', fontSize: 11, fontWeight: 'bold' }}>
                       Overdue Penalty: -{getXpLost(a)} XP
                     </Text>
@@ -904,7 +905,7 @@ function AssessmentList({ items, activeId, onPick }: { items: Assessment[]; acti
                   </View>
                 </View>
               </View>
-              <Feather name="chevron-right" size={16} color="#94a3b8" style={styles.chevron} />
+              <BootstrapIcon name="chevron-right" size={16} color="#94a3b8" style={styles.chevron} />
             </TouchableOpacity>
           );
         })}

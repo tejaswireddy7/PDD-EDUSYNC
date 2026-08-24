@@ -340,12 +340,31 @@ async function runE2E() {
   options.addArguments('--headless=new');
   options.addArguments('--no-sandbox');
   options.addArguments('--disable-dev-shm-usage');
+  options.addArguments('--disable-gpu');
+  options.addArguments('--disable-extensions');
   options.addArguments('--window-size=1280,1024');
+  options.addArguments('--remote-debugging-port=9222');
 
-  let driver = await new Builder()
+  // On Linux CI (GitHub Actions), use explicit binary paths from env vars
+  // to bypass selenium-manager auto-discovery which fails on some runners
+  if (process.env.CHROME_BIN) {
+    console.log(`Using Chrome binary: ${process.env.CHROME_BIN}`);
+    options.setChromeBinaryPath(process.env.CHROME_BIN);
+  }
+
+  let builder = new Builder()
     .forBrowser('chrome')
-    .setChromeOptions(options)
-    .build();
+    .setChromeOptions(options);
+
+  // Use explicit ChromeDriver service if path is provided
+  if (process.env.CHROMEDRIVER_PATH) {
+    console.log(`Using ChromeDriver: ${process.env.CHROMEDRIVER_PATH}`);
+    const serviceBuilder = new chrome.ServiceBuilder(process.env.CHROMEDRIVER_PATH);
+    builder = builder.setChromeService(serviceBuilder);
+  }
+
+  let driver = await builder.build();
+
 
   const originalWindow = await driver.getWindowHandle();
 

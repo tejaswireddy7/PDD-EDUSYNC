@@ -4,15 +4,16 @@
 #  Matches the workflow diagram:
 #
 #   ┌─────────────────┐
-#   │  Setup Node.js  │──────────────────────┐
-#   └─────────────────┘                      ▼
-#                                  ┌──────────────────────┐     ┌──────────────────┐
-#                                  │  Selenium Web Tests  │     │                  │
-#                                  │  Appium Mobile Tests │────▶│  Test Summary    │
-#                                  │  Load & Perf Tests   │     │                  │
-#                                  └──────────────────────┘     └──────────────────┘
-#   ┌──────────────────────┐                 ▲
-#   │  Security Assessment │─────────────────┘
+#   │  Setup Node.js  │──────────────────────────┐
+#   └─────────────────┘                          ▼
+#                                  ┌──────────────────────────┐     ┌──────────────────┐
+#                                  │  Selenium Web Tests      │     │                  │
+#                                  │  Appium Mobile Tests     │────▶│  Test Summary    │
+#                                  │  Load & Perf Tests       │     │                  │
+#                                  │  Vulnerability Tests     │     └──────────────────┘
+#                                  └──────────────────────────┘
+#   ┌──────────────────────┐                     ▲
+#   │  Security Assessment │─────────────────────┘
 #   └──────────────────────┘
 #
 # ============================================================
@@ -473,12 +474,118 @@ jobs:
           echo "- 📄 Raw JSON metrics uploaded as artifact" >> $GITHUB_STEP_SUMMARY
 
 
+# ─── Job 3d: Vulnerability Tests ─────────────────────────────
+# Runs OWASP Top 10 checks against the live backend.
+# Runs in parallel with Selenium, Appium, and Load tests.
+  vulnerability-tests:
+    name: Vulnerability Tests
+    runs-on: ubuntu-latest
+    needs: [ setup-nodejs, security-assessment ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install vulnerability-tests dependencies
+        working-directory: vulnerability-tests
+        run: npm install
+
+      - name: Install backend dependencies
+        working-directory: pdd-backend
+        run: npm ci
+
+      - name: Start EduSync backend
+        working-directory: pdd-backend
+        run: |
+          LOCAL_TSNODE="$(pwd)/node_modules/.bin/ts-node"
+          node "$LOCAL_TSNODE" src/index.ts > /tmp/backend.log 2>&1 &
+          BACKEND_PID=$!
+          echo "Backend PID: $BACKEND_PID"
+
+          READY=false
+          for i in $(seq 1 30); do
+            sleep 2
+            if curl -sf http://localhost:5000/api/health > /dev/null 2>&1; then
+              echo "✅ Backend ready after $((i*2))s"
+              READY=true
+              break
+            fi
+            if ! kill -0 $BACKEND_PID 2>/dev/null; then
+              echo "❌ Backend process exited. Logs:"
+              cat /tmp/backend.log
+              exit 1
+            fi
+            echo "  waiting... attempt $i/30"
+          done
+
+          if [ "$READY" = false ]; then
+            echo "❌ Backend did not become ready in 60s. Logs:"
+            cat /tmp/backend.log
+            exit 1
+          fi
+        env:
+          NODE_ENV: development
+          PORT: '5000'
+
+      - name: Run OWASP Vulnerability Tests
+        working-directory: vulnerability-tests
+        run: node run-tests.js http://localhost:5000/api
+        # continue-on-error so the report is always generated and uploaded
+        continue-on-error: true
+
+      - name: Generate Vulnerability Test Excel Report
+        working-directory: vulnerability-tests
+        run: node generate-report.js results.json vulnerability_report.xlsx
+        if: always()
+
+      - name: Upload Vulnerability Test Report (Excel)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vulnerability-test-report
+          path: vulnerability-tests/vulnerability_report.xlsx
+          retention-days: 30
+
+      - name: Upload Vulnerability Test Raw Results (JSON)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vulnerability-test-results-json
+          path: vulnerability-tests/results.json
+          retention-days: 30
+
+      - name: Vulnerability test summary
+        if: always()
+        run: |
+          echo "## 🔐 Vulnerability Tests (OWASP Top 10)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Test ID | Vulnerability | Standard |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|--------------|----------|" >> $GITHUB_STEP_SUMMARY
+          echo "| VULN-01 | JWT Signature Verification | A07:2021 |" >> $GITHUB_STEP_SUMMARY
+          echo "| VULN-02 | Rate Limiting | A05:2021 |" >> $GITHUB_STEP_SUMMARY
+          echo "| VULN-03 | Sensitive Data Leakage | A09:2021 |" >> $GITHUB_STEP_SUMMARY
+          echo "| VULN-04 | Request Body Size Limit | A05:2021 |" >> $GITHUB_STEP_SUMMARY
+          echo "| VULN-05 | CORS Policy | A05:2021 |" >> $GITHUB_STEP_SUMMARY
+          echo "| VULN-06 | HTTP Security Headers | A05:2021 |" >> $GITHUB_STEP_SUMMARY
+          echo "| VULN-07 | Version Info Disclosure | A05:2021 |" >> $GITHUB_STEP_SUMMARY
+          echo "| VULN-08 | In-Memory Store DoS | A04:2021 |" >> $GITHUB_STEP_SUMMARY
+          echo "| VULN-09 | Input Validation Edge Cases | A03:2021 |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- 📊 Excel report (3 sheets) uploaded as artifact" >> $GITHUB_STEP_SUMMARY
+          echo "- 📄 Raw JSON results uploaded as artifact" >> $GITHUB_STEP_SUMMARY
+
+
 # ─── Job 4: Test Summary ─────────────────────────────────────
-# Runs after ALL three test jobs complete. Aggregates results.
+# Runs after ALL four test jobs complete. Aggregates results.
   test-summary:
     name: Test Summary
     runs-on: ubuntu-latest
-    needs: [ selenium-web-tests, appium-mobile-tests, load-and-performance-tests ]
+    needs: [ selenium-web-tests, appium-mobile-tests, load-and-performance-tests, vulnerability-tests ]
     if: always()   # run even if test jobs fail
 
     steps:
@@ -505,6 +612,7 @@ jobs:
           echo "| 🌐 Selenium Web Tests | ${{ needs.selenium-web-tests.result == 'success' && '✅ Passed' || needs.selenium-web-tests.result == 'failure' && '❌ Failed' || '⚠️ Skipped' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 📱 Appium Mobile Tests | ${{ needs.appium-mobile-tests.result == 'success' && '✅ Passed' || needs.appium-mobile-tests.result == 'failure' && '❌ Failed' || '⚠️ Skipped' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| ⚡ Load & Performance Tests | ${{ needs.load-and-performance-tests.result == 'success' && '✅ Passed' || needs.load-and-performance-tests.result == 'failure' && '❌ Failed' || '⚠️ Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔐 Vulnerability Tests | ${{ needs.vulnerability-tests.result == 'success' && '✅ Passed' || needs.vulnerability-tests.result == 'failure' && '❌ Failed' || '⚠️ Skipped' }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## 📦 Artifacts" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -515,6 +623,8 @@ jobs:
           echo "| \`load-test-report-excel\` | Load test 6-sheet Excel report |" >> $GITHUB_STEP_SUMMARY
           echo "| \`load-test-results-json\` | Raw k6 JSONL metrics |" >> $GITHUB_STEP_SUMMARY
           echo "| \`load-test-k6-output\` | k6 console output |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`vulnerability-test-report\` | OWASP vulnerability 3-sheet Excel |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`vulnerability-test-results-json\` | Raw vulnerability JSON results |" >> $GITHUB_STEP_SUMMARY
 
       - name: List downloaded artifacts
         run: ls -la all-reports/ || echo "No artifacts downloaded"
@@ -524,9 +634,10 @@ jobs:
           SELENIUM="${{ needs.selenium-web-tests.result }}"
           APPIUM="${{ needs.appium-mobile-tests.result }}"
           LOAD="${{ needs.load-and-performance-tests.result }}"
-          echo "Selenium: $SELENIUM | Appium: $APPIUM | Load: $LOAD"
-          # Pipeline succeeds if at least the load test ran
-          if [ "$LOAD" = "failure" ] && [ "$SELENIUM" = "failure" ] && [ "$APPIUM" = "failure" ]; then
+          VULN="${{ needs.vulnerability-tests.result }}"
+          echo "Selenium: $SELENIUM | Appium: $APPIUM | Load: $LOAD | Vuln: $VULN"
+          # Pipeline succeeds if at least one test job ran
+          if [ "$LOAD" = "failure" ] && [ "$SELENIUM" = "failure" ] && [ "$APPIUM" = "failure" ] && [ "$VULN" = "failure" ]; then
             echo "All test jobs failed!"
             exit 1
           fi

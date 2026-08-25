@@ -25,19 +25,9 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
       type: "sourceFile",
     };
   }
-  // Redirect all VirtualView imports to a safe mock
-  if (
-    moduleName.toLowerCase().includes("virtualview") ||
-    (context.originModulePath &&
-      context.originModulePath.toLowerCase().includes("virtualview"))
-  ) {
-    return {
-      filePath: path.resolve(__dirname, "metro-mocks/VirtualView.cjs"),
-      type: "sourceFile",
-    };
-  }
   // Fallback to default resolution
   return context.resolveRequest(context, moduleName, platform);
 };
 
 module.exports = config;
+

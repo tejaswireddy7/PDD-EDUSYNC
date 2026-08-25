@@ -1,89 +1,60 @@
-import React, { useState, useEffect } from "react";
+import "./src/lib/polyfills";
+import React, { useState, useEffect, Component, ErrorInfo, ReactNode } from "react";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { Provider as PaperProvider, MD3LightTheme, MD3DarkTheme } from "react-native-paper";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { StyleSheet, View, ActivityIndicator, Platform } from "react-native";
+import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator, Platform } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { fetchDBAllIncomingUnreadCount } from "./src/lib/supabase-db";
 import { supabase } from "./src/lib/supabase";
 
-class MemoryStorage {
-  private data: Record<string, string> = {};
-  private hydrationPromise: Promise<void> | null = null;
-
-  constructor() {
-    this.hydrationPromise = this.loadFromAsyncStorage();
-  }
-
-  async loadFromAsyncStorage() {
-    if (Platform.OS !== "web") {
-      try {
-        const { default: AsyncStorage } = await import("@react-native-async-storage/async-storage");
-        const keys = await AsyncStorage.getAllKeys();
-        const pairs = await AsyncStorage.multiGet(keys);
-        for (const [key, value] of pairs) {
-          if (value !== null) {
-            this.data[key] = value;
-          }
-        }
-      } catch (e) {
-        console.warn("MemoryStorage hydration failed:", e);
-      }
-    }
-  }
-
-  getItem(key: string): string | null {
-    return this.data[key] !== undefined ? this.data[key] : null;
-  }
-
-  setItem(key: string, value: string): void {
-    this.data[key] = String(value);
-    if (Platform.OS !== "web") {
-      import("@react-native-async-storage/async-storage")
-        .then(({ default: AsyncStorage }) => {
-          AsyncStorage.setItem(key, String(value));
-        })
-        .catch(() => {});
-    }
-  }
-
-  removeItem(key: string): void {
-    delete this.data[key];
-    if (Platform.OS !== "web") {
-      import("@react-native-async-storage/async-storage")
-        .then(({ default: AsyncStorage }) => {
-          AsyncStorage.removeItem(key);
-        })
-        .catch(() => {});
-    }
-  }
-
-  clear(): void {
-    this.data = {};
-    if (Platform.OS !== "web") {
-      import("@react-native-async-storage/async-storage")
-        .then(({ default: AsyncStorage }) => {
-          AsyncStorage.clear();
-        })
-        .catch(() => {});
-    }
-  }
-
-  get length(): number {
-    return Object.keys(this.data).length;
-  }
-
-  key(index: number): string | null {
-    const keys = Object.keys(this.data);
-    return keys[index] !== undefined ? keys[index] : null;
-  }
+interface ErrorBoundaryProps {
+  children: ReactNode;
 }
 
-if (Platform.OS !== "web" && typeof window !== "undefined") {
-  (window as any).localStorage = new MemoryStorage();
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.warn("Uncaught App error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 24, backgroundColor: "#f8fafc" }}>
+          <Text style={{ fontSize: 20, fontWeight: "bold", color: "#0f172a", marginBottom: 12 }}>
+            Something went wrong
+          </Text>
+          <Text style={{ fontSize: 14, color: "#64748b", textAlign: "center", marginBottom: 20 }}>
+            {this.state.error?.message || "An unexpected error occurred."}
+          </Text>
+          <TouchableOpacity
+            style={{ backgroundColor: "#6366f1", paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8 }}
+            onPress={() => this.setState({ hasError: false, error: null })}
+          >
+            <Text style={{ color: "#ffffff", fontWeight: "600" }}>Try Again</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+    return this.props.children;
+  }
 }
 
 // Import Fully Converted React Native Screens
@@ -196,102 +167,109 @@ export default function App() {
   }
 
   return (
-    <SafeAreaProvider>
-      <QueryClientProvider client={queryClient}>
-        <PaperProvider theme={dynamicTheme}>
-          {!isAuthenticated ? (
-            <AuthScreen onSuccess={() => {}} />
-          ) : (
-            <SafeAreaView style={{ flex: 1, backgroundColor: "#ffffff" }} edges={["top"]}>
-              <NavigationContainer>
-                <StatusBar style="dark" />
-                <Tab.Navigator
-                  initialRouteName="Dashboard"
-                  screenOptions={({ route }: { route: { name: string } }) => ({
-                    headerShown: false,
-                    tabBarIcon: ({ color, size }: { color: string; size: number }) => {
-                      let iconName: keyof typeof MaterialCommunityIcons.glyphMap = "help";
+    <ErrorBoundary>
+      <SafeAreaProvider>
+        <QueryClientProvider client={queryClient}>
+          <PaperProvider theme={dynamicTheme}>
+            {!isAuthenticated ? (
+              <AuthScreen onSuccess={() => {}} />
+            ) : (
+              <SafeAreaView style={{ flex: 1, backgroundColor: "#ffffff" }} edges={["top"]}>
+                <NavigationContainer>
+                  <StatusBar style="dark" />
+                  <Tab.Navigator
+                    initialRouteName="Dashboard"
+                    screenOptions={({ route }: { route: { name: string } }) => ({
+                      headerShown: false,
+                      tabBarIcon: ({ color, size }: { color: string; size: number }) => {
+                        let iconName: keyof typeof MaterialCommunityIcons.glyphMap = "help";
 
-                      if (route.name === "Dashboard") {
-                        iconName = "view-dashboard";
-                      } else if (route.name === "Assessments") {
-                        iconName = "clipboard-text";
-                      } else if (route.name === "Chat") {
-                        iconName = "message-text";
-                      } else if (route.name === "Evaluation") {
-                        iconName = "chart-bar";
-                      } else if (route.name === "Resources") {
-                        iconName = "folder-open";
-                      } else if (route.name === "Profile") {
-                        iconName = "account";
-                      }
+                        if (route.name === "Dashboard") {
+                          iconName = "view-dashboard";
+                        } else if (route.name === "Assessments") {
+                          iconName = "clipboard-text";
+                        } else if (route.name === "Chat") {
+                          iconName = "message-text";
+                        } else if (route.name === "Evaluation") {
+                          iconName = "chart-bar";
+                        } else if (route.name === "Resources") {
+                          iconName = "folder-open";
+                        } else if (route.name === "Profile") {
+                          iconName = "account";
+                        }
 
-                      return <MaterialCommunityIcons name={iconName} size={size} color={color} />;
-                    },
-                    tabBarActiveTintColor: currentThemeColor,
-                    tabBarInactiveTintColor: isDark ? "#94a3b8" : "#64748b",
-                    tabBarStyle: [
-                      styles.tabBar,
-                      isDark && { backgroundColor: "#151b2c", borderTopColor: "#1e293b" },
-                    ],
-                    tabBarLabelStyle: styles.tabBarLabel,
-                    headerStyle: [
-                      styles.header,
-                      isDark && { backgroundColor: "#151b2c", borderBottomColor: "#1e293b" },
-                    ],
-                    headerTitleStyle: [styles.headerTitle, isDark && { color: "#f8fafc" }],
-                    headerTintColor: isDark ? "#f8fafc" : "#0f172a",
-                  })}
-                >
-                  <Tab.Screen
-                    name="Dashboard"
-                    component={DashboardScreen}
-                    options={{ title: "EduSync" }}
-                  />
-                  <Tab.Screen
-                    name="Assessments"
-                    component={AssessmentsScreen}
-                    options={{ title: "Assessments" }}
-                  />
-                  <Tab.Screen
-                    name="Chat"
-                    component={ChatScreen}
-                    options={{
-                      title: "Messenger",
-                      headerShown: false, // Hide react-navigation header to use custom header inside the dual-pane list view
-                      tabBarBadge: unreadCount > 0 ? unreadCount : undefined,
-                    }}
-                  />
-                  <Tab.Screen
-                    name="Evaluation"
-                    component={EvaluationScreen}
-                    options={{ title: "Analytics" }}
-                  />
-                  <Tab.Screen
-                    name="Resources"
-                    component={ResourcesScreen}
-                    options={{ title: "Resource Hub" }}
-                  />
-                  <Tab.Screen
-                    name="Profile"
-                    component={ProfileScreen}
-                    options={{ title: "Profile" }}
-                  />
-                  <Tab.Screen
-                    name="CourseLearn"
-                    component={CourseLearnScreen}
-                    options={{
-                      title: "Course Lesson",
-                      tabBarButton: () => null,
-                    }}
-                  />
-                </Tab.Navigator>
-              </NavigationContainer>
-            </SafeAreaView>
-          )}
-        </PaperProvider>
-      </QueryClientProvider>
-    </SafeAreaProvider>
+                        return <MaterialCommunityIcons name={iconName} size={size} color={color} />;
+                      },
+                      tabBarActiveTintColor: currentThemeColor,
+                      tabBarInactiveTintColor: isDark ? "#94a3b8" : "#64748b",
+                      tabBarStyle: [
+                        styles.tabBar,
+                        isDark && { backgroundColor: "#151b2c", borderTopColor: "#1e293b" },
+                      ],
+                      tabBarLabelStyle: styles.tabBarLabel,
+                      headerStyle: [
+                        styles.header,
+                        isDark && { backgroundColor: "#151b2c", borderBottomColor: "#1e293b" },
+                      ],
+                      headerTitleStyle: [styles.headerTitle, isDark && { color: "#f8fafc" }],
+                      headerTintColor: isDark ? "#f8fafc" : "#0f172a",
+                    })}
+                  >
+                    <Tab.Screen
+                      name="Dashboard"
+                      component={DashboardScreen}
+                      options={{ title: "EduSync" }}
+                    />
+                    <Tab.Screen
+                      name="Assessments"
+                      component={AssessmentsScreen}
+                      options={{ title: "Assessments" }}
+                    />
+                    <Tab.Screen
+                      name="Chat"
+                      component={ChatScreen}
+                      options={{
+                        title: "Messages",
+                        tabBarBadge: unreadCount > 0 ? unreadCount : undefined,
+                        tabBarBadgeStyle: {
+                          backgroundColor: "#6366f1",
+                          color: "#ffffff",
+                          fontSize: 10,
+                          fontWeight: "bold",
+                        },
+                      }}
+                    />
+                    <Tab.Screen
+                      name="Evaluation"
+                      component={EvaluationScreen}
+                      options={{ title: "Progress" }}
+                    />
+                    <Tab.Screen
+                      name="Resources"
+                      component={ResourcesScreen}
+                      options={{ title: "Resources" }}
+                    />
+                    <Tab.Screen
+                      name="Profile"
+                      component={ProfileScreen}
+                      options={{ title: "Profile" }}
+                    />
+                    <Tab.Screen
+                      name="CourseLearn"
+                      component={CourseLearnScreen}
+                      options={{
+                        title: "Course Lesson",
+                        tabBarButton: () => null,
+                      }}
+                    />
+                  </Tab.Navigator>
+                </NavigationContainer>
+              </SafeAreaView>
+            )}
+          </PaperProvider>
+        </QueryClientProvider>
+      </SafeAreaProvider>
+    </ErrorBoundary>
   );
 }
 

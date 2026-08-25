@@ -25,14 +25,14 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
       type: "sourceFile",
     };
   }
-  // Redirect the broken VirtualView codegen file to a plain mock to prevent Metro crash.
+  // Redirect all VirtualView imports to a safe mock
   if (
-    moduleName.includes(VIRTUAL_VIEW_PATH) ||
+    moduleName.toLowerCase().includes("virtualview") ||
     (context.originModulePath &&
-      context.originModulePath.includes("VirtualViewExperimentalNativeComponent"))
+      context.originModulePath.toLowerCase().includes("virtualview"))
   ) {
     return {
-      filePath: path.resolve(__dirname, "metro-mocks/VirtualViewExperimentalNativeComponent.cjs"),
+      filePath: path.resolve(__dirname, "metro-mocks/VirtualView.cjs"),
       type: "sourceFile",
     };
   }

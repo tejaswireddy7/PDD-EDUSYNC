@@ -11,7 +11,12 @@ interface BootstrapIconProps {
 
 export function BootstrapIcon({ name, size, color, style }: BootstrapIconProps) {
   if (Platform.OS === "web") {
-    return <i className={`bi bi-${name}`} style={{ fontSize: size, color: color, display: "inline-block", lineHeight: 1, ...style }} />;
+    return (
+      <i
+        className={`bi bi-${name}`}
+        style={{ fontSize: size, color: color, display: "inline-block", lineHeight: 1, ...style }}
+      />
+    );
   }
 
   let nativeName: any = "help-circle";

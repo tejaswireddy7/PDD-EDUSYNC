@@ -22,7 +22,9 @@ function RootLayout() {
     if (!store.user) return;
     async function loadCounts() {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (user) {
           const focusDomain = store.surveyAnswers?.focusDomain || "Mobile";
           const key = `assessments_${user.id}_${focusDomain}`;
@@ -40,7 +42,13 @@ function RootLayout() {
       }
     }
     loadCounts();
-  }, [store.user, store.submittedAssessmentId, store.surveyAnswers?.focusDomain, store.enrolledCourses, store.isLoadingRecommendations]);
+  }, [
+    store.user,
+    store.submittedAssessmentId,
+    store.surveyAnswers?.focusDomain,
+    store.enrolledCourses,
+    store.isLoadingRecommendations,
+  ]);
 
   useEffect(() => {
     if (!store.user) return;
@@ -48,7 +56,9 @@ function RootLayout() {
     let active = true;
     async function pollUnreadMessages() {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (!user) return;
 
         const count = await fetchDBAllIncomingUnreadCount(user.id);
@@ -75,7 +85,9 @@ function RootLayout() {
     let active = true;
     async function updateNewResourcesBadge() {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (!user) return;
 
         const dbRes = await fetchDBResources();
@@ -89,7 +101,7 @@ function RootLayout() {
 
         // Filter out resources that are already seen
         const newResources = dbRes.filter((r: any) => r.id && !seenSet.has(r.id));
-        
+
         // If the user is currently on the resources page, mark all as seen
         if (location.pathname === "/resources") {
           const allIds = dbRes.map((r: any) => r.id).filter(Boolean);
@@ -114,10 +126,25 @@ function RootLayout() {
 
   const navItems = [
     { to: "/", label: "Dashboard", icon: "house" },
-    { to: "/assessments", label: "Assessments", icon: "clipboard-check", badge: openAssessmentsCount > 0 ? String(openAssessmentsCount) : undefined },
-    { to: "/chat", label: "Messenger", icon: "chat-dots", badge: unreadMessagesCount > 0 ? String(unreadMessagesCount) : undefined },
+    {
+      to: "/assessments",
+      label: "Assessments",
+      icon: "clipboard-check",
+      badge: openAssessmentsCount > 0 ? String(openAssessmentsCount) : undefined,
+    },
+    {
+      to: "/chat",
+      label: "Messenger",
+      icon: "chat-dots",
+      badge: unreadMessagesCount > 0 ? String(unreadMessagesCount) : undefined,
+    },
     { to: "/evaluation", label: "Analytics", icon: "bar-chart" },
-    { to: "/resources", label: "Resource Hub", icon: "folder", badge: newResourcesCount > 0 ? String(newResourcesCount) : undefined },
+    {
+      to: "/resources",
+      label: "Resource Hub",
+      icon: "folder",
+      badge: newResourcesCount > 0 ? String(newResourcesCount) : undefined,
+    },
     { to: "/profile", label: "Profile", icon: "person" },
   ];
 
@@ -129,21 +156,29 @@ function RootLayout() {
   const isDark = appTheme === "dark";
 
   return (
-    <div className={`flex h-screen w-screen overflow-hidden font-sans antialiased ${isDark ? "bg-[#090d16] text-slate-100" : "bg-slate-50 text-slate-800"}`}>
+    <div
+      className={`flex h-screen w-screen overflow-hidden font-sans antialiased ${isDark ? "bg-[#090d16] text-slate-100" : "bg-slate-50 text-slate-800"}`}
+    >
       {/* ========================================================================= */}
       {/* DESKTOP SIDEBAR (Visible on md and larger viewports)                     */}
       {/* ========================================================================= */}
-      <aside className={`hidden md:flex md:w-64 md:flex-col border-r shrink-0 ${isDark ? "bg-[#151b2c] border-[#1e293b]" : "bg-white border-slate-200 shadow-sm"}`}>
+      <aside
+        className={`hidden md:flex md:w-64 md:flex-col border-r shrink-0 ${isDark ? "bg-[#151b2c] border-[#1e293b]" : "bg-white border-slate-200 shadow-sm"}`}
+      >
         {/* Brand Header */}
-        <div className={`flex h-16 items-center px-6 border-b ${isDark ? "border-[#1e293b]" : "border-slate-100"}`}>
+        <div
+          className={`flex h-16 items-center px-6 border-b ${isDark ? "border-[#1e293b]" : "border-slate-100"}`}
+        >
           <div className="flex items-center gap-2.5">
-            <img 
-              src="/logo.png" 
-              className="h-9 w-9 rounded-xl object-contain shadow-sm bg-indigo-50" 
-              alt="EduSync Logo" 
+            <img
+              src="/logo.png"
+              className="h-9 w-9 rounded-xl object-contain shadow-sm bg-indigo-50"
+              alt="EduSync Logo"
             />
             <div>
-              <h1 className={`text-base font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r ${isDark ? "from-white to-slate-300" : "from-slate-900 to-slate-700"}`}>
+              <h1
+                className={`text-base font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r ${isDark ? "from-white to-slate-300" : "from-slate-900 to-slate-700"}`}
+              >
                 EduSync
               </h1>
               <p className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
@@ -162,7 +197,7 @@ function RootLayout() {
                 to={item.to}
                 activeOptions={{ exact: item.to === "/" }}
                 activeProps={{
-                  className: isDark 
+                  className: isDark
                     ? "bg-indigo-950/40 text-indigo-400 font-semibold shadow-sm border-l-4 border-indigo-500"
                     : "bg-indigo-50/70 text-indigo-600 font-semibold shadow-sm border-l-4 border-indigo-500",
                 }}
@@ -186,7 +221,9 @@ function RootLayout() {
         </nav>
 
         {/* Desktop Sidebar Footer */}
-        <div className={`p-4 border-t ${isDark ? "border-[#1e293b] bg-[#111827]/50" : "border-slate-100 bg-slate-50/50"}`}>
+        <div
+          className={`p-4 border-t ${isDark ? "border-[#1e293b] bg-[#111827]/50" : "border-slate-100 bg-slate-50/50"}`}
+        >
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
               <div className="h-9 w-9 rounded-full bg-indigo-100 flex items-center justify-center text-sm font-semibold text-indigo-700 uppercase">
@@ -197,8 +234,14 @@ function RootLayout() {
                   .substring(0, 2) || "S"}
               </div>
               <div className="truncate">
-                <p className={`text-xs font-semibold truncate ${isDark ? "text-slate-200" : "text-slate-700"}`}>{store.user?.name || "Student"}</p>
-                <p className="text-[10px] text-slate-400 truncate">{store.user?.email || "student@edusync.ai"}</p>
+                <p
+                  className={`text-xs font-semibold truncate ${isDark ? "text-slate-200" : "text-slate-700"}`}
+                >
+                  {store.user?.name || "Student"}
+                </p>
+                <p className="text-[10px] text-slate-400 truncate">
+                  {store.user?.email || "student@edusync.ai"}
+                </p>
               </div>
             </div>
           </div>
@@ -217,7 +260,9 @@ function RootLayout() {
         {/* ========================================================================= */}
         {/* MOBILE BOTTOM NAVIGATION BAR (Visible on screens smaller than md)          */}
         {/* ========================================================================= */}
-        <nav className={`md:hidden fixed bottom-0 left-0 right-0 h-16 border-t flex items-center justify-around px-2 z-50 shadow-lg ${isDark ? "bg-[#151b2c]/95 border-[#1e293b] text-slate-200" : "bg-white/95 border-slate-200 text-slate-800"} backdrop-blur-md`}>
+        <nav
+          className={`md:hidden fixed bottom-0 left-0 right-0 h-16 border-t flex items-center justify-around px-2 z-50 shadow-lg ${isDark ? "bg-[#151b2c]/95 border-[#1e293b] text-slate-200" : "bg-white/95 border-slate-200 text-slate-800"} backdrop-blur-md`}
+        >
           {navItems.map((item) => {
             return (
               <Link
@@ -225,10 +270,14 @@ function RootLayout() {
                 to={item.to}
                 activeOptions={{ exact: item.to === "/" }}
                 activeProps={{
-                  className: isDark ? "text-indigo-400 scale-105 font-bold" : "text-indigo-600 scale-105 font-bold",
+                  className: isDark
+                    ? "text-indigo-400 scale-105 font-bold"
+                    : "text-indigo-600 scale-105 font-bold",
                 }}
                 inactiveProps={{
-                  className: isDark ? "text-slate-500 hover:text-slate-300" : "text-slate-400 hover:text-slate-600",
+                  className: isDark
+                    ? "text-slate-500 hover:text-slate-300"
+                    : "text-slate-400 hover:text-slate-600",
                 }}
                 className="flex flex-col items-center justify-center flex-1 py-1 transition-all duration-200 text-center cursor-pointer relative"
               >
@@ -246,7 +295,6 @@ function RootLayout() {
               </Link>
             );
           })}
-
         </nav>
       </div>
     </div>

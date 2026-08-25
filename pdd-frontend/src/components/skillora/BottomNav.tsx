@@ -32,11 +32,7 @@ export function BottomNav({ activeRoute = "Dashboard", onNavigate }: BottomNavPr
             onPress={() => onNavigate && onNavigate(it.route)}
             style={[styles.item, isActive && styles.activeItem]}
           >
-            <Feather 
-              name={it.icon} 
-              size={18} 
-              color={isActive ? "#ffffff" : "#64748b"} 
-            />
+            <Feather name={it.icon} size={18} color={isActive ? "#ffffff" : "#64748b"} />
             <Text style={[styles.label, isActive ? styles.activeLabel : styles.inactiveLabel]}>
               {it.label}
             </Text>

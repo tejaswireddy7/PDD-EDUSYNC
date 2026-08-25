@@ -1,13 +1,23 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Linking, Platform, Modal, Alert, Image } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Dimensions,
+  Linking,
+  Platform,
+  Modal,
+  Alert,
+  Image,
+} from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useDashboardStore } from "../lib/store";
 import { supabase } from "../lib/supabase";
 import { useNavigate } from "@tanstack/react-router";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { WebView } from "react-native-webview";
-
-
 
 function normalizeCourseTitle(title: string): string {
   const mapping: Record<string, string> = {
@@ -102,7 +112,7 @@ const COURSE_VIDEO_MAP: Record<string, string> = {
   "Data Visualization with Recharts": "https://www.youtube.com/embed/F6kmIpWWEdU",
   "Fine-Tuning Generative AI Models": "https://www.youtube.com/embed/V_xro1bcAuA",
   "MLOps: CI/CD Pipeline for Models": "https://www.youtube.com/embed/V_xro1bcAuA",
-  "Transformer Architectures & Attention": "https://www.youtube.com/embed/V_xro1bcAuA"
+  "Transformer Architectures & Attention": "https://www.youtube.com/embed/V_xro1bcAuA",
 };
 
 function getFallbackVideoUrl(title: string): string {
@@ -110,7 +120,7 @@ function getFallbackVideoUrl(title: string): string {
   if (COURSE_VIDEO_MAP[title]) {
     return COURSE_VIDEO_MAP[title];
   }
-  
+
   // 2. Keyword fallback matching
   const lower = title.toLowerCase();
   if (lower.includes("docker") || lower.includes("kubernetes") || lower.includes("devops")) {
@@ -119,7 +129,14 @@ function getFallbackVideoUrl(title: string): string {
   if (lower.includes("spring boot") || lower.includes("microservices")) {
     return "https://www.youtube.com/embed/35EQXmHKZYs";
   }
-  if (lower.includes("next.js") || lower.includes("nextjs") || lower.includes("ssr") || lower.includes("federation") || lower.includes("micro-frontends") || lower.includes("vitals")) {
+  if (
+    lower.includes("next.js") ||
+    lower.includes("nextjs") ||
+    lower.includes("ssr") ||
+    lower.includes("federation") ||
+    lower.includes("micro-frontends") ||
+    lower.includes("vitals")
+  ) {
     return "https://www.youtube.com/embed/wm5gMKuwSYk";
   }
   if (lower.includes("tailwind")) {
@@ -128,7 +145,13 @@ function getFallbackVideoUrl(title: string): string {
   if (lower.includes("typescript") || lower.includes("ts")) {
     return "https://www.youtube.com/embed/d56mG7DezGs";
   }
-  if (lower.includes("router") || lower.includes("context") || lower.includes("redux") || lower.includes("zustand") || lower.includes("state management")) {
+  if (
+    lower.includes("router") ||
+    lower.includes("context") ||
+    lower.includes("redux") ||
+    lower.includes("zustand") ||
+    lower.includes("state management")
+  ) {
     return "https://www.youtube.com/embed/Ul3y1LXxzdU";
   }
   if (lower.includes("redis") || lower.includes("caching") || lower.includes("queue")) {
@@ -149,10 +172,20 @@ function getFallbackVideoUrl(title: string): string {
   if (lower.includes("kotlin") || lower.includes("jetpack") || lower.includes("android")) {
     return "https://www.youtube.com/embed/6_wK_Ud8--0";
   }
-  if (lower.includes("go concurrency") || lower.includes("golang") || lower.includes("concurrency") || lower.includes("go ")) {
+  if (
+    lower.includes("go concurrency") ||
+    lower.includes("golang") ||
+    lower.includes("concurrency") ||
+    lower.includes("go ")
+  ) {
     return "https://www.youtube.com/embed/un6ZyFkqFKo";
   }
-  if (lower.includes("html") || lower.includes("css") || lower.includes("grid") || lower.includes("flexbox")) {
+  if (
+    lower.includes("html") ||
+    lower.includes("css") ||
+    lower.includes("grid") ||
+    lower.includes("flexbox")
+  ) {
     return "https://www.youtube.com/embed/0xMQfnTU6oo";
   }
   if (lower.includes("react") && !lower.includes("native")) {
@@ -161,13 +194,25 @@ function getFallbackVideoUrl(title: string): string {
   if (lower.includes("native") || lower.includes("expo")) {
     return "https://www.youtube.com/embed/0-S5a0eXPoc";
   }
-  if (lower.includes("node") || lower.includes("rest api") || lower.includes("express") || lower.includes("routing")) {
+  if (
+    lower.includes("node") ||
+    lower.includes("rest api") ||
+    lower.includes("express") ||
+    lower.includes("routing")
+  ) {
     return "https://www.youtube.com/embed/Oe421EPjeBE";
   }
   if (lower.includes("sql") || lower.includes("postgres") || lower.includes("database")) {
     return "https://www.youtube.com/embed/7S_tz1z_5bA";
   }
-  if (lower.includes("python") || lower.includes("numpy") || lower.includes("pytorch") || lower.includes("ai") || lower.includes("neural") || lower.includes("machine learning")) {
+  if (
+    lower.includes("python") ||
+    lower.includes("numpy") ||
+    lower.includes("pytorch") ||
+    lower.includes("ai") ||
+    lower.includes("neural") ||
+    lower.includes("machine learning")
+  ) {
     return "https://www.youtube.com/embed/V_xro1bcAuA";
   }
   return "https://www.youtube.com/embed/hdI2bqOjy3c"; // Default JavaScript video
@@ -182,7 +227,7 @@ export default function CourseLearnScreen() {
   } catch (e) {
     // Fail-safe
   }
-  
+
   let nativeParams: any = {};
   try {
     const route = useRoute();
@@ -190,11 +235,12 @@ export default function CourseLearnScreen() {
   } catch (e) {
     // Fail-safe
   }
-  
+
   // Extract course title from search queries
-  const courseTitle = Platform.OS === "web"
-    ? (new URLSearchParams(window.location.search).get("course") || "React Native & Expo Ecosystem")
-    : (nativeParams.course || "React Native & Expo Ecosystem");
+  const courseTitle =
+    Platform.OS === "web"
+      ? new URLSearchParams(window.location.search).get("course") || "React Native & Expo Ecosystem"
+      : nativeParams.course || "React Native & Expo Ecosystem";
   const normalizedTitle = normalizeCourseTitle(courseTitle);
 
   const defaultSections = [
@@ -205,8 +251,8 @@ export default function CourseLearnScreen() {
       quiz: {
         question: "What is the primary language used in this course domain?",
         options: ["TypeScript/JavaScript", "Python", "Swift", "C++"],
-        correctAnswer: 0
-      }
+        correctAnswer: 0,
+      },
     },
     {
       title: "Section 2: Deep Dive into Core Workflows",
@@ -215,9 +261,9 @@ export default function CourseLearnScreen() {
       quiz: {
         question: "Which hook or function is commonly used for managing local state updates?",
         options: ["useReducer", "useState", "useEffect", "useMemo"],
-        correctAnswer: 1
-      }
-    }
+        correctAnswer: 1,
+      },
+    },
   ];
 
   const [videoUrl, setVideoUrl] = useState<string>(() => getFallbackVideoUrl(courseTitle));
@@ -231,10 +277,11 @@ export default function CourseLearnScreen() {
   useEffect(() => {
     async function loadDynamicCourseData() {
       try {
-        const { fetchDBCourseSections, fetchDBCourseMaterials } = await import("../lib/supabase-db");
+        const { fetchDBCourseSections, fetchDBCourseMaterials } =
+          await import("../lib/supabase-db");
         const [dbSections, dbMaterials] = await Promise.all([
           fetchDBCourseSections(courseTitle),
-          fetchDBCourseMaterials(courseTitle)
+          fetchDBCourseMaterials(courseTitle),
         ]);
         setSections(dbSections);
         setMaterials(dbMaterials);
@@ -259,12 +306,17 @@ export default function CourseLearnScreen() {
   const [activeStartSec, setActiveStartSec] = useState<number>(0);
   const [showQuizSectionIdx, setShowQuizSectionIdx] = useState<number | null>(null);
   const [selectedQuizOption, setSelectedQuizOption] = useState<number | null>(null);
-  const [quizFeedback, setQuizFeedback] = useState<{ type: "correct" | "incorrect"; msg: string } | null>(null);
+  const [quizFeedback, setQuizFeedback] = useState<{
+    type: "correct" | "incorrect";
+    msg: string;
+  } | null>(null);
   const [peerMaterials, setPeerMaterials] = useState<any[]>([]);
   const [viewingResource, setViewingResource] = useState<any | null>(null);
 
   // Track completed section quizzes inside local state & localStorage
-  const [completedQuizzes, setCompletedQuizzes] = useState<Record<number, { selected: number; correct: boolean }>>({});
+  const [completedQuizzes, setCompletedQuizzes] = useState<
+    Record<number, { selected: number; correct: boolean }>
+  >({});
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.localStorage) {
@@ -322,7 +374,7 @@ export default function CourseLearnScreen() {
           if (data.info.currentTime !== undefined) {
             const current = data.info.currentTime;
             setWatchedTime(current);
-            
+
             if (typeof window !== "undefined" && window.localStorage) {
               const cacheKey = `video_progress_${courseTitle}_${store.user?.email || "guest"}`;
               window.localStorage.setItem(cacheKey, Math.round(current).toString());
@@ -371,7 +423,7 @@ export default function CourseLearnScreen() {
           if (iframe && iframe.contentWindow) {
             iframe.contentWindow.postMessage(
               JSON.stringify({ event: "command", func: "pauseVideo", args: [] }),
-              "*"
+              "*",
             );
           }
         }
@@ -396,13 +448,19 @@ export default function CourseLearnScreen() {
     setFifteenMinScore(score);
 
     if (score === 2) {
-      setFifteenMinQuizFeedback("Excellent! Flawless score! Course marked as completed. You earned +100 XP!");
+      setFifteenMinQuizFeedback(
+        "Excellent! Flawless score! Course marked as completed. You earned +100 XP!",
+      );
       store.completeCourse(courseTitle);
     } else if (score === 1) {
-      setFifteenMinQuizFeedback("Good job! You answered 1 out of 2 correctly. Course marked as completed. You earned +100 XP!");
+      setFifteenMinQuizFeedback(
+        "Good job! You answered 1 out of 2 correctly. Course marked as completed. You earned +100 XP!",
+      );
       store.completeCourse(courseTitle);
     } else {
-      setFifteenMinQuizFeedback("Failed checkpoint! You answered 0 out of 2 questions correctly. Re-watch the video sections and try again!");
+      setFifteenMinQuizFeedback(
+        "Failed checkpoint! You answered 0 out of 2 questions correctly. Re-watch the video sections and try again!",
+      );
     }
   };
 
@@ -447,7 +505,7 @@ export default function CourseLearnScreen() {
     if (store.lowDataMode) {
       Alert.alert(
         "Low-Data Cache Success",
-        `"${m.title}" has been saved in local cache memory for offline access.`
+        `"${m.title}" has been saved in local cache memory for offline access.`,
       );
     }
     setViewingResource(m);
@@ -481,10 +539,10 @@ export default function CourseLearnScreen() {
     }
 
     const isCorrect = selectedQuizOption === sect.quiz.correctAnswer;
-    
+
     const updated = {
       ...completedQuizzes,
-      [sectionIdx]: { selected: selectedQuizOption, correct: isCorrect }
+      [sectionIdx]: { selected: selectedQuizOption, correct: isCorrect },
     };
     setCompletedQuizzes(updated);
 
@@ -501,13 +559,13 @@ export default function CourseLearnScreen() {
     if (isCorrect) {
       setQuizFeedback({
         type: "correct",
-        msg: "Correct! Score: 1/1. You have earned +50 XP!"
+        msg: "Correct! Score: 1/1. You have earned +50 XP!",
       });
       store.addXp(50);
     } else {
       setQuizFeedback({
         type: "incorrect",
-        msg: "Incorrect. Score: 0/1. Re-watch the video section and try again!"
+        msg: "Incorrect. Score: 0/1. Re-watch the video section and try again!",
       });
     }
   };
@@ -524,10 +582,12 @@ export default function CourseLearnScreen() {
     }
   };
 
-
-
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={true}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}
+      showsVerticalScrollIndicator={true}
+    >
       <View style={styles.header}>
         <View style={{ flex: 1 }}>
           <Text style={styles.headerSubtitle}>Pathway Learning Hub</Text>
@@ -555,21 +615,37 @@ export default function CourseLearnScreen() {
                   style={{ borderRadius: 20, border: "none" }}
                 />
               ) : (
-                <View style={{ flex: 1, backgroundColor: "#090d16", justifyContent: "center", alignItems: "center", borderRadius: 20 }}>
-                  <MaterialCommunityIcons name="video-off" size={48} color="#475569" style={{ marginBottom: 12 }} />
-                  <Text style={{ color: "#94a3b8", fontSize: 15, fontWeight: "600" }}>Lesson Paused for Checkpoint Quiz</Text>
-                  <Text style={{ color: "#64748b", fontSize: 12, marginTop: 4 }}>Resume watching after closing the quiz</Text>
+                <View
+                  style={{
+                    flex: 1,
+                    backgroundColor: "#090d16",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    borderRadius: 20,
+                  }}
+                >
+                  <MaterialCommunityIcons
+                    name="video-off"
+                    size={48}
+                    color="#475569"
+                    style={{ marginBottom: 12 }}
+                  />
+                  <Text style={{ color: "#94a3b8", fontSize: 15, fontWeight: "600" }}>
+                    Lesson Paused for Checkpoint Quiz
+                  </Text>
+                  <Text style={{ color: "#64748b", fontSize: 12, marginTop: 4 }}>
+                    Resume watching after closing the quiz
+                  </Text>
                 </View>
               )
-            ) : (
-              !showFifteenMinQuiz ? (
-                <WebView
-                  style={{ flex: 1, borderRadius: 20 }}
-                  javaScriptEnabled={true}
-                  domStorageEnabled={true}
-                  allowsFullscreenVideo={true}
-                  source={{
-                    html: `
+            ) : !showFifteenMinQuiz ? (
+              <WebView
+                style={{ flex: 1, borderRadius: 20 }}
+                javaScriptEnabled={true}
+                domStorageEnabled={true}
+                allowsFullscreenVideo={true}
+                source={{
+                  html: `
                       <!DOCTYPE html>
                       <html>
                         <head>
@@ -589,26 +665,48 @@ export default function CourseLearnScreen() {
                         </body>
                       </html>
                     `,
-                    baseUrl: "https://google.com"
-                  }}
+                  baseUrl: "https://google.com",
+                }}
+              />
+            ) : (
+              <View
+                style={{
+                  flex: 1,
+                  backgroundColor: "#090d16",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  borderRadius: 20,
+                }}
+              >
+                <MaterialCommunityIcons
+                  name="video-off"
+                  size={48}
+                  color="#475569"
+                  style={{ marginBottom: 12 }}
                 />
-              ) : (
-                <View style={{ flex: 1, backgroundColor: "#090d16", justifyContent: "center", alignItems: "center", borderRadius: 20 }}>
-                  <MaterialCommunityIcons name="video-off" size={48} color="#475569" style={{ marginBottom: 12 }} />
-                  <Text style={{ color: "#94a3b8", fontSize: 15, fontWeight: "600" }}>Lesson Paused for Checkpoint Quiz</Text>
-                  <Text style={{ color: "#64748b", fontSize: 12, marginTop: 4 }}>Resume watching after closing the quiz</Text>
-                </View>
-              )
+                <Text style={{ color: "#94a3b8", fontSize: 15, fontWeight: "600" }}>
+                  Lesson Paused for Checkpoint Quiz
+                </Text>
+                <Text style={{ color: "#64748b", fontSize: 12, marginTop: 4 }}>
+                  Resume watching after closing the quiz
+                </Text>
+              </View>
             )}
           </View>
 
           <TouchableOpacity
-            onPress={() => Linking.openURL(getWatchUrl(videoUrl) + (activeStartSec > 0 ? `&t=${activeStartSec}s` : ""))}
+            onPress={() =>
+              Linking.openURL(
+                getWatchUrl(videoUrl) + (activeStartSec > 0 ? `&t=${activeStartSec}s` : ""),
+              )
+            }
             style={styles.videoFooterRow}
             activeOpacity={0.8}
           >
             <MaterialCommunityIcons name="youtube" size={16} color="#ef4444" />
-            <Text style={{ color: "#f8fafc", fontSize: 11, fontWeight: "600", marginLeft: 6 }}>Source Lesson Video</Text>
+            <Text style={{ color: "#f8fafc", fontSize: 11, fontWeight: "600", marginLeft: 6 }}>
+              Source Lesson Video
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -621,7 +719,13 @@ export default function CourseLearnScreen() {
                 <Text style={styles.quizPanelTitle}>
                   Section Quiz: Lesson {showQuizSectionIdx + 1}
                 </Text>
-                <TouchableOpacity onPress={() => { setShowQuizSectionIdx(null); setSelectedQuizOption(null); setQuizFeedback(null); }}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowQuizSectionIdx(null);
+                    setSelectedQuizOption(null);
+                    setQuizFeedback(null);
+                  }}
+                >
                   <Text style={styles.quizCloseText}>✕</Text>
                 </TouchableOpacity>
               </View>
@@ -645,24 +749,47 @@ export default function CourseLearnScreen() {
                             style={[styles.quizOptionBtn, isSel && styles.quizOptionBtnActive]}
                             activeOpacity={0.7}
                           >
-                            <View style={[styles.quizOptionCircle, isSel && styles.quizOptionCircleActive]}>
+                            <View
+                              style={[
+                                styles.quizOptionCircle,
+                                isSel && styles.quizOptionCircleActive,
+                              ]}
+                            >
                               {isSel && <View style={styles.quizOptionInner} />}
                             </View>
-                            <Text style={[styles.quizOptionText, isSel && styles.quizOptionTextActive]}>{opt}</Text>
+                            <Text
+                              style={[styles.quizOptionText, isSel && styles.quizOptionTextActive]}
+                            >
+                              {opt}
+                            </Text>
                           </TouchableOpacity>
                         );
                       })}
                     </View>
 
                     {quizFeedback && (
-                      <View style={[styles.feedbackBox, quizFeedback.type === "correct" ? styles.feedbackCorrect : styles.feedbackIncorrect]}>
+                      <View
+                        style={[
+                          styles.feedbackBox,
+                          quizFeedback.type === "correct"
+                            ? styles.feedbackCorrect
+                            : styles.feedbackIncorrect,
+                        ]}
+                      >
                         <MaterialCommunityIcons
                           name={quizFeedback.type === "correct" ? "check-circle" : "alert-circle"}
                           size={16}
                           color={quizFeedback.type === "correct" ? "#10b981" : "#ef4444"}
                           style={{ marginRight: 6 }}
                         />
-                        <Text style={[styles.feedbackText, quizFeedback.type === "correct" ? styles.textCorrect : styles.textIncorrect]}>
+                        <Text
+                          style={[
+                            styles.feedbackText,
+                            quizFeedback.type === "correct"
+                              ? styles.textCorrect
+                              : styles.textIncorrect,
+                          ]}
+                        >
                           {quizFeedback.msg}
                         </Text>
                       </View>
@@ -740,7 +867,7 @@ export default function CourseLearnScreen() {
                         <Text style={styles.sectionItemDuration}>{sect.duration}</Text>
                       </View>
                     </TouchableOpacity>
-                    
+
                     {completedQuizzes[sIdx] ? (
                       <TouchableOpacity
                         onPress={() => {
@@ -748,22 +875,24 @@ export default function CourseLearnScreen() {
                           setSelectedQuizOption(completedQuizzes[sIdx].selected);
                           setQuizFeedback({
                             type: completedQuizzes[sIdx].correct ? "correct" : "incorrect",
-                            msg: completedQuizzes[sIdx].correct 
+                            msg: completedQuizzes[sIdx].correct
                               ? "Correct! Score: 1/1. You have earned +50 XP!"
-                              : "Incorrect. Score: 0/1. Re-watch the video section and try again!"
+                              : "Incorrect. Score: 0/1. Re-watch the video section and try again!",
                           });
                         }}
                         style={[
-                          styles.sectionQuizBtn, 
-                          completedQuizzes[sIdx].correct ? { backgroundColor: "#10b981" } : { backgroundColor: "#ef4444" }
+                          styles.sectionQuizBtn,
+                          completedQuizzes[sIdx].correct
+                            ? { backgroundColor: "#10b981" }
+                            : { backgroundColor: "#ef4444" },
                         ]}
                         activeOpacity={0.7}
                       >
-                        <MaterialCommunityIcons 
-                          name={completedQuizzes[sIdx].correct ? "check-circle" : "close-circle"} 
-                          size={12} 
-                          color="#ffffff" 
-                          style={{ marginRight: 4 }} 
+                        <MaterialCommunityIcons
+                          name={completedQuizzes[sIdx].correct ? "check-circle" : "close-circle"}
+                          size={12}
+                          color="#ffffff"
+                          style={{ marginRight: 4 }}
                         />
                         <Text style={styles.sectionQuizBtnText}>
                           {completedQuizzes[sIdx].correct ? "Score: 1/1" : "Score: 0/1"}
@@ -779,7 +908,12 @@ export default function CourseLearnScreen() {
                         style={styles.sectionQuizBtn}
                         activeOpacity={0.7}
                       >
-                        <MaterialCommunityIcons name="trophy-outline" size={12} color="#ffffff" style={{ marginRight: 4 }} />
+                        <MaterialCommunityIcons
+                          name="trophy-outline"
+                          size={12}
+                          color="#ffffff"
+                          style={{ marginRight: 4 }}
+                        />
                         <Text style={styles.sectionQuizBtnText}>Quiz</Text>
                       </TouchableOpacity>
                     )}
@@ -796,18 +930,39 @@ export default function CourseLearnScreen() {
               <View style={styles.materialsList}>
                 {/* 1. Official Course Materials */}
                 <Text style={styles.materialsSubHeader}>Official Reference Guides</Text>
-                {(materials.length > 0 ? materials : [
-                  { label: "EduSync Course Study Manual (PDF)", url: "https://developer.mozilla.org/en-US/docs/Learn", type: "doc" },
-                  { label: "Topic Reference Guides & Examples", url: "https://dev.to", type: "article" },
-                  { label: "Interactive Coding Sandbox Practice", url: "https://www.freecodecamp.org/learn", type: "tutorial" }
-                ]).map((m, idx) => {
+                {(materials.length > 0
+                  ? materials
+                  : [
+                      {
+                        label: "EduSync Course Study Manual (PDF)",
+                        url: "https://developer.mozilla.org/en-US/docs/Learn",
+                        type: "doc",
+                      },
+                      {
+                        label: "Topic Reference Guides & Examples",
+                        url: "https://dev.to",
+                        type: "article",
+                      },
+                      {
+                        label: "Interactive Coding Sandbox Practice",
+                        url: "https://www.freecodecamp.org/learn",
+                        type: "tutorial",
+                      },
+                    ]
+                ).map((m, idx) => {
                   let icon = "file-pdf-box";
                   if (m.type === "article") icon = "pencil-box-outline";
                   if (m.type === "tutorial") icon = "folder-outline";
                   return (
                     <View key={`static_${idx}`} style={styles.materialItemRow}>
                       <TouchableOpacity
-                        onPress={() => handleOpenPeerMaterial({ ...m, title: m.label, author: "System Instructor" })}
+                        onPress={() =>
+                          handleOpenPeerMaterial({
+                            ...m,
+                            title: m.label,
+                            author: "System Instructor",
+                          })
+                        }
                         style={{ flexDirection: "row", alignItems: "center", flex: 1, gap: 10 }}
                         activeOpacity={0.7}
                       >
@@ -826,7 +981,9 @@ export default function CourseLearnScreen() {
                 })}
 
                 {/* 2. Peer Shared Notes */}
-                <Text style={[styles.materialsSubHeader, { marginTop: 16 }]}>Student Shared Notes</Text>
+                <Text style={[styles.materialsSubHeader, { marginTop: 16 }]}>
+                  Student Shared Notes
+                </Text>
                 {peerMaterials.length === 0 ? (
                   <View style={styles.emptyUploadsCard}>
                     <MaterialCommunityIcons name="folder-open-outline" size={24} color="#64748b" />
@@ -857,7 +1014,7 @@ export default function CourseLearnScreen() {
                             <Text style={styles.authorLabel}>Uploaded by {p.author}</Text>
                           </View>
                         </TouchableOpacity>
-                        
+
                         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                           <MaterialCommunityIcons name="eye-outline" size={14} color="#94a3b8" />
                           {p.id?.startsWith("uploaded_") && (
@@ -866,7 +1023,11 @@ export default function CourseLearnScreen() {
                               style={styles.deletePeerBtn}
                               activeOpacity={0.7}
                             >
-                              <MaterialCommunityIcons name="trash-can-outline" size={14} color="#ef4444" />
+                              <MaterialCommunityIcons
+                                name="trash-can-outline"
+                                size={14}
+                                color="#ef4444"
+                              />
                             </TouchableOpacity>
                           )}
                         </View>
@@ -891,23 +1052,38 @@ export default function CourseLearnScreen() {
           <View style={styles.viewerModal}>
             <View style={styles.viewerHeader}>
               <View style={{ flex: 1, marginRight: 8 }}>
-                <Text style={styles.viewerTitle} numberOfLines={1}>{viewingResource?.title}</Text>
+                <Text style={styles.viewerTitle} numberOfLines={1}>
+                  {viewingResource?.title}
+                </Text>
                 <Text style={styles.viewerSubtitle}>
                   Uploaded by {viewingResource?.author} • {viewingResource?.type}
                 </Text>
               </View>
-              <TouchableOpacity onPress={() => setViewingResource(null)} style={styles.viewerCloseBtn} activeOpacity={0.7}>
+              <TouchableOpacity
+                onPress={() => setViewingResource(null)}
+                style={styles.viewerCloseBtn}
+                activeOpacity={0.7}
+              >
                 <Text style={styles.viewerCloseText}>✕</Text>
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.viewerBody} contentContainerStyle={{ paddingBottom: 20 }} showsVerticalScrollIndicator={true}>
+            <ScrollView
+              style={styles.viewerBody}
+              contentContainerStyle={{ paddingBottom: 20 }}
+              showsVerticalScrollIndicator={true}
+            >
               {viewingResource?.fileContent ? (
                 <>
                   {viewingResource.fileType?.startsWith("image/") ? (
                     <Image
                       source={{ uri: viewingResource.fileContent }}
-                      style={{ width: "100%", height: 350, borderRadius: 16, backgroundColor: "#0f172a" }}
+                      style={{
+                        width: "100%",
+                        height: 350,
+                        borderRadius: 16,
+                        backgroundColor: "#0f172a",
+                      }}
                       resizeMode="contain"
                     />
                   ) : viewingResource.fileType?.includes("pdf") ? (
@@ -936,7 +1112,8 @@ export default function CourseLearnScreen() {
                 <View style={styles.notesTextContainer}>
                   <Text style={styles.notesTextContent}>
                     {viewingResource?.title} description and details:{"\n\n"}
-                    This reference material has been prepared to help you study dynamic concepts related to {courseTitle}.{"\n\n"}Revisit this guide to prepare for checkpoints!
+                    This reference material has been prepared to help you study dynamic concepts
+                    related to {courseTitle}.{"\n\n"}Revisit this guide to prepare for checkpoints!
                   </Text>
                 </View>
               )}
@@ -954,13 +1131,17 @@ export default function CourseLearnScreen() {
       >
         <View style={styles.fifteenOverlay}>
           <View style={styles.fifteenModal}>
-            <ScrollView showsVerticalScrollIndicator={true} style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 10 }}>
+            <ScrollView
+              showsVerticalScrollIndicator={true}
+              style={{ flex: 1 }}
+              contentContainerStyle={{ paddingBottom: 10 }}
+            >
               <View style={styles.fifteenHeader}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flex: 1 }}>
                   <MaterialCommunityIcons name="timer-sand" size={24} color="#6366f1" />
                   <Text style={styles.fifteenTitle}>15-Minute Checkpoint Quiz</Text>
                 </View>
-                <TouchableOpacity 
+                <TouchableOpacity
                   onPress={() => {
                     setShowFifteenMinQuiz(false);
                     setIsPlaying(false);
@@ -971,9 +1152,11 @@ export default function CourseLearnScreen() {
                   <MaterialCommunityIcons name="close" size={22} color="#94a3b8" />
                 </TouchableOpacity>
               </View>
-              
+
               <Text style={styles.fifteenIntro}>
-                Great job! You have watched 15 minutes of this lesson video. Answer these 2 questions based on what you have learned to complete the course and submit your progress:
+                Great job! You have watched 15 minutes of this lesson video. Answer these 2
+                questions based on what you have learned to complete the course and submit your
+                progress:
               </Text>
 
               <View style={styles.fifteenBody}>
@@ -994,7 +1177,11 @@ export default function CourseLearnScreen() {
                             style={[styles.quizOptionBtn, isSel && styles.quizOptionBtnActive]}
                             activeOpacity={0.7}
                           >
-                            <Text style={[styles.quizOptionText, isSel && styles.quizOptionTextActive]}>{opt}</Text>
+                            <Text
+                              style={[styles.quizOptionText, isSel && styles.quizOptionTextActive]}
+                            >
+                              {opt}
+                            </Text>
                           </TouchableOpacity>
                         );
                       })}
@@ -1019,7 +1206,11 @@ export default function CourseLearnScreen() {
                             style={[styles.quizOptionBtn, isSel && styles.quizOptionBtnActive]}
                             activeOpacity={0.7}
                           >
-                            <Text style={[styles.quizOptionText, isSel && styles.quizOptionTextActive]}>{opt}</Text>
+                            <Text
+                              style={[styles.quizOptionText, isSel && styles.quizOptionTextActive]}
+                            >
+                              {opt}
+                            </Text>
                           </TouchableOpacity>
                         );
                       })}
@@ -1030,12 +1221,8 @@ export default function CourseLearnScreen() {
 
               {fifteenMinQuizFeedback && (
                 <View style={styles.fifteenScoreBox}>
-                  <Text style={styles.fifteenScoreText}>
-                    Your Score: {fifteenMinScore} / 2
-                  </Text>
-                  <Text style={styles.fifteenFeedbackText}>
-                    {fifteenMinQuizFeedback}
-                  </Text>
+                  <Text style={styles.fifteenScoreText}>Your Score: {fifteenMinScore} / 2</Text>
+                  <Text style={styles.fifteenFeedbackText}>{fifteenMinQuizFeedback}</Text>
                 </View>
               )}
 
@@ -1075,7 +1262,9 @@ export default function CourseLearnScreen() {
                         }}
                         activeOpacity={0.8}
                       >
-                        <Text style={styles.fifteenSubmitText}>🔄 Try Again / Go Back to Lesson</Text>
+                        <Text style={styles.fifteenSubmitText}>
+                          🔄 Try Again / Go Back to Lesson
+                        </Text>
                       </TouchableOpacity>
                     ) : (
                       <>

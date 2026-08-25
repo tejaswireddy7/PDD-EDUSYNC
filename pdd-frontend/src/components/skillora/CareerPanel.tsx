@@ -8,46 +8,86 @@ export function CareerPanel() {
   const store = useDashboardStore();
   const focusDomain = store.surveyAnswers?.focusDomain || "Mobile";
 
-  const domainCareerMap: Record<string, Array<{ role: string; match: number; skills: string[] }>> = {
+  const domainCareerMap: Record<
+    string,
+    Array<{ role: string; match: number; skills: string[] }>
+  > = {
     Frontend: [
-      { role: "UI/UX Front-end Architect", match: 95, skills: ["React", "HTML5/CSS3", "Design Systems"] },
+      {
+        role: "UI/UX Front-end Architect",
+        match: 95,
+        skills: ["React", "HTML5/CSS3", "Design Systems"],
+      },
       { role: "Web Application Lead", match: 88, skills: ["TypeScript", "Next.js", "Redux"] },
-      { role: "Product Developer", match: 82, skills: ["Core JS", "Tailwind", "Responsive Design"] },
+      {
+        role: "Product Developer",
+        match: 82,
+        skills: ["Core JS", "Tailwind", "Responsive Design"],
+      },
     ],
     Backend: [
       { role: "Senior Backend Engineer", match: 94, skills: ["Node.js", "Express", "SQL & APIs"] },
       { role: "System & DB Architect", match: 88, skills: ["Prisma", "PostgreSQL", "Caching"] },
-      { role: "Cloud Operations Specialist", match: 81, skills: ["Docker", "Deploy", "System Design"] },
+      {
+        role: "Cloud Operations Specialist",
+        match: 81,
+        skills: ["Docker", "Deploy", "System Design"],
+      },
     ],
     Mobile: [
-      { role: "iOS & Android App Dev", match: 94, skills: ["React Native", "Expo Ecosystem", "Flexbox"] },
-      { role: "Cross-Platform Architect", match: 87, skills: ["Hardware APIs", "Kotlin/Swift", "Navigation"] },
-      { role: "Mobile Interface Designer", match: 80, skills: ["App Store Deploy", "UI Frameworks", "Bridges"] },
+      {
+        role: "iOS & Android App Dev",
+        match: 94,
+        skills: ["React Native", "Expo Ecosystem", "Flexbox"],
+      },
+      {
+        role: "Cross-Platform Architect",
+        match: 87,
+        skills: ["Hardware APIs", "Kotlin/Swift", "Navigation"],
+      },
+      {
+        role: "Mobile Interface Designer",
+        match: 80,
+        skills: ["App Store Deploy", "UI Frameworks", "Bridges"],
+      },
     ],
     AI: [
-      { role: "Machine Learning Engineer", match: 96, skills: ["Python Dev", "Math Models", "PyTorch"] },
-      { role: "Data Science Researcher", match: 88, skills: ["Pandas/Numpy", "Stats & Math", "Data Prep"] },
-      { role: "NLP & LLM Specialist", match: 81, skills: ["Attention Models", "Transformers", "Data Wrangling"] },
+      {
+        role: "Machine Learning Engineer",
+        match: 96,
+        skills: ["Python Dev", "Math Models", "PyTorch"],
+      },
+      {
+        role: "Data Science Researcher",
+        match: 88,
+        skills: ["Pandas/Numpy", "Stats & Math", "Data Prep"],
+      },
+      {
+        role: "NLP & LLM Specialist",
+        match: 81,
+        skills: ["Attention Models", "Transformers", "Data Wrangling"],
+      },
     ],
   };
 
   const initialCareers = domainCareerMap[focusDomain] || domainCareerMap.Mobile;
-  const [careers, setCareers] = React.useState<Array<{ role: string; match: number; skills: string[] }>>(initialCareers);
+  const [careers, setCareers] =
+    React.useState<Array<{ role: string; match: number; skills: string[] }>>(initialCareers);
 
   React.useEffect(() => {
     async function loadCareers() {
       try {
         const { fetchDBCareerSuggestions } = await import("../../lib/supabase-db");
         const dbCareers = await fetchDBCareerSuggestions(focusDomain);
-        
+
         const seen = new Set<string>();
-        const uniqueCareers = dbCareers.filter(item => {
+        const uniqueCareers = dbCareers.filter((item) => {
           const normalized = item.role.trim().toLowerCase();
           if (seen.has(normalized)) return false;
           seen.add(normalized);
           return true;
         });
-        
+
         setCareers(uniqueCareers);
       } catch (err) {
         console.warn("Failed to load career suggestions from Supabase:", err);
@@ -74,17 +114,22 @@ export function CareerPanel() {
         {careers.map((c, i) => {
           const isTop = i === 0;
           return (
-            <TouchableOpacity 
-              key={c.role} 
-              onPress={() => Linking.openURL("https://www.google.com/search?q=" + encodeURIComponent(c.role + " jobs")).catch(err => console.warn(err))}
+            <TouchableOpacity
+              key={c.role}
+              onPress={() =>
+                Linking.openURL(
+                  "https://www.google.com/search?q=" + encodeURIComponent(c.role + " jobs"),
+                ).catch((err) => console.warn(err))
+              }
               activeOpacity={0.85}
-              style={[
-                styles.item, 
-                isTop ? styles.topItem : styles.otherItem
-              ]}
+              style={[styles.item, isTop ? styles.topItem : styles.otherItem]}
             >
-              <View style={[styles.matchBadge, isTop ? styles.topMatchBadge : styles.otherMatchBadge]}>
-                <Text style={[styles.matchText, isTop ? styles.topMatchText : styles.otherMatchText]}>
+              <View
+                style={[styles.matchBadge, isTop ? styles.topMatchBadge : styles.otherMatchBadge]}
+              >
+                <Text
+                  style={[styles.matchText, isTop ? styles.topMatchText : styles.otherMatchText]}
+                >
                   {c.match}%
                 </Text>
               </View>
@@ -95,7 +140,12 @@ export function CareerPanel() {
                     {c.role}
                   </Text>
                   {isTop && (
-                    <MaterialCommunityIcons name={"sparkles" as any} size={12} color="#0d9488" style={styles.sparkles} />
+                    <MaterialCommunityIcons
+                      name={"sparkles" as any}
+                      size={12}
+                      color="#0d9488"
+                      style={styles.sparkles}
+                    />
                   )}
                 </View>
                 <Text style={[styles.skills, isTop ? styles.skillsDark : styles.skillsLight]}>
@@ -103,17 +153,17 @@ export function CareerPanel() {
                 </Text>
               </View>
 
-              <Feather 
-                name="arrow-up-right" 
-                size={16} 
-                color={isTop ? "#6366f1" : "rgba(255,255,255,0.7)"} 
+              <Feather
+                name="arrow-up-right"
+                size={16}
+                color={isTop ? "#6366f1" : "rgba(255,255,255,0.7)"}
               />
             </TouchableOpacity>
           );
         })}
       </View>
 
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.button}
         onPress={() => {
           const roadmapUrls: Record<string, string> = {

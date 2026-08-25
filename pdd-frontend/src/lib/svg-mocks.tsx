@@ -10,6 +10,8 @@ export const G = ({ children, ...props }: any) => <g {...props}>{children}</g>;
 export const Text = ({ children, ...props }: any) => <text {...props}>{children}</text>;
 export const Defs = ({ children, ...props }: any) => <defs {...props}>{children}</defs>;
 export const Stop = (props: any) => <stop {...props} />;
-export const LinearGradient = ({ children, ...props }: any) => <linearGradient {...props}>{children}</linearGradient>;
+export const LinearGradient = ({ children, ...props }: any) => (
+  <linearGradient {...props}>{children}</linearGradient>
+);
 
 export default Svg;

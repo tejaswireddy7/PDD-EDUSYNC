@@ -18,19 +18,19 @@ export function RenderErrorPage({ error, onRetry, onGoHome }: ErrorPageProps) {
       React.createElement(
         View,
         { style: styles.iconBox },
-        React.createElement(Feather as any, { name: "alert-triangle", size: 32, color: "#ef4444" })
+        React.createElement(Feather as any, { name: "alert-triangle", size: 32, color: "#ef4444" }),
       ),
       React.createElement(Text, { style: styles.title }, "This page didn't load"),
       React.createElement(
         Text,
         { style: styles.subtitle },
-        "Something went wrong on our end. You can try refreshing or head back home."
+        "Something went wrong on our end. You can try refreshing or head back home.",
       ),
       error
         ? React.createElement(
             Text,
             { style: styles.errorText, numberOfLines: 3 },
-            typeof error === "string" ? error : error.message
+            typeof error === "string" ? error : error.message,
           )
         : null,
       React.createElement(
@@ -40,18 +40,18 @@ export function RenderErrorPage({ error, onRetry, onGoHome }: ErrorPageProps) {
           ? React.createElement(
               TouchableOpacity,
               { onPress: onRetry, style: styles.primaryBtn },
-              React.createElement(Text, { style: styles.primaryText }, "Try again")
+              React.createElement(Text, { style: styles.primaryText }, "Try again"),
             )
           : null,
         onGoHome
           ? React.createElement(
               TouchableOpacity,
               { onPress: onGoHome, style: styles.secondaryBtn },
-              React.createElement(Text, { style: styles.secondaryText }, "Go home")
+              React.createElement(Text, { style: styles.secondaryText }, "Go home"),
             )
-          : null
-      )
-    )
+          : null,
+      ),
+    ),
   );
 }
 

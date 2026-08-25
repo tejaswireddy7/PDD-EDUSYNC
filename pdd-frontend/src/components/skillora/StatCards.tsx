@@ -15,14 +15,50 @@ export function StatCards() {
   const isDark = appTheme === "dark";
 
   const enrolled = store.enrolledCourses || [];
-  const coursesCompleted = String(enrolled.filter(c => c.progress === 100).length);
+  const coursesCompleted = String(enrolled.filter((c) => c.progress === 100).length);
   const fitScore = `${store.user?.careerFitScore ?? 0}%`;
 
   const stats = [
-    { bootstrapIcon: "clock-history", label: "Weekly Goal", value: `${targetHours} hrs`, delta: "+2 hrs", up: true, tint: "primary", bgImage: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=150&auto=format&fit=crop" },
-    { bootstrapIcon: "journal-check", label: "Courses Completed", value: coursesCompleted, delta: coursesCompleted !== "0" ? "+1" : "0", up: true, tint: "mint", bgImage: "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=150&auto=format&fit=crop" },
-    { bootstrapIcon: "bullseye", label: "Level Target", value: userProficiency, delta: "Active", up: true, tint: "primary", bgImage: "https://images.unsplash.com/photo-1518133680487-4179324e58a7?w=150&auto=format&fit=crop" },
-    { bootstrapIcon: "speedometer2", label: "Career Fit Score", value: fitScore, delta: fitScore !== "0%" ? "+3%" : "0%", up: true, tint: "mint", bgImage: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=150&auto=format&fit=crop" },
+    {
+      bootstrapIcon: "clock-history",
+      label: "Weekly Goal",
+      value: `${targetHours} hrs`,
+      delta: "+2 hrs",
+      up: true,
+      tint: "primary",
+      bgImage:
+        "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=150&auto=format&fit=crop",
+    },
+    {
+      bootstrapIcon: "journal-check",
+      label: "Courses Completed",
+      value: coursesCompleted,
+      delta: coursesCompleted !== "0" ? "+1" : "0",
+      up: true,
+      tint: "mint",
+      bgImage:
+        "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=150&auto=format&fit=crop",
+    },
+    {
+      bootstrapIcon: "bullseye",
+      label: "Level Target",
+      value: userProficiency,
+      delta: "Active",
+      up: true,
+      tint: "primary",
+      bgImage:
+        "https://images.unsplash.com/photo-1518133680487-4179324e58a7?w=150&auto=format&fit=crop",
+    },
+    {
+      bootstrapIcon: "speedometer2",
+      label: "Career Fit Score",
+      value: fitScore,
+      delta: fitScore !== "0%" ? "+3%" : "0%",
+      up: true,
+      tint: "mint",
+      bgImage:
+        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=150&auto=format&fit=crop",
+    },
   ];
 
   // XP Calculations
@@ -33,20 +69,31 @@ export function StatCards() {
   const showXpGuide = () => {
     Alert.alert(
       "XP Calculation Guide",
-      "XP represents your Experience Points. You earn it by completing learning tasks:\n\n• Complete Course Assignments: +800 XP\n• Pass Section Video Quizzes: +50 XP\n• Reviewing Syllabus Resources: +10 XP\n• Daily Consecutive Streaks: +100 XP consecutive bonus"
+      "XP represents your Experience Points. You earn it by completing learning tasks:\n\n• Complete Course Assignments: +800 XP\n• Pass Section Video Quizzes: +50 XP\n• Reviewing Syllabus Resources: +10 XP\n• Daily Consecutive Streaks: +100 XP consecutive bonus",
     );
   };
 
   return (
     <View style={styles.container}>
       {/* 1. XP Calculator Widget */}
-      <TouchableOpacity activeOpacity={0.9} onPress={showXpGuide} style={[styles.xpCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
+      <TouchableOpacity
+        activeOpacity={0.9}
+        onPress={showXpGuide}
+        style={[
+          styles.xpCard,
+          { backgroundColor: currentColors.card, borderColor: currentColors.border },
+        ]}
+      >
         <View style={styles.xpHeader}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
             <MaterialCommunityIcons name="trophy-outline" size={18} color="#eab308" />
-            <Text style={[styles.xpTitle, { color: currentColors.text }]}>XP Calculator & Progress</Text>
+            <Text style={[styles.xpTitle, { color: currentColors.text }]}>
+              XP Calculator & Progress
+            </Text>
           </View>
-          <Text style={[styles.xpValue, { color: currentColors.text }]}>{userXp.toLocaleString()} / {nextLevelXp.toLocaleString()} XP</Text>
+          <Text style={[styles.xpValue, { color: currentColors.text }]}>
+            {userXp.toLocaleString()} / {nextLevelXp.toLocaleString()} XP
+          </Text>
         </View>
         <View style={[styles.progressBarTrack, { backgroundColor: currentColors.divider }]}>
           <LinearGradient
@@ -57,8 +104,8 @@ export function StatCards() {
           />
         </View>
         <Text style={[styles.xpFeedback, { color: currentColors.subtext }]}>
-          {userXp > 0 
-            ? `You need ${(nextLevelXp - userXp).toLocaleString()} XP to rank up as Elite Pathway Learner!` 
+          {userXp > 0
+            ? `You need ${(nextLevelXp - userXp).toLocaleString()} XP to rank up as Elite Pathway Learner!`
             : "Complete lesson tasks to earn XP and progress!"}
         </Text>
       </TouchableOpacity>
@@ -71,13 +118,26 @@ export function StatCards() {
             <View key={s.label} style={[styles.card, { borderColor: currentColors.border }]}>
               <Image
                 source={{ uri: s.bgImage }}
-                style={StyleSheet.absoluteFillObject}
+                style={StyleSheet.absoluteFill}
                 resizeMode="cover"
               />
-              <View style={[StyleSheet.absoluteFillObject, { backgroundColor: isDark ? "rgba(21, 27, 44, 0.92)" : "rgba(255, 255, 255, 0.88)" }]} />
+              <View
+                style={[
+                  StyleSheet.absoluteFill,
+                  {
+                    backgroundColor: isDark
+                      ? "rgba(21, 27, 44, 0.92)"
+                      : "rgba(255, 255, 255, 0.88)",
+                  },
+                ]}
+              />
               <View style={styles.header}>
                 <View style={[styles.iconContainer, isPrimary ? styles.bgPrimary : styles.bgMint]}>
-                  <BootstrapIcon name={s.bootstrapIcon} size={15} color={isPrimary ? "#6366f1" : "#0d9488"} />
+                  <BootstrapIcon
+                    name={s.bootstrapIcon}
+                    size={15}
+                    color={isPrimary ? "#6366f1" : "#0d9488"}
+                  />
                 </View>
                 <View style={styles.deltaContainer}>
                   <Feather

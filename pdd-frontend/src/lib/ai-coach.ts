@@ -7,7 +7,7 @@ const RESOURCE_SUGGESTIONS: Record<string, string[]> = {
     "Intro to React & Component States (Course)",
     "Interactive CSS Flexbox Playground (Notes)",
     "Next.js Core Web Vitals Optimization Guides (Technical Article)",
-    "Tailwind UI Layout Best Practices (Video)"
+    "Tailwind UI Layout Best Practices (Video)",
   ],
   Backend: [
     "Intro to Node.js & REST API (Course)",
@@ -15,7 +15,7 @@ const RESOURCE_SUGGESTIONS: Record<string, string[]> = {
     "Basics of Routing & HTTP Methods (Course)",
     "System Design Interview Cheat Sheet (Cheat Sheet)",
     "PostgreSQL Window Functions Explained (Technical Article)",
-    "Docker Containerization Fundamentals (Lab)"
+    "Docker Containerization Fundamentals (Lab)",
   ],
   Mobile: [
     "React Native & Expo Ecosystem (Course)",
@@ -23,7 +23,7 @@ const RESOURCE_SUGGESTIONS: Record<string, string[]> = {
     "Navigation Containers & Tabs (Course)",
     "React Native Performance Debugging Tools (Interactive Guide)",
     "Expo Router Dynamic Linking Manual (Documentation)",
-    "iOS Native UI Optimization Principles (Video)"
+    "iOS Native UI Optimization Principles (Video)",
   ],
   AI: [
     "Python Fundamentals & Packages (Course)",
@@ -31,23 +31,34 @@ const RESOURCE_SUGGESTIONS: Record<string, string[]> = {
     "Neural Networks with PyTorch (Course)",
     "Python OOP and Memory Structures (Interactive Tutorial)",
     "Calculus behind SGD Backpropagation (Video Lecture)",
-    "Hugging Face LLM Pipeline Integration Guides (Lab)"
-  ]
+    "Hugging Face LLM Pipeline Integration Guides (Lab)",
+  ],
 };
 
 export function generateAICoachResponse(
   message: string,
   history: Array<{ from: "me" | "them"; text: string }>,
   contactRole: string,
-  focusDomain: string
+  focusDomain: string,
 ): string {
   const msg = message.toLowerCase().trim();
 
   // 1. CONVERSATIONAL MEMORY FOR QUIZ GRADING
-  const lastCoachMsg = history.slice().reverse().find(h => h.from === "them")?.text || "";
+  const lastCoachMsg =
+    history
+      .slice()
+      .reverse()
+      .find((h) => h.from === "them")?.text || "";
   const isAnsweringQuiz = lastCoachMsg.includes("QUIZ:") || lastCoachMsg.includes("Question 1:");
-  
-  if (isAnsweringQuiz && (msg.includes("a") || msg.includes("b") || msg.includes("c") || msg.includes("d") || msg.match(/\b[1-3]\b/))) {
+
+  if (
+    isAnsweringQuiz &&
+    (msg.includes("a") ||
+      msg.includes("b") ||
+      msg.includes("c") ||
+      msg.includes("d") ||
+      msg.match(/\b[1-3]\b/))
+  ) {
     return `### 📝 Quiz Evaluation & Feedback
 
 Thanks for submitting your answers! Let's grade them:
@@ -62,8 +73,14 @@ Would you like me to explain the theory behind any of these questions, or genera
   }
 
   // 2. QUIZ GENERATION
-  if (msg.includes("quiz") || msg.includes("test") || msg.includes("mcq") || msg.includes("question")) {
-    const topic = msg.replace(/generate|give|me|a|quiz|test|mcq|on|about/g, "").trim() || focusDomain;
+  if (
+    msg.includes("quiz") ||
+    msg.includes("test") ||
+    msg.includes("mcq") ||
+    msg.includes("question")
+  ) {
+    const topic =
+      msg.replace(/generate|give|me|a|quiz|test|mcq|on|about/g, "").trim() || focusDomain;
     return `### 🧠 AI Generated Quiz: ${topic.toUpperCase()}
 
 Here is a quick 3-question MCQ quiz to test your knowledge. Reply with your answers (e.g. "1: A, 2: B, 3: C") to get them graded instantly!
@@ -90,7 +107,12 @@ Here is a quick 3-question MCQ quiz to test your knowledge. Reply with your answ
   }
 
   // 3. STUDY PLAN CREATION
-  if (msg.includes("study plan") || msg.includes("schedule") || msg.includes("plan") || msg.includes("roadmap")) {
+  if (
+    msg.includes("study plan") ||
+    msg.includes("schedule") ||
+    msg.includes("plan") ||
+    msg.includes("roadmap")
+  ) {
     return `### 📅 Personalized 4-Week Study Plan: ${focusDomain}
 
 Based on your current learning progress and goals, here is your customized timeline:
@@ -116,7 +138,13 @@ Would you like me to adjust the difficulty level, or focus on a specific weak ar
   }
 
   // 4. CAREER PATH RECOMMENDATIONS
-  if (msg.includes("career") || msg.includes("job") || msg.includes("role") || msg.includes("hire") || msg.includes("salary")) {
+  if (
+    msg.includes("career") ||
+    msg.includes("job") ||
+    msg.includes("role") ||
+    msg.includes("hire") ||
+    msg.includes("salary")
+  ) {
     return `### 💼 AI Career Path Recommendations
 
 Based on your current focus in **${focusDomain}** and your proficiency level, here are your top fits:
@@ -135,7 +163,12 @@ I suggest completing the *Visual ${focusDomain} Layout Challenge* assessment on 
   }
 
   // 5. INTERVIEW QUESTIONS
-  if (msg.includes("interview") || msg.includes("questions") || msg.includes("mock") || msg.includes("prepare")) {
+  if (
+    msg.includes("interview") ||
+    msg.includes("questions") ||
+    msg.includes("mock") ||
+    msg.includes("prepare")
+  ) {
     return `### 🎤 Mock Interview Preparation: ${focusDomain}
 
 Here are 3 common interview questions along with ideal answers to study:
@@ -151,7 +184,13 @@ Would you like me to quiz you on one of these topics, or explain a concept in de
   }
 
   // 6. EXAM REVISION PLANS
-  if (msg.includes("revision") || msg.includes("exam") || msg.includes("test") || msg.includes("cram") || msg.includes("review")) {
+  if (
+    msg.includes("revision") ||
+    msg.includes("exam") ||
+    msg.includes("test") ||
+    msg.includes("cram") ||
+    msg.includes("review")
+  ) {
     return `### ⚡ 3-Day Rapid Revision Plan
 
 Here is a high-impact checklist to prepare before your upcoming exam:
@@ -168,20 +207,34 @@ Here is a high-impact checklist to prepare before your upcoming exam:
   }
 
   // 7. RECOMMEND RESOURCES INSIDE EDUSYNC
-  if (msg.includes("resource") || msg.includes("pdf") || msg.includes("notes") || msg.includes("recommend") || msg.includes("material")) {
+  if (
+    msg.includes("resource") ||
+    msg.includes("pdf") ||
+    msg.includes("notes") ||
+    msg.includes("recommend") ||
+    msg.includes("material")
+  ) {
     const list = RESOURCE_SUGGESTIONS[focusDomain] || RESOURCE_SUGGESTIONS.Mobile;
     return `### 📚 Recommended Learning Resources inside EduSync
 
 Here are the top-rated notes, articles, and courses matching your current goal:
 
-${list.map(item => `• **${item}** (Highly Recommended)`).join("\n")}
+${list.map((item) => `• **${item}** (Highly Recommended)`).join("\n")}
 
 You can find all of these files in the **Resource Hub** tab or directly inside your **Continue Learning** dashboard container!`;
   }
 
   // 8. EXPLAIN AN EDUCATIONAL CONCEPT
-  if (msg.includes("explain") || msg.includes("what is") || msg.includes("how does") || msg.includes("concept") || msg.includes("why")) {
-    const concept = message.replace(/explain|what is|how does|why/gi, "").trim() || `${focusDomain} State Hydration`;
+  if (
+    msg.includes("explain") ||
+    msg.includes("what is") ||
+    msg.includes("how does") ||
+    msg.includes("concept") ||
+    msg.includes("why")
+  ) {
+    const concept =
+      message.replace(/explain|what is|how does|why/gi, "").trim() ||
+      `${focusDomain} State Hydration`;
     return `### 📖 Educational Concept: ${concept}
 
 Here is a simple yet detailed breakdown of **${concept}**:
@@ -215,7 +268,11 @@ Would you like me to explain any other concept or provide another example?`;
 
   // 9. GENERAL / FOLLOW-UP MEMORY
   if (history.length > 1) {
-    const lastUserMsg = history.slice().reverse().find(h => h.from === "me")?.text || "";
+    const lastUserMsg =
+      history
+        .slice()
+        .reverse()
+        .find((h) => h.from === "me")?.text || "";
     return `### 💬 AI Mentor Response
 
 I completely hear you! Following up on our discussion about "**${lastUserMsg}**":

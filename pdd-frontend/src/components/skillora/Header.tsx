@@ -24,15 +24,15 @@ export function Header({ hideSurvey = false }: HeaderProps) {
       id: "n_streak",
       text: `🔥 Daily study streak active! You are on a ${store.user.streak}-day streak.`,
       time: "Just now",
-      read: false
+      read: false,
     });
   }
   if (store.user?.coursesCompleted && store.user.coursesCompleted > 0) {
     notifications.push({
       id: "n_courses",
-      text: `🏆 Congratulations! You have completed ${store.user.coursesCompleted} pathway course${store.user.coursesCompleted > 1 ? 's' : ''}.`,
+      text: `🏆 Congratulations! You have completed ${store.user.coursesCompleted} pathway course${store.user.coursesCompleted > 1 ? "s" : ""}.`,
       time: "Today",
-      read: false
+      read: false,
     });
   }
   if (store.surveyAnswers?.focusDomain) {
@@ -40,7 +40,7 @@ export function Header({ hideSurvey = false }: HeaderProps) {
       id: "n_domain",
       text: `🎓 Personalized curriculum set for the ${store.surveyAnswers.focusDomain} track.`,
       time: "Today",
-      read: true
+      read: true,
     });
   }
 
@@ -49,7 +49,7 @@ export function Header({ hideSurvey = false }: HeaderProps) {
       id: "n_empty",
       text: "✨ No notifications yet. Your learning path is up to date!",
       time: "Just now",
-      read: true
+      read: true,
     });
   }
 
@@ -66,7 +66,7 @@ export function Header({ hideSurvey = false }: HeaderProps) {
     } else {
       Alert.alert("Logout", "Are you sure you want to log out?", [
         { text: "Cancel", style: "cancel" },
-        { text: "Logout", onPress: doLogout }
+        { text: "Logout", onPress: doLogout },
       ]);
     }
   };
@@ -85,7 +85,11 @@ export function Header({ hideSurvey = false }: HeaderProps) {
           <Text style={[styles.metaText, { color: currentColors.subtext }]}>{getGreeting()}</Text>
           <View style={[styles.dot, { backgroundColor: currentColors.border }]} />
           <Text style={[styles.metaText, { color: currentColors.subtext }]}>
-            {new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}
+            {new Date().toLocaleDateString("en-US", {
+              weekday: "long",
+              month: "short",
+              day: "numeric",
+            })}
           </Text>
         </View>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
@@ -96,7 +100,13 @@ export function Header({ hideSurvey = false }: HeaderProps) {
       </View>
 
       <View style={styles.actionsContainer}>
-        <TouchableOpacity style={[styles.iconButton, { backgroundColor: currentColors.card, borderColor: currentColors.border }]} onPress={() => setShowNotifications(!showNotifications)}>
+        <TouchableOpacity
+          style={[
+            styles.iconButton,
+            { backgroundColor: currentColors.card, borderColor: currentColors.border },
+          ]}
+          onPress={() => setShowNotifications(!showNotifications)}
+        >
           <BootstrapIcon name="bell" size={20} color={currentColors.text} />
           <View style={styles.badge} />
         </TouchableOpacity>
@@ -111,16 +121,33 @@ export function Header({ hideSurvey = false }: HeaderProps) {
         </LinearGradient>
 
         {showNotifications && (
-          <View style={[styles.notificationsContainer, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
+          <View
+            style={[
+              styles.notificationsContainer,
+              { backgroundColor: currentColors.card, borderColor: currentColors.border },
+            ]}
+          >
             <View style={[styles.notifHeader, { borderBottomColor: currentColors.divider }]}>
               <Text style={[styles.notifTitle, { color: currentColors.text }]}>Notifications</Text>
               <TouchableOpacity onPress={() => setShowNotifications(false)}>
-                <Text style={{ fontSize: 13, color: currentColors.subtext, fontWeight: "700" }}>✕</Text>
+                <Text style={{ fontSize: 13, color: currentColors.subtext, fontWeight: "700" }}>
+                  ✕
+                </Text>
               </TouchableOpacity>
             </View>
             <View style={styles.notifList}>
               {notifications.map((n) => (
-                <View key={n.id} style={[styles.notifItem, !n.read && { backgroundColor: isDark ? "rgba(129, 140, 248, 0.1)" : "rgba(99, 102, 241, 0.05)" }]}>
+                <View
+                  key={n.id}
+                  style={[
+                    styles.notifItem,
+                    !n.read && {
+                      backgroundColor: isDark
+                        ? "rgba(129, 140, 248, 0.1)"
+                        : "rgba(99, 102, 241, 0.05)",
+                    },
+                  ]}
+                >
                   <Text style={[styles.notifText, { color: currentColors.text }]}>{n.text}</Text>
                   <Text style={[styles.notifTime, { color: currentColors.subtext }]}>{n.time}</Text>
                 </View>
@@ -311,5 +338,3 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 });
-
-

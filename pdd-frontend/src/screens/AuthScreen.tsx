@@ -34,7 +34,9 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
   const [isOtpMode, setIsOtpMode] = useState(false);
   const [otp, setOtp] = useState("");
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [forgotPasswordStep, setForgotPasswordStep] = useState<'none' | 'email' | 'otp' | 'password'>('none');
+  const [forgotPasswordStep, setForgotPasswordStep] = useState<
+    "none" | "email" | "otp" | "password"
+  >("none");
   const [newPassword, setNewPassword] = useState("");
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [tempToken, setTempToken] = useState<string | null>(null);
@@ -42,13 +44,13 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
   const getErrorMessage = (err: any): string => {
     if (!err) return "An unknown error occurred.";
     if (typeof err === "string") return err;
-    
+
     const errMsg = err.message || "";
     const errStr = JSON.stringify(err);
     if (
-      err.status === 504 || 
-      errMsg.includes("504") || 
-      errStr.includes("504") || 
+      err.status === 504 ||
+      errMsg.includes("504") ||
+      errStr.includes("504") ||
       errStr.toLowerCase().includes("timeout") ||
       errStr === "{}"
     ) {
@@ -59,17 +61,17 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
   };
 
   const handleSubmit = async () => {
-    if (forgotPasswordStep === 'email') {
+    if (forgotPasswordStep === "email") {
       if (!email) {
         setError("Please enter your email address.");
         return;
       }
-    } else if (forgotPasswordStep === 'otp') {
+    } else if (forgotPasswordStep === "otp") {
       if (!otp || otp.length !== 6) {
         setError("Please enter the 6-digit OTP code.");
         return;
       }
-    } else if (forgotPasswordStep === 'password') {
+    } else if (forgotPasswordStep === "password") {
       if (!newPassword || newPassword.length < 6) {
         setError("Password must be at least 6 characters long.");
         return;
@@ -88,41 +90,41 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
     setError(null);
     setSuccessMessage(null);
 
-    if (forgotPasswordStep === 'email') {
+    if (forgotPasswordStep === "email") {
       const { error: apiError } = await supabase.auth.resetPasswordForEmail(email);
       if (apiError) {
         setError(getErrorMessage(apiError));
       } else {
-        setForgotPasswordStep('otp');
+        setForgotPasswordStep("otp");
         setSuccessMessage("Verification code sent to your email.");
       }
-    } else if (forgotPasswordStep === 'otp') {
-      if (typeof (store as any).setRecoveringPassword === 'function') {
+    } else if (forgotPasswordStep === "otp") {
+      if (typeof (store as any).setRecoveringPassword === "function") {
         (store as any).setRecoveringPassword(true);
       }
       const { data, error: apiError } = await supabase.auth.verifyOtp({
         email,
         token: otp,
-        type: 'recovery'
+        type: "recovery",
       });
       if (apiError) {
         setError(getErrorMessage(apiError));
-        if (typeof (store as any).setRecoveringPassword === 'function') {
+        if (typeof (store as any).setRecoveringPassword === "function") {
           (store as any).setRecoveringPassword(false);
         }
       } else {
         setTempToken(data.session?.access_token || null);
-        setForgotPasswordStep('password');
+        setForgotPasswordStep("password");
         setSuccessMessage("Code verified! Please enter your new password.");
       }
-    } else if (forgotPasswordStep === 'password') {
+    } else if (forgotPasswordStep === "password") {
       const { data, error: apiError } = await supabase.auth.updateUser({
-        password: newPassword
+        password: newPassword,
       });
       if (apiError) {
         setError(getErrorMessage(apiError));
       } else {
-        if (typeof (store as any).setRecoveringPassword === 'function') {
+        if (typeof (store as any).setRecoveringPassword === "function") {
           (store as any).setRecoveringPassword(false);
         }
         if (data.user) {
@@ -139,7 +141,7 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
           store.setAuth(userObj, token);
           onSuccess();
         } else {
-          setForgotPasswordStep('none');
+          setForgotPasswordStep("none");
           setIsLogin(true);
           setSuccessMessage("Password reset successful! Please log in with your new password.");
         }
@@ -148,9 +150,9 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
       const { data, error: apiError } = await supabase.auth.verifyOtp({
         email,
         token: otp,
-        type: 'signup'
+        type: "signup",
       });
-      
+
       if (apiError) {
         setError(getErrorMessage(apiError));
         setIsLoading(false);
@@ -178,7 +180,7 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
         if (msg.toLowerCase().includes("email not confirmed")) {
           // Send OTP again if not confirmed
           const res = await supabase.auth.resend({
-            type: 'signup',
+            type: "signup",
             email,
           });
           if (res.error) {
@@ -209,17 +211,17 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
         setIsLoading(false);
         return;
       }
-      
+
       const { data, error: apiError } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             full_name: name,
-          }
-        }
+          },
+        },
       });
-      
+
       if (apiError) {
         setError(getErrorMessage(apiError));
       } else if (data.session && data.user) {
@@ -233,7 +235,9 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
         onSuccess();
       } else {
         setIsOtpMode(true);
-        setSuccessMessage("Registration successful! Please check your email for the verification code.");
+        setSuccessMessage(
+          "Registration successful! Please check your email for the verification code.",
+        );
       }
     }
 
@@ -245,10 +249,10 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
     setError(null);
     setSuccessMessage(null);
     const { error: resendError } = await supabase.auth.resend({
-      type: 'signup',
+      type: "signup",
       email,
     });
-    
+
     if (resendError) {
       setError(getErrorMessage(resendError));
     } else {
@@ -262,7 +266,7 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
     setError(null);
     setSuccessMessage(null);
     const { error: resendError } = await supabase.auth.resetPasswordForEmail(email);
-    
+
     if (resendError) {
       setError(getErrorMessage(resendError));
     } else {
@@ -294,17 +298,17 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
         {/* Input Card Container */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>
-            {forgotPasswordStep === 'email'
+            {forgotPasswordStep === "email"
               ? "Reset Password"
-              : forgotPasswordStep === 'otp'
-              ? "Enter Reset Code"
-              : forgotPasswordStep === 'password'
-              ? "Set New Password"
-              : isOtpMode
-              ? "Verify Email"
-              : isLogin
-              ? "Welcome Back"
-              : "Create Account"}
+              : forgotPasswordStep === "otp"
+                ? "Enter Reset Code"
+                : forgotPasswordStep === "password"
+                  ? "Set New Password"
+                  : isOtpMode
+                    ? "Verify Email"
+                    : isLogin
+                      ? "Welcome Back"
+                      : "Create Account"}
           </Text>
 
           {error && (
@@ -321,7 +325,7 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
             </View>
           )}
 
-          {forgotPasswordStep === 'email' ? (
+          {forgotPasswordStep === "email" ? (
             <View style={styles.inputContainer}>
               <BootstrapIcon name="envelope" size={20} color="#94a3b8" style={styles.inputIcon} />
               <TextInput
@@ -335,7 +339,7 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
                 autoCorrect={false}
               />
             </View>
-          ) : forgotPasswordStep === 'otp' ? (
+          ) : forgotPasswordStep === "otp" ? (
             <View style={styles.inputContainer}>
               <BootstrapIcon name="key" size={20} color="#94a3b8" style={styles.inputIcon} />
               <TextInput
@@ -348,7 +352,7 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
                 maxLength={6}
               />
             </View>
-          ) : forgotPasswordStep === 'password' ? (
+          ) : forgotPasswordStep === "password" ? (
             <View style={styles.inputContainer}>
               <BootstrapIcon name="lock" size={20} color="#94a3b8" style={styles.inputIcon} />
               <TextInput
@@ -385,87 +389,88 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
             </View>
           ) : (
             <>
+              {/* Full Name Input (Signup Mode Only) */}
+              {!isLogin && (
+                <View style={styles.inputContainer}>
+                  <BootstrapIcon name="person" size={20} color="#94a3b8" style={styles.inputIcon} />
+                  <TextInput
+                    placeholder="Full name"
+                    placeholderTextColor="#94a3b8"
+                    style={styles.input}
+                    value={name}
+                    onChangeText={setName}
+                    autoCapitalize="words"
+                  />
+                </View>
+              )}
 
-            {/* Full Name Input (Signup Mode Only) */}
-            {!isLogin && (
+              {/* Email Address Input */}
               <View style={styles.inputContainer}>
-                <BootstrapIcon name="person" size={20} color="#94a3b8" style={styles.inputIcon} />
+                <BootstrapIcon name="envelope" size={20} color="#94a3b8" style={styles.inputIcon} />
                 <TextInput
-                  placeholder="Full name"
+                  placeholder="Email address"
                   placeholderTextColor="#94a3b8"
                   style={styles.input}
-                  value={name}
-                  onChangeText={setName}
-                  autoCapitalize="words"
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
                 />
               </View>
-            )}
 
-            {/* Email Address Input */}
-            <View style={styles.inputContainer}>
-              <BootstrapIcon name="envelope" size={20} color="#94a3b8" style={styles.inputIcon} />
-              <TextInput
-                placeholder="Email address"
-                placeholderTextColor="#94a3b8"
-                style={styles.input}
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-            </View>
-
-            {/* Password Input */}
-            <View style={styles.inputContainer}>
-              <BootstrapIcon name="lock" size={20} color="#94a3b8" style={styles.inputIcon} />
-              <TextInput
-                placeholder="Password"
-                placeholderTextColor="#94a3b8"
-                style={styles.input}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                <BootstrapIcon
-                  name={showPassword ? "eye-slash" : "eye"}
-                  size={18}
-                  color="#94a3b8"
-                  style={styles.eyeIcon}
+              {/* Password Input */}
+              <View style={styles.inputContainer}>
+                <BootstrapIcon name="lock" size={20} color="#94a3b8" style={styles.inputIcon} />
+                <TextInput
+                  placeholder="Password"
+                  placeholderTextColor="#94a3b8"
+                  style={styles.input}
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  autoCorrect={false}
                 />
-              </TouchableOpacity>
-            </View>
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                  <BootstrapIcon
+                    name={showPassword ? "eye-slash" : "eye"}
+                    size={18}
+                    color="#94a3b8"
+                    style={styles.eyeIcon}
+                  />
+                </TouchableOpacity>
+              </View>
 
-          {/* Forgot Password Link / Resend Code Links */}
-          {forgotPasswordStep === 'none' && !isOtpMode && isLogin && (
-            <TouchableOpacity 
-              onPress={() => {
-                setError(null);
-                setSuccessMessage(null);
-                setForgotPasswordStep('email');
-              }}
-              style={styles.forgotPasswordContainer}
-            >
-              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-            </TouchableOpacity>
-          )}
+              {/* Forgot Password Link / Resend Code Links */}
+              {forgotPasswordStep === "none" && !isOtpMode && isLogin && (
+                <TouchableOpacity
+                  onPress={() => {
+                    setError(null);
+                    setSuccessMessage(null);
+                    setForgotPasswordStep("email");
+                  }}
+                  style={styles.forgotPasswordContainer}
+                >
+                  <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+                </TouchableOpacity>
+              )}
 
-          {forgotPasswordStep === ('otp' as any) && (
-            <TouchableOpacity onPress={handleResendForgotPasswordOtp} style={styles.forgotPasswordContainer}>
-              <Text style={styles.forgotPasswordText}>Resend Code</Text>
-            </TouchableOpacity>
-          )}
+              {forgotPasswordStep === ("otp" as any) && (
+                <TouchableOpacity
+                  onPress={handleResendForgotPasswordOtp}
+                  style={styles.forgotPasswordContainer}
+                >
+                  <Text style={styles.forgotPasswordText}>Resend Code</Text>
+                </TouchableOpacity>
+              )}
 
-          {isOtpMode && forgotPasswordStep === 'none' && (
-            <TouchableOpacity onPress={handleResendOtp} style={styles.forgotPasswordContainer}>
-              <Text style={styles.forgotPasswordText}>Resend Code</Text>
-            </TouchableOpacity>
-          )}
-
-          </>
+              {isOtpMode && forgotPasswordStep === "none" && (
+                <TouchableOpacity onPress={handleResendOtp} style={styles.forgotPasswordContainer}>
+                  <Text style={styles.forgotPasswordText}>Resend Code</Text>
+                </TouchableOpacity>
+              )}
+            </>
           )}
 
           {/* Action Submit Button */}
@@ -486,19 +491,24 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
               ) : (
                 <>
                   <Text style={styles.buttonText}>
-                    {forgotPasswordStep === 'email'
+                    {forgotPasswordStep === "email"
                       ? "Send Reset Code"
-                      : forgotPasswordStep === 'otp'
-                      ? "Verify Code"
-                      : forgotPasswordStep === 'password'
-                      ? "Update Password"
-                      : isOtpMode
-                      ? "Verify Account"
-                      : isLogin
-                      ? "Sign In"
-                      : "Sign Up"}
+                      : forgotPasswordStep === "otp"
+                        ? "Verify Code"
+                        : forgotPasswordStep === "password"
+                          ? "Update Password"
+                          : isOtpMode
+                            ? "Verify Account"
+                            : isLogin
+                              ? "Sign In"
+                              : "Sign Up"}
                   </Text>
-                  <BootstrapIcon name="arrow-right" size={18} color="#ffffff" style={styles.arrowIcon} />
+                  <BootstrapIcon
+                    name="arrow-right"
+                    size={18}
+                    color="#ffffff"
+                    style={styles.arrowIcon}
+                  />
                 </>
               )}
             </LinearGradient>
@@ -506,29 +516,29 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
         </View>
 
         {/* Toggle between Login and Signup */}
-        {forgotPasswordStep === 'none' && !isOtpMode && (
+        {forgotPasswordStep === "none" && !isOtpMode && (
           <View style={styles.footer}>
             <Text style={styles.footerText}>
               {isLogin ? "Don't have an account? " : "Already have an account? "}
             </Text>
             <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
-              <Text style={styles.footerLink}>
-                {isLogin ? "Sign Up" : "Sign In"}
-              </Text>
+              <Text style={styles.footerLink}>{isLogin ? "Sign Up" : "Sign In"}</Text>
             </TouchableOpacity>
           </View>
         )}
-        {(isOtpMode || forgotPasswordStep !== 'none') && (
+        {(isOtpMode || forgotPasswordStep !== "none") && (
           <View style={styles.footer}>
-            <TouchableOpacity onPress={() => {
-              if (typeof (store as any).setRecoveringPassword === 'function') {
-                (store as any).setRecoveringPassword(false);
-              }
-              setIsOtpMode(false);
-              setForgotPasswordStep('none');
-              setError(null);
-              setSuccessMessage(null);
-            }}>
+            <TouchableOpacity
+              onPress={() => {
+                if (typeof (store as any).setRecoveringPassword === "function") {
+                  (store as any).setRecoveringPassword(false);
+                }
+                setIsOtpMode(false);
+                setForgotPasswordStep("none");
+                setError(null);
+                setSuccessMessage(null);
+              }}
+            >
               <Text style={styles.footerLink}>Back to Login</Text>
             </TouchableOpacity>
           </View>
@@ -610,7 +620,8 @@ const styles = StyleSheet.create({
         elevation: 4,
       },
       web: {
-        boxShadow: "0 20px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.05)",
+        boxShadow:
+          "0 20px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.05)",
       },
     }),
   },
@@ -660,9 +671,9 @@ const styles = StyleSheet.create({
         outlineStyle: "none",
         outlineWidth: 0,
         borderWidth: 0,
-      },
+      } as any,
     }),
-  },
+  } as any,
   eyeIcon: {
     marginLeft: 8,
   },

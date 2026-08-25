@@ -69,32 +69,74 @@ const getResourceVideo = (title: string): string => {
   const matched = RESOURCE_VIDEOS[title];
   if (matched) return matched;
   const lower = title.toLowerCase();
-  if (lower.includes("next.js") || lower.includes("nextjs") || lower.includes("ssr")) return "https://www.youtube.com/embed/wm5gMKuwSYk";
-  if (lower.includes("react native") || lower.includes("expo") || lower.includes("mobile")) return "https://www.youtube.com/embed/0-S5a0eXPoc";
-  if (lower.includes("react") || lower.includes("frontend") || lower.includes("html") || lower.includes("css")) return "https://www.youtube.com/embed/Ke90Tje7VS0";
-  if (lower.includes("docker") || lower.includes("kubernetes") || lower.includes("devops")) return "https://www.youtube.com/embed/rjjES5IsPdg";
-  if (lower.includes("pandas") || lower.includes("numpy") || lower.includes("pytorch") || lower.includes("ai") || lower.includes("python")) return "https://www.youtube.com/embed/V_xro1bcAuA";
-  if (lower.includes("sql") || lower.includes("database") || lower.includes("postgresql")) return "https://www.youtube.com/embed/7S_tz1z_5bA";
+  if (lower.includes("next.js") || lower.includes("nextjs") || lower.includes("ssr"))
+    return "https://www.youtube.com/embed/wm5gMKuwSYk";
+  if (lower.includes("react native") || lower.includes("expo") || lower.includes("mobile"))
+    return "https://www.youtube.com/embed/0-S5a0eXPoc";
+  if (
+    lower.includes("react") ||
+    lower.includes("frontend") ||
+    lower.includes("html") ||
+    lower.includes("css")
+  )
+    return "https://www.youtube.com/embed/Ke90Tje7VS0";
+  if (lower.includes("docker") || lower.includes("kubernetes") || lower.includes("devops"))
+    return "https://www.youtube.com/embed/rjjES5IsPdg";
+  if (
+    lower.includes("pandas") ||
+    lower.includes("numpy") ||
+    lower.includes("pytorch") ||
+    lower.includes("ai") ||
+    lower.includes("python")
+  )
+    return "https://www.youtube.com/embed/V_xro1bcAuA";
+  if (lower.includes("sql") || lower.includes("database") || lower.includes("postgresql"))
+    return "https://www.youtube.com/embed/7S_tz1z_5bA";
   return "https://www.youtube.com/embed/hdI2bqOjy3c";
 };
 
 const getResourceIcon = (title: string, type?: string) => {
   const lowerTitle = title.toLowerCase();
   const lowerType = (type || "").toLowerCase();
-  
-  if (lowerTitle.includes("video") || lowerType.includes("video") || lowerType.includes("tutorial")) {
+
+  if (
+    lowerTitle.includes("video") ||
+    lowerType.includes("video") ||
+    lowerType.includes("tutorial")
+  ) {
     return "play-circle";
   }
-  if (lowerTitle.includes("sandbox") || lowerTitle.includes("playground") || lowerType.includes("sandbox") || lowerType.includes("tool")) {
+  if (
+    lowerTitle.includes("sandbox") ||
+    lowerTitle.includes("playground") ||
+    lowerType.includes("sandbox") ||
+    lowerType.includes("tool")
+  ) {
     return "terminal";
   }
-  if (lowerTitle.includes("cheat sheet") || lowerTitle.includes("manual") || lowerType.includes("sheet") || lowerType.includes("doc") || lowerTitle.includes("pdf")) {
+  if (
+    lowerTitle.includes("cheat sheet") ||
+    lowerTitle.includes("manual") ||
+    lowerType.includes("sheet") ||
+    lowerType.includes("doc") ||
+    lowerTitle.includes("pdf")
+  ) {
     return "file";
   }
-  if (lowerTitle.includes("code") || lowerTitle.includes("programming") || lowerType.includes("code") || lowerType.includes("lab")) {
+  if (
+    lowerTitle.includes("code") ||
+    lowerTitle.includes("programming") ||
+    lowerType.includes("code") ||
+    lowerType.includes("lab")
+  ) {
     return "code";
   }
-  if (lowerTitle.includes("guide") || lowerTitle.includes("explain") || lowerType.includes("article") || lowerType.includes("blog")) {
+  if (
+    lowerTitle.includes("guide") ||
+    lowerTitle.includes("explain") ||
+    lowerType.includes("article") ||
+    lowerType.includes("blog")
+  ) {
     return "book-open";
   }
   return "file-text";
@@ -126,10 +168,10 @@ export function ResourceHub() {
       type: res.type,
       subject: focusDomain,
       level: userProficiency,
-      rating: 4.8 + (index * 0.05) > 5 ? 5.0 : parseFloat((4.8 + (index * 0.05)).toFixed(1)),
+      rating: 4.8 + index * 0.05 > 5 ? 5.0 : parseFloat((4.8 + index * 0.05).toFixed(1)),
       downloads: `${4.5 + index}k`,
       trending: index === 0,
-      author: "EduSync Network"
+      author: "EduSync Network",
     }));
   }, [store.recommendations?.resources, focusDomain, userProficiency]);
 
@@ -137,8 +179,12 @@ export function ResourceHub() {
     <View style={styles.container}>
       <View style={styles.header}>
         <View>
-          <Text style={[styles.title, { color: currentColors.text }]}>Collaborative Resource Hub</Text>
-          <Text style={[styles.subTitle, { color: currentColors.subtext }]}>Notes & projects shared by peers</Text>
+          <Text style={[styles.title, { color: currentColors.text }]}>
+            Collaborative Resource Hub
+          </Text>
+          <Text style={[styles.subTitle, { color: currentColors.subtext }]}>
+            Notes & projects shared by peers
+          </Text>
         </View>
         <TouchableOpacity onPress={() => navigate({ to: "/resources" })}>
           <Text style={[styles.exploreAll, { color: currentColors.primary }]}>Explore all</Text>
@@ -147,9 +193,12 @@ export function ResourceHub() {
 
       <View style={styles.list}>
         {dynamicResources.map((r) => (
-          <TouchableOpacity 
-            key={r.id} 
-            style={[styles.card, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}
+          <TouchableOpacity
+            key={r.id}
+            style={[
+              styles.card,
+              { backgroundColor: currentColors.card, borderColor: currentColors.border },
+            ]}
             onPress={() => openResourceUrl(r.title)}
             activeOpacity={0.85}
           >
@@ -166,7 +215,12 @@ export function ResourceHub() {
               <View style={[styles.badge, styles.bgPrimary]}>
                 <Text style={[styles.badgeText, styles.textPrimary]}>{r.subject}</Text>
               </View>
-              <View style={[styles.badge, isDark ? { backgroundColor: currentColors.divider } : styles.bgMuted]}>
+              <View
+                style={[
+                  styles.badge,
+                  isDark ? { backgroundColor: currentColors.divider } : styles.bgMuted,
+                ]}
+              >
                 <Text style={[styles.badgeText, { color: currentColors.subtext }]}>{r.level}</Text>
               </View>
               {r.trending && (
@@ -182,15 +236,21 @@ export function ResourceHub() {
             </Text>
 
             <View style={styles.footer}>
-              <Text style={[styles.author, { color: currentColors.subtext }]} numberOfLines={1}>by {r.author}</Text>
+              <Text style={[styles.author, { color: currentColors.subtext }]} numberOfLines={1}>
+                by {r.author}
+              </Text>
               <View style={styles.stats}>
                 <View style={styles.statRow}>
                   <FontAwesome name="star" size={10} color="#0d9488" />
-                  <Text style={[styles.statText, { color: currentColors.subtext }]}>{r.rating}</Text>
+                  <Text style={[styles.statText, { color: currentColors.subtext }]}>
+                    {r.rating}
+                  </Text>
                 </View>
                 <View style={styles.statRow}>
                   <Feather name="download" size={10} color={currentColors.subtext} />
-                  <Text style={[styles.statText, { color: currentColors.subtext }]}>{r.downloads}</Text>
+                  <Text style={[styles.statText, { color: currentColors.subtext }]}>
+                    {r.downloads}
+                  </Text>
                 </View>
               </View>
             </View>
@@ -200,9 +260,16 @@ export function ResourceHub() {
 
       {videoUrl && (
         <View style={styles.videoOverlay}>
-          <View style={[styles.videoModal, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
+          <View
+            style={[
+              styles.videoModal,
+              { backgroundColor: currentColors.card, borderColor: currentColors.border },
+            ]}
+          >
             <View style={styles.videoHeader}>
-              <Text style={[styles.videoTitle, { color: currentColors.text }]} numberOfLines={1}>{videoTitle}</Text>
+              <Text style={[styles.videoTitle, { color: currentColors.text }]} numberOfLines={1}>
+                {videoTitle}
+              </Text>
               <TouchableOpacity onPress={() => setVideoUrl(null)} style={styles.closeBtn}>
                 <Feather name="x" size={18} color={currentColors.text} />
               </TouchableOpacity>
@@ -246,7 +313,7 @@ export function ResourceHub() {
                         </body>
                       </html>
                     `,
-                    baseUrl: "https://google.com"
+                    baseUrl: "https://google.com",
                   }}
                 />
               )}

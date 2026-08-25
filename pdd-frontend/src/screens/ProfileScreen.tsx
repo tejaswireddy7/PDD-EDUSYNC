@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, Platform, TextInput, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Switch,
+  Alert,
+  Platform,
+  TextInput,
+  ActivityIndicator,
+} from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useDashboardStore } from "../lib/store";
 import { supabase } from "../lib/supabase";
@@ -15,7 +26,7 @@ const themeColors = {
     subtext: "#64748b",
     border: "#cbd5e1",
     divider: "#f1f5f9",
-    inputBg: "#f8fafc"
+    inputBg: "#f8fafc",
   },
   dark: {
     primary: "#818cf8",
@@ -26,8 +37,8 @@ const themeColors = {
     subtext: "#94a3b8",
     border: "#1e293b",
     divider: "#1e293b",
-    inputBg: "#111827"
-  }
+    inputBg: "#111827",
+  },
 };
 
 import { BootstrapIcon } from "../components/ui/BootstrapIcon";
@@ -41,8 +52,8 @@ export default function ProfileScreen() {
   const streak = store.user?.streak ?? 0;
   const xp = store.user?.xp ?? 0;
   const enrolled = store.enrolledCourses || [];
-  const registeredCourses = enrolled.filter(c => c.progress < 100);
-  const completedCourses = enrolled.filter(c => c.progress === 100);
+  const registeredCourses = enrolled.filter((c) => c.progress < 100);
+  const completedCourses = enrolled.filter((c) => c.progress === 100);
   const coursesCompletedCount = completedCourses.length;
 
   const defaultAchievements = [
@@ -53,7 +64,7 @@ export default function ProfileScreen() {
       requirement: "Complete 1 course from registered pathways",
       metric: "courses_completed",
       threshold: 1,
-      color: "#f59e0b"
+      color: "#f59e0b",
     },
     {
       id: "streak_30",
@@ -62,7 +73,7 @@ export default function ProfileScreen() {
       requirement: "Maintain a consecutive study streak of 30 days",
       metric: "streak",
       threshold: 30,
-      color: "#ef4444"
+      color: "#ef4444",
     },
     {
       id: "quizzes_100",
@@ -71,7 +82,7 @@ export default function ProfileScreen() {
       requirement: "Answer questions correctly to reach 1,000+ XP",
       metric: "xp",
       threshold: 1000,
-      color: "#3b82f6"
+      color: "#3b82f6",
     },
     {
       id: "coding_master",
@@ -80,8 +91,8 @@ export default function ProfileScreen() {
       requirement: "Earn 5,000+ total Experience Points (XP)",
       metric: "xp",
       threshold: 5000,
-      color: "#10b981"
-    }
+      color: "#10b981",
+    },
   ];
 
   const [dbAchievements, setDbAchievements] = useState<any[]>(defaultAchievements);
@@ -134,7 +145,9 @@ export default function ProfileScreen() {
         return;
       }
 
-      const otherUserIds = conns.map(c => c.sender_id === store.user?.id ? c.receiver_id : c.sender_id);
+      const otherUserIds = conns.map((c) =>
+        c.sender_id === store.user?.id ? c.receiver_id : c.sender_id,
+      );
       const { data: profiles, error: profErr } = await supabase
         .from("profiles")
         .select("id, name, email")
@@ -142,14 +155,14 @@ export default function ProfileScreen() {
 
       if (profErr) throw profErr;
 
-      const mapped = conns.map(c => {
+      const mapped = conns.map((c) => {
         const otherId = c.sender_id === store.user?.id ? c.receiver_id : c.sender_id;
-        const prof = profiles?.find(p => p.id === otherId);
+        const prof = profiles?.find((p) => p.id === otherId);
         return {
           connectionId: c.id,
           userId: otherId,
           name: prof?.name || "Student Partner",
-          email: prof?.email || ""
+          email: prof?.email || "",
         };
       });
       setBlockedUsers(mapped);
@@ -222,7 +235,7 @@ export default function ProfileScreen() {
   };
 
   // Achievements evaluation
-  const achievements = dbAchievements.map(a => {
+  const achievements = dbAchievements.map((a) => {
     let unlocked = false;
     if (a.metric === "courses_completed") {
       unlocked = coursesCompletedCount >= a.threshold;
@@ -233,18 +246,31 @@ export default function ProfileScreen() {
     }
     return {
       ...a,
-      unlocked
+      unlocked,
     };
   });
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: currentColors.background }]} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
-      
+    <ScrollView
+      style={[styles.container, { backgroundColor: currentColors.background }]}
+      contentContainerStyle={styles.contentContainer}
+      showsVerticalScrollIndicator={false}
+    >
       {/* Profile Overview Card */}
-      <View style={[styles.profileCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
+      <View
+        style={[
+          styles.profileCard,
+          { backgroundColor: currentColors.card, borderColor: currentColors.border },
+        ]}
+      >
         <View style={[styles.avatarCircle, { backgroundColor: `${currentColors.primary}1a` }]}>
           <Text style={[styles.avatarText, { color: currentColors.primary }]}>
-            {userName.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase()}
+            {userName
+              .split(" ")
+              .map((n) => n[0])
+              .join("")
+              .substring(0, 2)
+              .toUpperCase()}
           </Text>
         </View>
         <Text style={[styles.profileName, { color: currentColors.text }]}>{userName}</Text>
@@ -254,54 +280,106 @@ export default function ProfileScreen() {
           <View style={[styles.focusBadge, { backgroundColor: `${currentColors.primary}14` }]}>
             <Text style={[styles.focusText, { color: currentColors.primary }]}>{focusDomain}</Text>
           </View>
-          <View style={[styles.levelBadge, isDark && { backgroundColor: "rgba(129, 140, 248, 0.15)" }]}>
-            <Text style={[styles.levelText, isDark && { color: "#818cf8" }]}>{userProficiency}</Text>
+          <View
+            style={[styles.levelBadge, isDark && { backgroundColor: "rgba(129, 140, 248, 0.15)" }]}
+          >
+            <Text style={[styles.levelText, isDark && { color: "#818cf8" }]}>
+              {userProficiency}
+            </Text>
           </View>
         </View>
       </View>
 
       {/* Streak Options Card */}
-      <View style={[styles.card, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
+      <View
+        style={[
+          styles.card,
+          { backgroundColor: currentColors.card, borderColor: currentColors.border },
+        ]}
+      >
         <View style={styles.cardHeader}>
           <BootstrapIcon name="fire" size={20} color="#f97316" />
-          <Text style={[styles.cardTitle, { color: currentColors.text }]}>Study Streak Options</Text>
+          <Text style={[styles.cardTitle, { color: currentColors.text }]}>
+            Study Streak Options
+          </Text>
         </View>
-        <View style={[styles.streakPanel, isDark && { backgroundColor: "rgba(249, 115, 22, 0.08)", borderColor: "rgba(249, 115, 22, 0.2)" }]}>
+        <View
+          style={[
+            styles.streakPanel,
+            isDark && {
+              backgroundColor: "rgba(249, 115, 22, 0.08)",
+              borderColor: "rgba(249, 115, 22, 0.2)",
+            },
+          ]}
+        >
           <Text style={styles.streakCount}>{streak} Days Active</Text>
           <Text style={[styles.streakDesc, { color: currentColors.subtext }]}>
-            {streak > 0 
+            {streak > 0
               ? "Awesome work! Keep logging in daily to secure your learning streak and claim streak bonus rewards."
-              : "No consecutive days logged yet. Learn a topic or view resources today to launch your consecutive streak!"
-            }
+              : "No consecutive days logged yet. Learn a topic or view resources today to launch your consecutive streak!"}
           </Text>
           <View style={styles.streakGoalRow}>
             <BootstrapIcon name="graph-up-arrow" size={14} color={currentColors.primary} />
-            <Text style={[styles.streakGoalText, { color: currentColors.primary }]}>Next Streak Milestone: 7 Days (+250 XP bonus)</Text>
+            <Text style={[styles.streakGoalText, { color: currentColors.primary }]}>
+              Next Streak Milestone: 7 Days (+250 XP bonus)
+            </Text>
           </View>
         </View>
       </View>
 
       {/* Achievements (Badges) Card */}
-      <View style={[styles.card, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
+      <View
+        style={[
+          styles.card,
+          { backgroundColor: currentColors.card, borderColor: currentColors.border },
+        ]}
+      >
         <View style={styles.cardHeader}>
           <BootstrapIcon name="award" size={20} color="#3b82f6" />
-          <Text style={[styles.cardTitle, { color: currentColors.text }]}>Achievements & Badges</Text>
+          <Text style={[styles.cardTitle, { color: currentColors.text }]}>
+            Achievements & Badges
+          </Text>
         </View>
         <View style={styles.badgeGrid}>
           {achievements.map((ach) => (
-            <View 
-              key={ach.id} 
+            <View
+              key={ach.id}
               style={[
-                styles.badgeCard, 
-                ach.unlocked 
-                  ? { borderColor: ach.color, backgroundColor: `${ach.color}08` } 
-                  : [styles.badgeCardLocked, { borderColor: currentColors.border, backgroundColor: currentColors.background }]
+                styles.badgeCard,
+                ach.unlocked
+                  ? { borderColor: ach.color, backgroundColor: `${ach.color}08` }
+                  : [
+                      styles.badgeCardLocked,
+                      {
+                        borderColor: currentColors.border,
+                        backgroundColor: currentColors.background,
+                      },
+                    ],
               ]}
             >
-              <Text style={[styles.badgeIcon, !ach.unlocked && styles.badgeLockedOpacity]}>{ach.emoji}</Text>
-              <Text style={[styles.badgeTitle, !ach.unlocked && styles.lockedText, { color: currentColors.text }]}>{ach.title}</Text>
-              <Text style={[styles.badgeDesc, { color: currentColors.subtext }]}>{ach.requirement}</Text>
-              <View style={[styles.statusPill, ach.unlocked ? { backgroundColor: ach.color } : [styles.statusPillLocked, isDark && { backgroundColor: "#1e293b" }]]}>
+              <Text style={[styles.badgeIcon, !ach.unlocked && styles.badgeLockedOpacity]}>
+                {ach.emoji}
+              </Text>
+              <Text
+                style={[
+                  styles.badgeTitle,
+                  !ach.unlocked && styles.lockedText,
+                  { color: currentColors.text },
+                ]}
+              >
+                {ach.title}
+              </Text>
+              <Text style={[styles.badgeDesc, { color: currentColors.subtext }]}>
+                {ach.requirement}
+              </Text>
+              <View
+                style={[
+                  styles.statusPill,
+                  ach.unlocked
+                    ? { backgroundColor: ach.color }
+                    : [styles.statusPillLocked, isDark && { backgroundColor: "#1e293b" }],
+                ]}
+              >
                 <Text style={styles.statusPillText}>{ach.unlocked ? "Unlocked" : "Locked"}</Text>
               </View>
             </View>
@@ -310,7 +388,12 @@ export default function ProfileScreen() {
       </View>
 
       {/* Registered & Completed Courses */}
-      <View style={[styles.card, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
+      <View
+        style={[
+          styles.card,
+          { backgroundColor: currentColors.card, borderColor: currentColors.border },
+        ]}
+      >
         <View style={styles.cardHeader}>
           <BootstrapIcon name="journal-code" size={20} color="#10b981" />
           <Text style={[styles.cardTitle, { color: currentColors.text }]}>My Courses Pathway</Text>
@@ -318,18 +401,40 @@ export default function ProfileScreen() {
 
         {/* Registered (Active) Courses */}
         <View style={styles.courseSection}>
-          <Text style={[styles.courseSubtitle, { color: currentColors.subtext }]}>Registered Courses ({registeredCourses.length})</Text>
+          <Text style={[styles.courseSubtitle, { color: currentColors.subtext }]}>
+            Registered Courses ({registeredCourses.length})
+          </Text>
           {registeredCourses.length === 0 ? (
-            <Text style={[styles.emptyText, { color: currentColors.subtext }]}>No active registered courses. Check Suggested Courses on your home dashboard to enroll!</Text>
+            <Text style={[styles.emptyText, { color: currentColors.subtext }]}>
+              No active registered courses. Check Suggested Courses on your home dashboard to
+              enroll!
+            </Text>
           ) : (
-            registeredCourses.map(c => (
-              <View key={c.title} style={[styles.courseItem, { backgroundColor: currentColors.background, borderColor: currentColors.border }]}>
+            registeredCourses.map((c) => (
+              <View
+                key={c.title}
+                style={[
+                  styles.courseItem,
+                  { backgroundColor: currentColors.background, borderColor: currentColors.border },
+                ]}
+              >
                 <View style={{ flex: 1 }}>
-                  <Text style={[styles.courseItemTitle, { color: currentColors.text }]}>{c.title}</Text>
-                  <Text style={[styles.courseItemMeta, { color: currentColors.subtext }]}>{c.subject} • {c.time} • {c.difficulty}</Text>
+                  <Text style={[styles.courseItemTitle, { color: currentColors.text }]}>
+                    {c.title}
+                  </Text>
+                  <Text style={[styles.courseItemMeta, { color: currentColors.subtext }]}>
+                    {c.subject} • {c.time} • {c.difficulty}
+                  </Text>
                 </View>
-                <View style={[styles.courseProgressBadge, { backgroundColor: `${currentColors.primary}1a` }]}>
-                  <Text style={[styles.courseProgressText, { color: currentColors.primary }]}>{c.progress}%</Text>
+                <View
+                  style={[
+                    styles.courseProgressBadge,
+                    { backgroundColor: `${currentColors.primary}1a` },
+                  ]}
+                >
+                  <Text style={[styles.courseProgressText, { color: currentColors.primary }]}>
+                    {c.progress}%
+                  </Text>
                 </View>
               </View>
             ))
@@ -337,18 +442,52 @@ export default function ProfileScreen() {
         </View>
 
         {/* Completed Courses */}
-        <View style={[styles.courseSection, { borderTopWidth: 1, borderTopColor: currentColors.border, marginTop: 14, paddingTop: 14 }]}>
-          <Text style={[styles.courseSubtitle, { color: currentColors.subtext }]}>Completed Courses ({completedCourses.length})</Text>
+        <View
+          style={[
+            styles.courseSection,
+            {
+              borderTopWidth: 1,
+              borderTopColor: currentColors.border,
+              marginTop: 14,
+              paddingTop: 14,
+            },
+          ]}
+        >
+          <Text style={[styles.courseSubtitle, { color: currentColors.subtext }]}>
+            Completed Courses ({completedCourses.length})
+          </Text>
           {completedCourses.length === 0 ? (
-            <Text style={[styles.emptyText, { color: currentColors.subtext }]}>No completed courses yet. Work through your registered lesson videos to hit 100%!</Text>
+            <Text style={[styles.emptyText, { color: currentColors.subtext }]}>
+              No completed courses yet. Work through your registered lesson videos to hit 100%!
+            </Text>
           ) : (
-            completedCourses.map(c => (
-              <View key={c.title} style={[styles.courseItem, { backgroundColor: currentColors.background, borderColor: currentColors.border }]}>
+            completedCourses.map((c) => (
+              <View
+                key={c.title}
+                style={[
+                  styles.courseItem,
+                  { backgroundColor: currentColors.background, borderColor: currentColors.border },
+                ]}
+              >
                 <View style={{ flex: 1 }}>
-                  <Text style={[styles.courseItemTitle, { color: currentColors.subtext, textDecorationLine: "line-through" }]}>{c.title}</Text>
-                  <Text style={[styles.courseItemMeta, { color: currentColors.subtext }]}>{c.subject} • Completed</Text>
+                  <Text
+                    style={[
+                      styles.courseItemTitle,
+                      { color: currentColors.subtext, textDecorationLine: "line-through" },
+                    ]}
+                  >
+                    {c.title}
+                  </Text>
+                  <Text style={[styles.courseItemMeta, { color: currentColors.subtext }]}>
+                    {c.subject} • Completed
+                  </Text>
                 </View>
-                <View style={[styles.courseProgressBadge, { backgroundColor: isDark ? "#064e3b" : "#dcfce7" }]}>
+                <View
+                  style={[
+                    styles.courseProgressBadge,
+                    { backgroundColor: isDark ? "#064e3b" : "#dcfce7" },
+                  ]}
+                >
                   <BootstrapIcon name="check-lg" size={12} color={isDark ? "#34d399" : "#15803d"} />
                 </View>
               </View>
@@ -358,49 +497,86 @@ export default function ProfileScreen() {
       </View>
 
       {/* Retake Survey Section */}
-      <View style={[styles.card, { borderColor: `${currentColors.primary}33`, backgroundColor: `${currentColors.primary}05` }]}>
+      <View
+        style={[
+          styles.card,
+          {
+            borderColor: `${currentColors.primary}33`,
+            backgroundColor: `${currentColors.primary}05`,
+          },
+        ]}
+      >
         <View style={styles.cardHeader}>
           <BootstrapIcon name="card-checklist" size={20} color={currentColors.primary} />
-          <Text style={[styles.cardTitle, { color: currentColors.text }]}>Learning Pathway Re-survey</Text>
+          <Text style={[styles.cardTitle, { color: currentColors.text }]}>
+            Learning Pathway Re-survey
+          </Text>
         </View>
         <View style={styles.surveyBody}>
           <Text style={[styles.surveyText, { color: currentColors.subtext }]}>
-            Want to change your learning goals or switch to another focus domain? Retaking the onboarding survey will reconfigure your recommended courses, milestone checklist, and upcoming assessments.
+            Want to change your learning goals or switch to another focus domain? Retaking the
+            onboarding survey will reconfigure your recommended courses, milestone checklist, and
+            upcoming assessments.
           </Text>
-          <TouchableOpacity 
-            style={[styles.surveyBtn, { backgroundColor: currentColors.primary }]} 
+          <TouchableOpacity
+            style={[styles.surveyBtn, { backgroundColor: currentColors.primary }]}
             activeOpacity={0.8}
             onPress={() => {
               store.triggerManualSurvey();
-              Alert.alert("Survey Initialized", "The onboarding configuration modal has been queued. Navigate to the Home dashboard tab to reconfigure your parameters.");
+              Alert.alert(
+                "Survey Initialized",
+                "The onboarding configuration modal has been queued. Navigate to the Home dashboard tab to reconfigure your parameters.",
+              );
             }}
           >
-            <BootstrapIcon name="arrow-repeat" size={14} color="#ffffff" style={{ marginRight: 6 }} />
+            <BootstrapIcon
+              name="arrow-repeat"
+              size={14}
+              color="#ffffff"
+              style={{ marginRight: 6 }}
+            />
             <Text style={styles.surveyBtnText}>Retake Onboarding Survey</Text>
           </TouchableOpacity>
         </View>
       </View>
 
       {/* Blocked Users Section */}
-      <View style={[styles.card, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
+      <View
+        style={[
+          styles.card,
+          { backgroundColor: currentColors.card, borderColor: currentColors.border },
+        ]}
+      >
         <View style={styles.cardHeader}>
           <BootstrapIcon name="person-x" size={20} color="#ef4444" />
-          <Text style={[styles.cardTitle, { color: currentColors.text }]}>Blocked Connections Manager</Text>
+          <Text style={[styles.cardTitle, { color: currentColors.text }]}>
+            Blocked Connections Manager
+          </Text>
         </View>
         {loadingBlocked ? (
           <ActivityIndicator size="small" color="#ef4444" style={{ marginVertical: 12 }} />
         ) : blockedUsers.length === 0 ? (
-          <Text style={[styles.emptyText, { color: currentColors.subtext }]}>You haven't blocked any users. Connections are fully open.</Text>
+          <Text style={[styles.emptyText, { color: currentColors.subtext }]}>
+            You haven't blocked any users. Connections are fully open.
+          </Text>
         ) : (
           <View style={styles.blockedList}>
             {blockedUsers.map((u) => (
-              <View key={u.userId} style={[styles.blockedItem, { backgroundColor: currentColors.background, borderColor: currentColors.border }]}>
+              <View
+                key={u.userId}
+                style={[
+                  styles.blockedItem,
+                  { backgroundColor: currentColors.background, borderColor: currentColors.border },
+                ]}
+              >
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.blockedName, { color: currentColors.text }]}>{u.name}</Text>
-                  <Text style={[styles.blockedEmail, { color: currentColors.subtext }]}>{u.email}</Text>
+                  <Text style={[styles.blockedEmail, { color: currentColors.subtext }]}>
+                    {u.email}
+                  </Text>
                 </View>
-                <TouchableOpacity 
-                  style={styles.unblockBtn} 
+                <TouchableOpacity
+                  style={styles.unblockBtn}
                   activeOpacity={0.8}
                   onPress={() => handleUnblock(u.connectionId, u.name)}
                 >
@@ -413,22 +589,36 @@ export default function ProfileScreen() {
       </View>
 
       {/* App Settings Section */}
-      <View style={[styles.card, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
+      <View
+        style={[
+          styles.card,
+          { backgroundColor: currentColors.card, borderColor: currentColors.border },
+        ]}
+      >
         <View style={styles.cardHeader}>
           <BootstrapIcon name="gear" size={20} color={currentColors.primary} />
-          <Text style={[styles.cardTitle, { color: currentColors.text }]}>Settings & Preferences</Text>
+          <Text style={[styles.cardTitle, { color: currentColors.text }]}>
+            Settings & Preferences
+          </Text>
         </View>
 
         {/* 1. Notifications Options */}
         <View style={styles.settingRow}>
           <View style={{ flex: 1 }}>
-            <Text style={[styles.settingLabel, { color: currentColors.text }]}>Push Notifications</Text>
-            <Text style={[styles.settingDesc, { color: currentColors.subtext }]}>Receive daily streaks, quiz alerts, and class reminders.</Text>
+            <Text style={[styles.settingLabel, { color: currentColors.text }]}>
+              Push Notifications
+            </Text>
+            <Text style={[styles.settingDesc, { color: currentColors.subtext }]}>
+              Receive daily streaks, quiz alerts, and class reminders.
+            </Text>
           </View>
-          <Switch 
-            value={pushNotifs} 
-            onValueChange={setPushNotifs} 
-            trackColor={{ false: isDark ? "#1e293b" : "#e2e8f0", true: `${currentColors.primary}66` }}
+          <Switch
+            value={pushNotifs}
+            onValueChange={setPushNotifs}
+            trackColor={{
+              false: isDark ? "#1e293b" : "#e2e8f0",
+              true: `${currentColors.primary}66`,
+            }}
             thumbColor={pushNotifs ? currentColors.primary : "#94a3b8"}
           />
         </View>
@@ -437,27 +627,42 @@ export default function ProfileScreen() {
         <View style={[styles.settingDivider, { backgroundColor: currentColors.divider }]} />
         <View style={styles.themeSection}>
           <Text style={[styles.settingLabel, { color: currentColors.text }]}>App Theme</Text>
-          <Text style={[styles.settingDesc, { color: currentColors.subtext }]}>Switch between light and dark modes.</Text>
+          <Text style={[styles.settingDesc, { color: currentColors.subtext }]}>
+            Switch between light and dark modes.
+          </Text>
           <View style={styles.themeRow}>
-            {([
-              { key: "light", label: "Light Mode", color: "#6366f1" },
-              { key: "dark", label: "Dark Mode", color: "#818cf8" }
-            ] as const).map(th => {
+            {(
+              [
+                { key: "light", label: "Light Mode", color: "#6366f1" },
+                { key: "dark", label: "Dark Mode", color: "#818cf8" },
+              ] as const
+            ).map((th) => {
               const selected = appTheme === th.key;
               return (
-                <TouchableOpacity 
-                  key={th.key} 
-                  style={[styles.themeBtn, { borderColor: selected ? th.color : currentColors.border }, selected && { backgroundColor: `${th.color}15` }]} 
+                <TouchableOpacity
+                  key={th.key}
+                  style={[
+                    styles.themeBtn,
+                    { borderColor: selected ? th.color : currentColors.border },
+                    selected && { backgroundColor: `${th.color}15` },
+                  ]}
                   onPress={() => store.setAppTheme(th.key)}
                   activeOpacity={0.8}
                 >
-                  <BootstrapIcon 
-                    name={th.key === "dark" ? "moon" : "sun"} 
-                    size={16} 
-                    color={selected ? th.color : currentColors.subtext} 
-                    style={{ marginRight: 6 }} 
+                  <BootstrapIcon
+                    name={th.key === "dark" ? "moon" : "sun"}
+                    size={16}
+                    color={selected ? th.color : currentColors.subtext}
+                    style={{ marginRight: 6 }}
                   />
-                  <Text style={[styles.themeBtnText, { color: selected ? th.color : currentColors.subtext }]}>{th.label}</Text>
+                  <Text
+                    style={[
+                      styles.themeBtnText,
+                      { color: selected ? th.color : currentColors.subtext },
+                    ]}
+                  >
+                    {th.label}
+                  </Text>
                 </TouchableOpacity>
               );
             })}
@@ -468,7 +673,9 @@ export default function ProfileScreen() {
         <View style={[styles.settingDivider, { backgroundColor: currentColors.divider }]} />
         <View style={styles.passwordSection}>
           <Text style={[styles.settingLabel, { color: currentColors.text }]}>Change Password</Text>
-          <Text style={[styles.settingDesc, { color: currentColors.subtext }]}>Ensure your account details remain fully encrypted.</Text>
+          <Text style={[styles.settingDesc, { color: currentColors.subtext }]}>
+            Ensure your account details remain fully encrypted.
+          </Text>
           <View style={styles.passwordForm}>
             <TextInput
               secureTextEntry
@@ -476,7 +683,14 @@ export default function ProfileScreen() {
               placeholderTextColor={currentColors.subtext}
               value={newPassword}
               onChangeText={setNewPassword}
-              style={[styles.passwordInput, { backgroundColor: currentColors.inputBg, borderColor: currentColors.border, color: currentColors.text }]}
+              style={[
+                styles.passwordInput,
+                {
+                  backgroundColor: currentColors.inputBg,
+                  borderColor: currentColors.border,
+                  color: currentColors.text,
+                },
+              ]}
             />
             <TextInput
               secureTextEntry
@@ -484,10 +698,17 @@ export default function ProfileScreen() {
               placeholderTextColor={currentColors.subtext}
               value={confirmPassword}
               onChangeText={setConfirmPassword}
-              style={[styles.passwordInput, { backgroundColor: currentColors.inputBg, borderColor: currentColors.border, color: currentColors.text }]}
+              style={[
+                styles.passwordInput,
+                {
+                  backgroundColor: currentColors.inputBg,
+                  borderColor: currentColors.border,
+                  color: currentColors.text,
+                },
+              ]}
             />
-            <TouchableOpacity 
-              style={styles.passwordBtn} 
+            <TouchableOpacity
+              style={styles.passwordBtn}
               activeOpacity={0.8}
               onPress={handleUpdatePassword}
               disabled={isUpdatingPassword}
@@ -501,12 +722,13 @@ export default function ProfileScreen() {
 
         {/* 5. Logout Action button */}
         <View style={styles.settingDivider} />
-        <TouchableOpacity 
-          style={styles.logoutBtn} 
-          activeOpacity={0.85}
-          onPress={handleLogout}
-        >
-          <BootstrapIcon name="box-arrow-right" size={16} color="#ffffff" style={{ marginRight: 8 }} />
+        <TouchableOpacity style={styles.logoutBtn} activeOpacity={0.85} onPress={handleLogout}>
+          <BootstrapIcon
+            name="box-arrow-right"
+            size={16}
+            color="#ffffff"
+            style={{ marginRight: 8 }}
+          />
           <Text style={styles.logoutBtnText}>Logout</Text>
         </TouchableOpacity>
       </View>

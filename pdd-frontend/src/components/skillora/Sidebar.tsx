@@ -1,5 +1,13 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Platform } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+  Platform,
+} from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useDashboardStore } from "../../lib/store";
@@ -15,10 +23,25 @@ type SidebarItem = {
 const items: SidebarItem[] = [
   { icon: "home", iconType: "Feather", label: "Home", route: "Dashboard" },
   { icon: "book-open", iconType: "Feather", label: "Learning", route: "Dashboard" },
-  { icon: "clipboard-text", iconType: "MaterialCommunityIcons", label: "Assessments", route: "Assessments" },
-  { icon: "chart-bar", iconType: "MaterialCommunityIcons", label: "Evaluation", route: "Evaluation" },
+  {
+    icon: "clipboard-text",
+    iconType: "MaterialCommunityIcons",
+    label: "Assessments",
+    route: "Assessments",
+  },
+  {
+    icon: "chart-bar",
+    iconType: "MaterialCommunityIcons",
+    label: "Evaluation",
+    route: "Evaluation",
+  },
   { icon: "compass", iconType: "Feather", label: "Career", route: "Dashboard" },
-  { icon: "folder-open", iconType: "MaterialCommunityIcons", label: "Resources", route: "Resources" },
+  {
+    icon: "folder-open",
+    iconType: "MaterialCommunityIcons",
+    label: "Resources",
+    route: "Resources",
+  },
   { icon: "message-text", iconType: "MaterialCommunityIcons", label: "Chat", route: "Chat" },
   { icon: "user", iconType: "Feather", label: "Profile", route: "Dashboard" },
 ];
@@ -67,7 +90,10 @@ export function Sidebar({ activeRoute = "Dashboard", onNavigate }: SidebarProps)
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+      >
         {items.map((it) => {
           const isActive = activeRoute === it.route;
           return (
@@ -77,19 +103,17 @@ export function Sidebar({ activeRoute = "Dashboard", onNavigate }: SidebarProps)
               style={[styles.itemButton, isActive && styles.activeItemButton]}
             >
               {it.iconType === "Feather" ? (
-                <Feather 
-                  name={it.icon as any} 
-                  size={16} 
-                  color={isActive ? "#6366f1" : "#64748b"} 
-                />
+                <Feather name={it.icon as any} size={16} color={isActive ? "#6366f1" : "#64748b"} />
               ) : (
-                <MaterialCommunityIcons 
-                  name={it.icon as any} 
-                  size={16} 
-                  color={isActive ? "#6366f1" : "#64748b"} 
+                <MaterialCommunityIcons
+                  name={it.icon as any}
+                  size={16}
+                  color={isActive ? "#6366f1" : "#64748b"}
                 />
               )}
-              <Text style={[styles.itemLabel, isActive ? styles.activeLabel : styles.inactiveLabel]}>
+              <Text
+                style={[styles.itemLabel, isActive ? styles.activeLabel : styles.inactiveLabel]}
+              >
                 {it.label}
               </Text>
               {isActive && <View style={styles.activeDot} />}
@@ -105,7 +129,12 @@ export function Sidebar({ activeRoute = "Dashboard", onNavigate }: SidebarProps)
         end={{ x: 1, y: 1 }}
         style={styles.proCard}
       >
-        <MaterialCommunityIcons name={"sparkles" as any} size={16} color="#ffffff" style={styles.proIcon} />
+        <MaterialCommunityIcons
+          name={"sparkles" as any}
+          size={16}
+          color="#ffffff"
+          style={styles.proIcon}
+        />
         <Text style={styles.proTitle}>Upgrade to Pro</Text>
         <Text style={styles.proDesc}>Unlock AI mentor & unlimited assessments.</Text>
         <TouchableOpacity style={styles.proBtn}>
@@ -114,11 +143,7 @@ export function Sidebar({ activeRoute = "Dashboard", onNavigate }: SidebarProps)
       </LinearGradient>
 
       {/* Log Out Button */}
-      <TouchableOpacity 
-        style={styles.logoutBtn} 
-        onPress={handleLogout}
-        activeOpacity={0.75}
-      >
+      <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.75}>
         <MaterialCommunityIcons name="logout" size={14} color="#ef4444" />
         <Text style={styles.logoutBtnText}>Log Out</Text>
       </TouchableOpacity>

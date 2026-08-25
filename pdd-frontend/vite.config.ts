@@ -7,12 +7,7 @@ import path from "path";
 
 // Standard client-only frontend Vite SPA configuration with separated Web Mocks
 export default defineConfig({
-  plugins: [
-    TanStackRouterVite(),
-    react(),
-    tsconfigPaths(),
-    tailwindcss(),
-  ],
+  plugins: [TanStackRouterVite(), react(), tsconfigPaths(), tailwindcss()],
   resolve: {
     alias: {
       "react-native": "react-native-web",

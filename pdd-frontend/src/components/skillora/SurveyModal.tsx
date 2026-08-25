@@ -28,11 +28,26 @@ const themeGradients = {
   dark: ["#a5b4fc", "#818cf8"] as const,
 };
 
-function BootstrapIcon({ name, size, color, style }: { name: string; size: number; color: string; style?: any }) {
+function BootstrapIcon({
+  name,
+  size,
+  color,
+  style,
+}: {
+  name: string;
+  size: number;
+  color: string;
+  style?: any;
+}) {
   if (Platform.OS === "web") {
-    return <i className={`bi bi-${name}`} style={{ fontSize: size, color: color, display: "inline-block", lineHeight: 1, ...style }} />;
+    return (
+      <i
+        className={`bi bi-${name}`}
+        style={{ fontSize: size, color: color, display: "inline-block", lineHeight: 1, ...style }}
+      />
+    );
   }
-  
+
   let nativeName: any = "help-circle";
   let iconLibrary: "Feather" | "MaterialCommunityIcons" = "Feather";
 
@@ -56,7 +71,11 @@ function BootstrapIcon({ name, size, color, style }: { name: string; size: numbe
     nativeName = "star";
   } else if (name.includes("layers")) {
     nativeName = "layers";
-  } else if (name.includes("journal-code") || name.includes("notebook") || name.includes("journal")) {
+  } else if (
+    name.includes("journal-code") ||
+    name.includes("notebook") ||
+    name.includes("journal")
+  ) {
     nativeName = "book-open";
   } else if (name.includes("clock")) {
     nativeName = "clock";
@@ -99,61 +118,61 @@ const CONNECTING_QUESTIONS = {
     knowledgeOptions: [
       { id: "html_css", label: "HTML5/CSS3 Layouts (Flexbox, Grid)" },
       { id: "js_basics", label: "JavaScript fundamentals & ES6" },
-      { id: "react_basics", label: "React basics (components, state, props)" }
+      { id: "react_basics", label: "React basics (components, state, props)" },
     ],
     masterOptions: [
       { id: "state_management", label: "State Management (Redux/Zustand)" },
       { id: "ssr_nextjs", label: "Next.js & Server Components" },
       { id: "tailwind_styling", label: "Tailwind CSS & Styling systems" },
-      { id: "performance", label: "Performance & Core Web Vitals" }
-    ]
+      { id: "performance", label: "Performance & Core Web Vitals" },
+    ],
   },
   Backend: {
     knowledgeOptions: [
       { id: "node_basics", label: "Node.js runtime & npm package basics" },
       { id: "express_apis", label: "REST APIs & Express routing" },
-      { id: "basic_sql", label: "Relational databases & SQL queries" }
+      { id: "basic_sql", label: "Relational databases & SQL queries" },
     ],
     masterOptions: [
       { id: "db_prisma", label: "Database relations & Prisma ORM" },
       { id: "docker", label: "Docker containerization & Kubernetes" },
       { id: "microservices", label: "Java Spring Boot Microservices" },
-      { id: "caching", label: "Redis Caching & Queue servers" }
-    ]
+      { id: "caching", label: "Redis Caching & Queue servers" },
+    ],
   },
   Mobile: {
     knowledgeOptions: [
       { id: "react_native_basics", label: "React Native UI Components" },
       { id: "expo_basics", label: "Expo framework CLI & SDKs" },
-      { id: "mobile_flexbox", label: "Flexbox layout scaling rules" }
+      { id: "mobile_flexbox", label: "Flexbox layout scaling rules" },
     ],
     masterOptions: [
       { id: "navigation", label: "Advanced React Navigation (Stacks, Tabs)" },
       { id: "hardware_apis", label: "Hardware APIs (GPS, Camera, Sensors)" },
       { id: "native_bridges", label: "Kotlin & Swift Native Bridges" },
-      { id: "deployment", label: "App Store & Play Store deployment" }
-    ]
+      { id: "deployment", label: "App Store & Play Store deployment" },
+    ],
   },
   AI: {
     knowledgeOptions: [
       { id: "python_basics", label: "Python language structure & modules" },
       { id: "pandas_numpy", label: "Pandas & Numpy data preprocessing" },
-      { id: "basic_stats", label: "Probability & basic statistics math" }
+      { id: "basic_stats", label: "Probability & basic statistics math" },
     ],
     masterOptions: [
       { id: "pytorch", label: "Deep Learning (Neural Networks, PyTorch)" },
       { id: "transformers_nlp", label: "Natural Language Processing & LLMs" },
       { id: "mlops", label: "MLOps pipelines & AI model deployment" },
-      { id: "llm_finetuning", label: "Fine-tuning & Retrieval (RAG)" }
-    ]
-  }
+      { id: "llm_finetuning", label: "Fine-tuning & Retrieval (RAG)" },
+    ],
+  },
 };
 
 const DOMAIN_OPTIONS = [
   { id: "Frontend", label: "Frontend & Web Development" },
   { id: "Backend", label: "Backend Systems & Database Design" },
   { id: "Mobile", label: "Mobile Apps & Cross-Platform UI" },
-  { id: "AI", label: "Artificial Intelligence & Data Science" }
+  { id: "AI", label: "Artificial Intelligence & Data Science" },
 ];
 
 const SUB_COURSES = {
@@ -164,7 +183,7 @@ const SUB_COURSES = {
     { id: "state_management", label: "Manage scalable client state with Redux/Zustand" },
     { id: "ssr_nextjs", label: "Deploy SEO-friendly Next.js server components" },
     { id: "tailwind_styling", label: "Apply styling frameworks using Tailwind CSS" },
-    { id: "performance", label: "Audit, profile, and optimize Core Web Vitals" }
+    { id: "performance", label: "Audit, profile, and optimize Core Web Vitals" },
   ],
   Backend: [
     { id: "node_basics", label: "Build REST APIs with Node.js & Express" },
@@ -172,7 +191,7 @@ const SUB_COURSES = {
     { id: "db_prisma", label: "Manage database relations using Prisma ORM" },
     { id: "docker", label: "Deploy isolated containers with Docker & Kubernetes" },
     { id: "microservices", label: "Build enterprise Spring Boot Microservices" },
-    { id: "caching", label: "Configure high-throughput Redis Caching layers" }
+    { id: "caching", label: "Configure high-throughput Redis Caching layers" },
   ],
   Mobile: [
     { id: "react_native_basics", label: "Build native UI screens with React Native" },
@@ -180,7 +199,7 @@ const SUB_COURSES = {
     { id: "navigation", label: "Configure app screen mapping & tab navigation" },
     { id: "hardware_apis", label: "Integrate device hardware (Camera, GPS, Sensors)" },
     { id: "native_bridges", label: "Create Kotlin & Swift Native Platform Bridges" },
-    { id: "deployment", label: "Deploy builds to App Store & Google Play" }
+    { id: "deployment", label: "Deploy builds to App Store & Google Play" },
   ],
   AI: [
     { id: "python_basics", label: "Master Python programming syntax & packages" },
@@ -189,8 +208,8 @@ const SUB_COURSES = {
     { id: "pytorch", label: "Train deep learning neural networks with PyTorch" },
     { id: "transformers_nlp", label: "Build Natural Language Processing models" },
     { id: "mlops", label: "Automate model deployment pipelines with MLOps" },
-    { id: "llm_finetuning", label: "Fine-tune Generative AI models & LLMs" }
-  ]
+    { id: "llm_finetuning", label: "Fine-tune Generative AI models & LLMs" },
+  ],
 };
 
 function CustomDropdown({
@@ -219,14 +238,21 @@ function CustomDropdown({
       <TouchableOpacity
         activeOpacity={0.8}
         onPress={() => setIsOpen(!isOpen)}
-        style={[
-          styles.dropdownTrigger,
-          isOpen && { borderColor: themeColor }
-        ]}
+        style={[styles.dropdownTrigger, isOpen && { borderColor: themeColor }]}
       >
         <View style={styles.dropdownTriggerLeft}>
-          <BootstrapIcon name={icon} size={14} color={selectedOption ? themeColor : "#64748b"} style={{ marginRight: 8 }} />
-          <Text style={[styles.dropdownTriggerText, selectedOption ? styles.dropdownSelectedText : styles.dropdownPlaceholderText]}>
+          <BootstrapIcon
+            name={icon}
+            size={14}
+            color={selectedOption ? themeColor : "#64748b"}
+            style={{ marginRight: 8 }}
+          />
+          <Text
+            style={[
+              styles.dropdownTriggerText,
+              selectedOption ? styles.dropdownSelectedText : styles.dropdownPlaceholderText,
+            ]}
+          >
             {selectedOption ? selectedOption.label : placeholder}
           </Text>
         </View>
@@ -248,18 +274,18 @@ function CustomDropdown({
                 style={[
                   styles.dropdownOptionItem,
                   isSelected && { backgroundColor: `${themeColor}14` },
-                  index === options.length - 1 && { borderBottomWidth: 0 }
+                  index === options.length - 1 && { borderBottomWidth: 0 },
                 ]}
               >
-                <Text style={[
-                  styles.dropdownOptionText,
-                  isSelected && { color: themeColor, fontWeight: "700" }
-                ]}>
+                <Text
+                  style={[
+                    styles.dropdownOptionText,
+                    isSelected && { color: themeColor, fontWeight: "700" },
+                  ]}
+                >
                   {opt.label}
                 </Text>
-                {isSelected && (
-                  <BootstrapIcon name="check" size={14} color={themeColor} />
-                )}
+                {isSelected && <BootstrapIcon name="check" size={14} color={themeColor} />}
               </TouchableOpacity>
             );
           })}
@@ -271,7 +297,7 @@ function CustomDropdown({
 
 export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
   const store = useDashboardStore();
-  
+
   // Multi-step state
   const [step, setStep] = useState<number>(1);
 
@@ -293,7 +319,9 @@ export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
       setLevel(store.surveyAnswers.proficiency || "Beginner");
       setHours(store.surveyAnswers.learningHours || 5);
       setExistingKnowledge(store.surveyAnswers.existingKnowledge || []);
-      setTargetGoal(store.surveyAnswers.targetLearningGoal || (SUB_COURSES[focusDom]?.[0]?.id || "react_basics"));
+      setTargetGoal(
+        store.surveyAnswers.targetLearningGoal || SUB_COURSES[focusDom]?.[0]?.id || "react_basics",
+      );
     }
   }, [visible, store.surveyAnswers]);
 
@@ -305,8 +333,8 @@ export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
   };
 
   const handleToggleKnowledge = (id: string) => {
-    setExistingKnowledge((prev) => 
-      prev.includes(id) ? prev.filter((k) => k !== id) : [...prev, id]
+    setExistingKnowledge((prev) =>
+      prev.includes(id) ? prev.filter((k) => k !== id) : [...prev, id],
     );
   };
 
@@ -316,7 +344,7 @@ export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
       proficiency: level,
       learningHours: hours,
       existingKnowledge,
-      targetLearningGoal: targetGoal || undefined
+      targetLearningGoal: targetGoal || undefined,
     };
     store.submitSurvey(answers);
     setStep(1);
@@ -332,7 +360,7 @@ export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
         proficiency: level,
         learningHours: hours,
         existingKnowledge,
-        targetLearningGoal: targetGoal || undefined
+        targetLearningGoal: targetGoal || undefined,
       });
     }
     setStep(1);
@@ -377,14 +405,22 @@ export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
               </Text>
             </View>
             <Text style={styles.headerTitle}>
-              {isResurvey ? "Re-evaluate Your Learning Goals" : step === 1 ? "Customize Your Pathway" : step === 2 ? "Your Knowledge & Target" : "Configure Time Commitment"}
+              {isResurvey
+                ? "Re-evaluate Your Learning Goals"
+                : step === 1
+                  ? "Customize Your Pathway"
+                  : step === 2
+                    ? "Your Knowledge & Target"
+                    : "Configure Time Commitment"}
             </Text>
             <Text style={styles.headerDesc}>
-              {isResurvey 
+              {isResurvey
                 ? "Let's update your focus to optimize your daily AI recommendation feeds."
-                : step === 1 ? "Tell us your primary engineering domain and coding experience level."
-                : step === 2 ? `Help us personalize suggestions based on your existing ${domain} skills.`
-                : "Decide how much time you'd like to devote to these lessons."}
+                : step === 1
+                  ? "Tell us your primary engineering domain and coding experience level."
+                  : step === 2
+                    ? `Help us personalize suggestions based on your existing ${domain} skills.`
+                    : "Decide how much time you'd like to devote to these lessons."}
             </Text>
           </LinearGradient>
 
@@ -418,8 +454,16 @@ export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
                   <View style={styles.tierContainer}>
                     {[
                       { id: "Beginner", label: "Beginner", desc: "Starting out, no experience" },
-                      { id: "Intermediate", label: "Intermediate", desc: "Worked on projects, know core syntax" },
-                      { id: "Advanced", label: "Advanced", desc: "Senior developer building architectures" }
+                      {
+                        id: "Intermediate",
+                        label: "Intermediate",
+                        desc: "Worked on projects, know core syntax",
+                      },
+                      {
+                        id: "Advanced",
+                        label: "Advanced",
+                        desc: "Senior developer building architectures",
+                      },
                     ].map((item) => {
                       const isSelected = level === item.id;
                       return (
@@ -428,19 +472,29 @@ export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
                           activeOpacity={0.8}
                           onPress={() => setLevel(item.id as any)}
                           style={[
-                            styles.tierCard, 
-                            isSelected && { borderColor: currentColors.primary, backgroundColor: `${currentColors.primary}14` }
+                            styles.tierCard,
+                            isSelected && {
+                              borderColor: currentColors.primary,
+                              backgroundColor: `${currentColors.primary}14`,
+                            },
                           ]}
                         >
-                          <View style={[
-                            styles.radioDot, 
-                            isSelected && { borderColor: currentColors.primary, backgroundColor: currentColors.primary }
-                          ]} />
+                          <View
+                            style={[
+                              styles.radioDot,
+                              isSelected && {
+                                borderColor: currentColors.primary,
+                                backgroundColor: currentColors.primary,
+                              },
+                            ]}
+                          />
                           <View style={styles.tierTextColumn}>
-                            <Text style={[
-                              styles.tierLabel, 
-                              isSelected && { color: currentColors.primary, fontWeight: "700" }
-                            ]}>
+                            <Text
+                              style={[
+                                styles.tierLabel,
+                                isSelected && { color: currentColors.primary, fontWeight: "700" },
+                              ]}
+                            >
                               {item.label}
                             </Text>
                             <Text style={styles.tierDesc}>{item.desc}</Text>
@@ -467,21 +521,33 @@ export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
                           activeOpacity={0.8}
                           onPress={() => handleToggleKnowledge(item.id)}
                           style={[
-                            styles.tierCard, 
-                            isChecked && { borderColor: currentColors.primary, backgroundColor: `${currentColors.primary}14` }
+                            styles.tierCard,
+                            isChecked && {
+                              borderColor: currentColors.primary,
+                              backgroundColor: `${currentColors.primary}14`,
+                            },
                           ]}
                         >
-                          <View style={[
-                            styles.checkbox, 
-                            isChecked && { borderColor: currentColors.primary, backgroundColor: currentColors.primary }
-                          ]}>
-                            {isChecked && <BootstrapIcon name="check-lg" size={10} color="#ffffff" />}
+                          <View
+                            style={[
+                              styles.checkbox,
+                              isChecked && {
+                                borderColor: currentColors.primary,
+                                backgroundColor: currentColors.primary,
+                              },
+                            ]}
+                          >
+                            {isChecked && (
+                              <BootstrapIcon name="check-lg" size={10} color="#ffffff" />
+                            )}
                           </View>
                           <View style={styles.tierTextColumn}>
-                            <Text style={[
-                              styles.tierLabel, 
-                              isChecked && { color: currentColors.primary, fontWeight: "700" }
-                            ]}>
+                            <Text
+                              style={[
+                                styles.tierLabel,
+                                isChecked && { color: currentColors.primary, fontWeight: "700" },
+                              ]}
+                            >
                               {item.label}
                             </Text>
                           </View>
@@ -502,7 +568,7 @@ export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
                     {[
                       { val: 2, label: "2 Hrs / wk" },
                       { val: 5, label: "5 Hrs / wk" },
-                      { val: 10, label: "10+ Hrs / wk" }
+                      { val: 10, label: "10+ Hrs / wk" },
                     ].map((item) => {
                       const isSelected = hours === item.val;
                       return (
@@ -511,14 +577,19 @@ export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
                           activeOpacity={0.8}
                           onPress={() => setHours(item.val)}
                           style={[
-                            styles.hourPill, 
-                            isSelected && { borderColor: currentColors.primary, backgroundColor: `${currentColors.primary}14` }
+                            styles.hourPill,
+                            isSelected && {
+                              borderColor: currentColors.primary,
+                              backgroundColor: `${currentColors.primary}14`,
+                            },
                           ]}
                         >
-                          <Text style={[
-                            styles.hourText, 
-                            isSelected && { color: currentColors.primary, fontWeight: "700" }
-                          ]}>
+                          <Text
+                            style={[
+                              styles.hourText,
+                              isSelected && { color: currentColors.primary, fontWeight: "700" },
+                            ]}
+                          >
                             {item.label}
                           </Text>
                         </TouchableOpacity>
@@ -533,29 +604,30 @@ export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
           {/* Action Row */}
           <View style={styles.footerRow}>
             {step > 1 ? (
-              <TouchableOpacity 
-                activeOpacity={0.8} 
-                onPress={handleBack} 
-                style={styles.backButton}
-              >
-                <BootstrapIcon name="arrow-left" size={14} color="#64748b" style={{ marginRight: 6 }} />
+              <TouchableOpacity activeOpacity={0.8} onPress={handleBack} style={styles.backButton}>
+                <BootstrapIcon
+                  name="arrow-left"
+                  size={14}
+                  color="#64748b"
+                  style={{ marginRight: 6 }}
+                />
                 <Text style={styles.backText}>Back</Text>
               </TouchableOpacity>
             ) : isResurvey ? (
-              <TouchableOpacity 
-                activeOpacity={0.8} 
-                onPress={store.skipResurvey} 
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={store.skipResurvey}
                 style={styles.skipButton}
               >
                 <BootstrapIcon name="x-lg" size={12} color="#475569" style={{ marginRight: 6 }} />
                 <Text style={styles.skipText}>Skip</Text>
               </TouchableOpacity>
             ) : null}
-            
-            <TouchableOpacity 
-              activeOpacity={0.85} 
-              onPress={handleNext} 
-              style={[styles.submitButton, (step === 1 && !isResurvey) && { width: "100%", flex: 1 }]}
+
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={handleNext}
+              style={[styles.submitButton, step === 1 && !isResurvey && { width: "100%", flex: 1 }]}
             >
               <LinearGradient
                 colors={currentGradient}
@@ -567,7 +639,11 @@ export function SurveyModal({ visible, isResurvey = false }: SurveyModalProps) {
                   {step === 3 ? (isResurvey ? "Apply Settings" : "Start Learning") : "Continue"}
                 </Text>
                 <View style={{ position: "absolute", right: 20 }}>
-                  <BootstrapIcon name={step === 3 ? "check-lg" : "arrow-right"} size={14} color="#ffffff" />
+                  <BootstrapIcon
+                    name={step === 3 ? "check-lg" : "arrow-right"}
+                    size={14}
+                    color="#ffffff"
+                  />
                 </View>
               </LinearGradient>
             </TouchableOpacity>
@@ -588,8 +664,8 @@ const styles = StyleSheet.create({
     ...Platform.select({
       web: {
         backdropFilter: "blur(8px)",
-      }
-    })
+      },
+    }),
   },
   modalCard: {
     width: "100%",

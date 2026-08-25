@@ -1,5 +1,18 @@
 import React from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Linking, Platform, Modal, Alert, Image, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Dimensions,
+  Linking,
+  Platform,
+  Modal,
+  Alert,
+  Image,
+  ActivityIndicator,
+} from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigate } from "@tanstack/react-router";
@@ -9,26 +22,36 @@ import { supabase } from "../../lib/supabase";
 import { fetchDBCourses } from "../../lib/supabase-db";
 import { BootstrapIcon } from "../ui/BootstrapIcon";
 
-
-
 const COURSE_IMAGES: Record<string, string> = {
-  "Frontend": "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=400&auto=format&fit=crop",
-  "Backend": "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&auto=format&fit=crop",
-  "Mobile": "https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=400&auto=format&fit=crop",
-  "AI": "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=400&auto=format&fit=crop",
-  "Web Basics": "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=400&auto=format&fit=crop",
-  "JS Core": "https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?w=400&auto=format&fit=crop",
-  "React Framework": "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400&auto=format&fit=crop",
-  "Cross-Platform": "https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=400&auto=format&fit=crop",
-  "Python Dev": "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&auto=format&fit=crop",
-  "Databases": "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?w=400&auto=format&fit=crop",
+  Frontend:
+    "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=400&auto=format&fit=crop",
+  Backend: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&auto=format&fit=crop",
+  Mobile: "https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=400&auto=format&fit=crop",
+  AI: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=400&auto=format&fit=crop",
+  "Web Basics":
+    "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=400&auto=format&fit=crop",
+  "JS Core":
+    "https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?w=400&auto=format&fit=crop",
+  "React Framework":
+    "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400&auto=format&fit=crop",
+  "Cross-Platform":
+    "https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=400&auto=format&fit=crop",
+  "Python Dev":
+    "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&auto=format&fit=crop",
+  Databases: "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?w=400&auto=format&fit=crop",
 };
 
 function getCourseImage(subject: string, title: string): string {
   if (COURSE_IMAGES[subject]) return COURSE_IMAGES[subject];
   if (title.toLowerCase().includes("react")) return COURSE_IMAGES["React Framework"];
-  if (title.toLowerCase().includes("python") || title.toLowerCase().includes("numpy")) return COURSE_IMAGES["Python Dev"];
-  if (title.toLowerCase().includes("db") || title.toLowerCase().includes("sql") || title.toLowerCase().includes("postgres")) return COURSE_IMAGES["Databases"];
+  if (title.toLowerCase().includes("python") || title.toLowerCase().includes("numpy"))
+    return COURSE_IMAGES["Python Dev"];
+  if (
+    title.toLowerCase().includes("db") ||
+    title.toLowerCase().includes("sql") ||
+    title.toLowerCase().includes("postgres")
+  )
+    return COURSE_IMAGES["Databases"];
   return "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=400&auto=format&fit=crop";
 }
 
@@ -41,7 +64,7 @@ export function ContinueLearning() {
   } catch (e) {
     // Fail-safe
   }
-  
+
   const allCourses = store.recommendations?.courses || [];
   const enrolled = store.enrolledCourses || [];
   const suggested = store.suggestedCourses || [];
@@ -59,9 +82,7 @@ export function ContinueLearning() {
   const [modalTab, setModalTab] = React.useState<"my" | "all">("my");
 
   const modalCourses = allCourses;
-  const listToRender = modalTab === "my"
-    ? enrolled
-    : modalCourses;
+  const listToRender = modalTab === "my" ? enrolled : modalCourses;
 
   const handleOpenAllCourses = () => {
     setShowAllCoursesModal(true);
@@ -76,22 +97,39 @@ export function ContinueLearning() {
           <Text style={[styles.viewAll, { color: currentColors.primary }]}>View all</Text>
         </TouchableOpacity>
       </View>
-      <ScrollView 
-        horizontal 
+      <ScrollView
+        horizontal
         showsHorizontalScrollIndicator={true}
         contentContainerStyle={styles.scrollContainer}
       >
         {enrolled.length === 0 ? (
-          <View style={[styles.emptyEnrolledCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
-            <BootstrapIcon name="book" size={24} color={currentColors.subtext} style={{ marginBottom: 6 }} />
-            <Text style={[styles.emptyEnrolledTitle, { color: currentColors.text }]}>No Enrolled Courses</Text>
-            <Text style={[styles.emptyEnrolledText, { color: currentColors.subtext }]}>Select a suggested course below and click Enroll to start learning!</Text>
+          <View
+            style={[
+              styles.emptyEnrolledCard,
+              { backgroundColor: currentColors.card, borderColor: currentColors.border },
+            ]}
+          >
+            <BootstrapIcon
+              name="book"
+              size={24}
+              color={currentColors.subtext}
+              style={{ marginBottom: 6 }}
+            />
+            <Text style={[styles.emptyEnrolledTitle, { color: currentColors.text }]}>
+              No Enrolled Courses
+            </Text>
+            <Text style={[styles.emptyEnrolledText, { color: currentColors.subtext }]}>
+              Select a suggested course below and click Enroll to start learning!
+            </Text>
           </View>
         ) : (
           enrolled.map((c) => (
-            <TouchableOpacity 
-              key={c.title} 
-              style={[styles.card, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}
+            <TouchableOpacity
+              key={c.title}
+              style={[
+                styles.card,
+                { backgroundColor: currentColors.card, borderColor: currentColors.border },
+              ]}
               activeOpacity={0.9}
               onPress={() => {
                 if (Platform.OS === "web") {
@@ -104,12 +142,12 @@ export function ContinueLearning() {
               <View style={styles.cardHeader}>
                 <Image
                   source={{ uri: getCourseImage(c.subject, c.title) }}
-                  style={StyleSheet.absoluteFillObject}
+                  style={StyleSheet.absoluteFill}
                   resizeMode="cover"
                 />
                 <LinearGradient
                   colors={["rgba(15, 23, 42, 0.45)", "rgba(15, 23, 42, 0.1)"]}
-                  style={StyleSheet.absoluteFillObject}
+                  style={StyleSheet.absoluteFill}
                 />
                 <View style={styles.badgeRow}>
                   <View style={styles.subjectBadge}>
@@ -131,14 +169,20 @@ export function ContinueLearning() {
                   <BootstrapIcon name="clock" size={12} color={currentColors.subtext} />
                   <Text style={[styles.metaText, { color: currentColors.subtext }]}>{c.time}</Text>
                   <View style={[styles.dot, { backgroundColor: currentColors.border }]} />
-                  <Text style={[styles.metaText, { color: currentColors.subtext }]}>{c.difficulty}</Text>
+                  <Text style={[styles.metaText, { color: currentColors.subtext }]}>
+                    {c.difficulty}
+                  </Text>
                 </View>
-                <Text style={[styles.courseTitle, { color: currentColors.text }]} numberOfLines={2}>{c.title}</Text>
+                <Text style={[styles.courseTitle, { color: currentColors.text }]} numberOfLines={2}>
+                  {c.title}
+                </Text>
                 <View style={styles.progressRow}>
                   <View style={[styles.progressTrack, { backgroundColor: currentColors.divider }]}>
                     <View style={[styles.progressBar, { width: `${c.progress}%` }]} />
                   </View>
-                  <Text style={[styles.progressText, { color: currentColors.primary }]}>{c.progress}%</Text>
+                  <Text style={[styles.progressText, { color: currentColors.primary }]}>
+                    {c.progress}%
+                  </Text>
                 </View>
               </View>
             </TouchableOpacity>
@@ -152,22 +196,28 @@ export function ContinueLearning() {
           <View style={styles.header}>
             <Text style={[styles.title, { color: currentColors.text }]}>Suggested Courses</Text>
           </View>
-          <ScrollView 
-            horizontal 
+          <ScrollView
+            horizontal
             showsHorizontalScrollIndicator={true}
             contentContainerStyle={styles.scrollContainer}
           >
             {suggested.map((c) => (
-              <View key={c.title} style={[styles.card, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
+              <View
+                key={c.title}
+                style={[
+                  styles.card,
+                  { backgroundColor: currentColors.card, borderColor: currentColors.border },
+                ]}
+              >
                 <View style={styles.cardHeader}>
                   <Image
                     source={{ uri: getCourseImage(c.subject, c.title) }}
-                    style={StyleSheet.absoluteFillObject}
+                    style={StyleSheet.absoluteFill}
                     resizeMode="cover"
                   />
                   <LinearGradient
                     colors={["rgba(15, 23, 42, 0.45)", "rgba(15, 23, 42, 0.1)"]}
-                    style={StyleSheet.absoluteFillObject}
+                    style={StyleSheet.absoluteFill}
                   />
                   <View style={styles.badgeRow}>
                     <View style={styles.subjectBadge}>
@@ -184,12 +234,21 @@ export function ContinueLearning() {
                 <View style={[styles.cardBody, { backgroundColor: currentColors.card }]}>
                   <View style={styles.metaRow}>
                     <BootstrapIcon name="clock" size={12} color={currentColors.subtext} />
-                    <Text style={[styles.metaText, { color: currentColors.subtext }]}>{c.time}</Text>
+                    <Text style={[styles.metaText, { color: currentColors.subtext }]}>
+                      {c.time}
+                    </Text>
                     <View style={[styles.dot, { backgroundColor: currentColors.border }]} />
-                    <Text style={[styles.metaText, { color: currentColors.subtext }]}>{c.difficulty}</Text>
+                    <Text style={[styles.metaText, { color: currentColors.subtext }]}>
+                      {c.difficulty}
+                    </Text>
                   </View>
-                  <Text style={[styles.courseTitle, { color: currentColors.text }]} numberOfLines={2}>{c.title}</Text>
-                  
+                  <Text
+                    style={[styles.courseTitle, { color: currentColors.text }]}
+                    numberOfLines={2}
+                  >
+                    {c.title}
+                  </Text>
+
                   <TouchableOpacity
                     style={styles.enrollBtn}
                     activeOpacity={0.8}
@@ -197,11 +256,19 @@ export function ContinueLearning() {
                       const idOrTitle = c.id || c.title;
                       if (idOrTitle) {
                         store.enrollInCourse(idOrTitle);
-                        Alert.alert("Enrolled Successfully!", `You have enrolled in "${c.title}". It is now in your Continue Learning panel.`);
+                        Alert.alert(
+                          "Enrolled Successfully!",
+                          `You have enrolled in "${c.title}". It is now in your Continue Learning panel.`,
+                        );
                       }
                     }}
                   >
-                    <BootstrapIcon name="plus-circle" size={14} color="#ffffff" style={{ marginRight: 6 }} />
+                    <BootstrapIcon
+                      name="plus-circle"
+                      size={14}
+                      color="#ffffff"
+                      style={{ marginRight: 6 }}
+                    />
                     <Text style={styles.enrollBtnText}>Enroll Course</Text>
                   </TouchableOpacity>
                 </View>
@@ -221,39 +288,64 @@ export function ContinueLearning() {
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { backgroundColor: currentColors.card }]}>
             <View style={[styles.modalHeader, { borderBottomColor: currentColors.divider }]}>
-              <Text style={[styles.modalTitle, { color: currentColors.text }]}>{store.surveyAnswers?.focusDomain || "Mobile"} Pathway Courses</Text>
-              <TouchableOpacity onPress={() => setShowAllCoursesModal(false)} style={styles.closeButton}>
+              <Text style={[styles.modalTitle, { color: currentColors.text }]}>
+                {store.surveyAnswers?.focusDomain || "Mobile"} Pathway Courses
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowAllCoursesModal(false)}
+                style={styles.closeButton}
+              >
                 <BootstrapIcon name="x" size={20} color={currentColors.subtext} />
               </TouchableOpacity>
             </View>
 
             {/* Modal Tabs Toggles */}
             <View style={[styles.modalTabs, { borderBottomColor: currentColors.divider }]}>
-              <TouchableOpacity 
-                style={[styles.modalTabBtn, modalTab === "my" && styles.modalTabBtnActive]} 
+              <TouchableOpacity
+                style={[styles.modalTabBtn, modalTab === "my" && styles.modalTabBtnActive]}
                 onPress={() => setModalTab("my")}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.modalTabBtnText, { color: modalTab === "my" ? "#6366f1" : currentColors.subtext }]}>
+                <Text
+                  style={[
+                    styles.modalTabBtnText,
+                    { color: modalTab === "my" ? "#6366f1" : currentColors.subtext },
+                  ]}
+                >
                   My Courses ({enrolled.length})
                 </Text>
               </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.modalTabBtn, modalTab === "all" && styles.modalTabBtnActive]} 
+              <TouchableOpacity
+                style={[styles.modalTabBtn, modalTab === "all" && styles.modalTabBtnActive]}
                 onPress={() => setModalTab("all")}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.modalTabBtnText, { color: modalTab === "all" ? "#6366f1" : currentColors.subtext }]}>
+                <Text
+                  style={[
+                    styles.modalTabBtnText,
+                    { color: modalTab === "all" ? "#6366f1" : currentColors.subtext },
+                  ]}
+                >
                   Explore All ({modalCourses.length})
                 </Text>
               </TouchableOpacity>
             </View>
 
-            <ScrollView contentContainerStyle={styles.modalList} showsVerticalScrollIndicator={false}>
+            <ScrollView
+              contentContainerStyle={styles.modalList}
+              showsVerticalScrollIndicator={false}
+            >
               {listToRender.length === 0 ? (
                 <View style={styles.modalEmptyState}>
-                  <BootstrapIcon name="book" size={40} color={currentColors.subtext} style={{ marginBottom: 12 }} />
-                  <Text style={[styles.modalEmptyText, { color: currentColors.text }]}>No active courses yet</Text>
+                  <BootstrapIcon
+                    name="book"
+                    size={40}
+                    color={currentColors.subtext}
+                    style={{ marginBottom: 12 }}
+                  />
+                  <Text style={[styles.modalEmptyText, { color: currentColors.text }]}>
+                    No active courses yet
+                  </Text>
                   <Text style={[styles.modalEmptySubText, { color: currentColors.subtext }]}>
                     You haven't started any lessons. Switch to "Explore All" to begin your pathway!
                   </Text>
@@ -262,10 +354,19 @@ export function ContinueLearning() {
                 listToRender.map((c) => (
                   <TouchableOpacity
                     key={c.title}
-                    style={[styles.modalCard, { backgroundColor: currentColors.background, borderColor: currentColors.border }]}
+                    style={[
+                      styles.modalCard,
+                      {
+                        backgroundColor: currentColors.background,
+                        borderColor: currentColors.border,
+                      },
+                    ]}
                     onPress={() => {
-                      if (!enrolled.some(ec => ec.title === c.title)) {
-                        Alert.alert("Enroll Required", "Please click the 'Enroll' button to add this course to your learning pathway first.");
+                      if (!enrolled.some((ec) => ec.title === c.title)) {
+                        Alert.alert(
+                          "Enroll Required",
+                          "Please click the 'Enroll' button to add this course to your learning pathway first.",
+                        );
                         return;
                       }
                       setShowAllCoursesModal(false);
@@ -280,41 +381,60 @@ export function ContinueLearning() {
                     <View style={styles.modalCardGradient}>
                       <Image
                         source={{ uri: getCourseImage(c.subject, c.title) }}
-                        style={StyleSheet.absoluteFillObject}
+                        style={StyleSheet.absoluteFill}
                         resizeMode="cover"
                       />
                       <LinearGradient
                         colors={["rgba(15, 23, 42, 0.5)", "rgba(15, 23, 42, 0.1)"]}
-                        style={StyleSheet.absoluteFillObject}
+                        style={StyleSheet.absoluteFill}
                       />
                       <View style={styles.modalCardLeft}>
                         <View style={styles.badge}>
                           <Text style={styles.badgeText}>{c.difficulty || "Beginner"}</Text>
                         </View>
                         <Text style={[styles.modalCardTitle, { color: "#ffffff" }]}>{c.title}</Text>
-                        <View style={{ flexDirection: "row", alignItems: "center", gap: 12, marginTop: 4 }}>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 12,
+                            marginTop: 4,
+                          }}
+                        >
                           <Text style={styles.modalCardDuration}>
-                            <BootstrapIcon name="clock" size={12} color="#ffffffaa" /> {c.time || "10 hrs"}
+                            <BootstrapIcon name="clock" size={12} color="#ffffffaa" />{" "}
+                            {c.time || "10 hrs"}
                           </Text>
                           {c.progress > 0 && (
-                            <Text style={[styles.modalCardDuration, { fontWeight: "700", color: "#2dd4bf" }]}>
+                            <Text
+                              style={[
+                                styles.modalCardDuration,
+                                { fontWeight: "700", color: "#2dd4bf" },
+                              ]}
+                            >
                               Progress: {c.progress}%
                             </Text>
                           )}
                         </View>
                       </View>
                       <View style={styles.modalCardRight}>
-                        {enrolled.some(ec => ec.title === c.title) ? (
+                        {enrolled.some((ec) => ec.title === c.title) ? (
                           <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
                             <TouchableOpacity
-                              style={[styles.modalEnrollBtn, { backgroundColor: "#ef4444", minWidth: 60 }]}
+                              style={[
+                                styles.modalEnrollBtn,
+                                { backgroundColor: "#ef4444", minWidth: 60 },
+                              ]}
                               activeOpacity={0.8}
                               onPress={(e) => {
                                 e.stopPropagation();
                                 const idOrTitle = c.id || c.title;
                                 if (idOrTitle) {
                                   (store as any).unenrollFromCourse(idOrTitle);
-                                  Alert.alert("Unenrolled", `You have unenrolled from "${c.title}".`);
+                                  Alert.alert(
+                                    "Unenrolled",
+                                    `You have unenrolled from "${c.title}".`,
+                                  );
                                 }
                               }}
                             >
@@ -331,7 +451,10 @@ export function ContinueLearning() {
                               const idOrTitle = c.id || c.title;
                               if (idOrTitle) {
                                 store.enrollInCourse(idOrTitle);
-                                Alert.alert("Enrolled Successfully!", `You have enrolled in "${c.title}". It is now in your Continue Learning panel.`);
+                                Alert.alert(
+                                  "Enrolled Successfully!",
+                                  `You have enrolled in "${c.title}". It is now in your Continue Learning panel.`,
+                                );
                               }
                             }}
                           >
@@ -517,8 +640,8 @@ const styles = StyleSheet.create({
     ...Platform.select({
       web: {
         boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3)",
-      }
-    })
+      },
+    }),
   },
   videoHeader: {
     flexDirection: "row",

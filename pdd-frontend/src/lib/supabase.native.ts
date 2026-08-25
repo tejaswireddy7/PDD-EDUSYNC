@@ -14,7 +14,9 @@ const supabaseAnonKey =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtoZWVpaWlycHNpZnRnY2RzYmxyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMDU0OTIsImV4cCI6MjA5NDY4MTQ5Mn0.d-WeGt2LV183hew8mOQx3HOZj_cYJlUdm3iNuXbHRUg";
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn("Missing Supabase environment variables. Authentication will not work until they are set.");
+  console.warn(
+    "Missing Supabase environment variables. Authentication will not work until they are set.",
+  );
 }
 
 let supabaseStorage: any = undefined;
@@ -35,6 +37,6 @@ export const supabase = createClient(
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: false,
-    }
-  }
+    },
+  },
 );

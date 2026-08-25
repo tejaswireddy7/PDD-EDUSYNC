@@ -1,5 +1,14 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Modal, Alert, ScrollView, Switch } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Modal,
+  Alert,
+  ScrollView,
+  Switch,
+} from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useDashboardStore, themeColors } from "../../lib/store";
@@ -19,7 +28,7 @@ export function SideRail() {
   const showXpGuide = () => {
     Alert.alert(
       "XP Calculation Guide",
-      "XP represents your Experience Points. You earn it by completing learning tasks:\n\n• Complete Course Assignments: +800 XP\n• Pass Section Video Quizzes: +50 XP\n• Reviewing Syllabus Resources: +10 XP\n• Daily Consecutive Streaks: +100 XP consecutive bonus"
+      "XP represents your Experience Points. You earn it by completing learning tasks:\n\n• Complete Course Assignments: +800 XP\n• Pass Section Video Quizzes: +50 XP\n• Reviewing Syllabus Resources: +10 XP\n• Daily Consecutive Streaks: +100 XP consecutive bonus",
     );
   };
 
@@ -28,7 +37,8 @@ export function SideRail() {
     { title: `${focusDomain} Lab Exercise`, day: "Thu", date: "06", color: "mint" },
     { title: `Comprehensive ${focusDomain} Exam`, day: "Sat", date: "08", color: "primary" },
   ];
-  const [upcoming, setUpcoming] = useState<Array<{ title: string; day: string; date: string; color: string }>>(initialUpcoming);
+  const [upcoming, setUpcoming] =
+    useState<Array<{ title: string; day: string; date: string; color: string }>>(initialUpcoming);
 
   React.useEffect(() => {
     setUpcoming([
@@ -48,29 +58,66 @@ export function SideRail() {
   return (
     <View style={styles.container}>
       {/* Upcoming Assessments Widget */}
-      <View style={[styles.card, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
+      <View
+        style={[
+          styles.card,
+          { backgroundColor: currentColors.card, borderColor: currentColors.border },
+        ]}
+      >
         <View style={styles.cardHeader}>
           <View style={[styles.iconBox, styles.bgPrimary]}>
             <BootstrapIcon name="calendar" size={16} color="#6366f1" />
           </View>
-          <Text style={[styles.cardTitle, { color: currentColors.text }]}>Upcoming Assessments</Text>
+          <Text style={[styles.cardTitle, { color: currentColors.text }]}>
+            Upcoming Assessments
+          </Text>
         </View>
         <View style={styles.upcomingList}>
           {upcoming.map((u) => {
             const isPrimary = u.color === "primary";
             return (
               <View key={u.title} style={styles.upcomingItem}>
-                <View style={[styles.dateBox, isDark ? { backgroundColor: currentColors.divider } : (isPrimary ? styles.bgPrimaryLight : styles.bgMintLight)]}>
-                  <Text style={[styles.dayText, isDark ? { color: currentColors.subtext } : (isPrimary ? styles.textPrimary : styles.textMint)]}>
+                <View
+                  style={[
+                    styles.dateBox,
+                    isDark
+                      ? { backgroundColor: currentColors.divider }
+                      : isPrimary
+                        ? styles.bgPrimaryLight
+                        : styles.bgMintLight,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.dayText,
+                      isDark
+                        ? { color: currentColors.subtext }
+                        : isPrimary
+                          ? styles.textPrimary
+                          : styles.textMint,
+                    ]}
+                  >
                     {u.day}
                   </Text>
-                  <Text style={[styles.dateText, { color: isDark ? currentColors.text : (isPrimary ? "#6366f1" : "#0d9488") }]}>
+                  <Text
+                    style={[
+                      styles.dateText,
+                      { color: isDark ? currentColors.text : isPrimary ? "#6366f1" : "#0d9488" },
+                    ]}
+                  >
                     {u.date}
                   </Text>
                 </View>
                 <View style={styles.upcomingDetails}>
-                  <Text style={[styles.upcomingTitle, { color: currentColors.text }]} numberOfLines={1}>{u.title}</Text>
-                  <Text style={[styles.upcomingMeta, { color: currentColors.subtext }]}>9:00 AM • 45 min</Text>
+                  <Text
+                    style={[styles.upcomingTitle, { color: currentColors.text }]}
+                    numberOfLines={1}
+                  >
+                    {u.title}
+                  </Text>
+                  <Text style={[styles.upcomingMeta, { color: currentColors.subtext }]}>
+                    9:00 AM • 45 min
+                  </Text>
                 </View>
               </View>
             );
@@ -88,16 +135,23 @@ export function SideRail() {
         >
           <View style={styles.xpHeader}>
             <BootstrapIcon name="award" size={22} color="#ffffff" />
-            <Text style={styles.xpTitle}>{store.user?.xp !== undefined ? `${store.user.xp.toLocaleString()} XP` : "0 XP"} this week</Text>
+            <Text style={styles.xpTitle}>
+              {store.user?.xp !== undefined ? `${store.user.xp.toLocaleString()} XP` : "0 XP"} this
+              week
+            </Text>
           </View>
           <Text style={styles.xpSubtitle}>
-            {store.user?.xp && store.user.xp > 0 ? "You're in the top 8% of learners" : "Start learning to rank on the leaderboard!"}
+            {store.user?.xp && store.user.xp > 0
+              ? "You're in the top 8% of learners"
+              : "Start learning to rank on the leaderboard!"}
           </Text>
           <View style={styles.badgesRow}>
             {badges.map((b) => (
               <View key={b.name} style={styles.badgeCol}>
                 <Text style={styles.badgeEmoji}>{b.emoji}</Text>
-                <Text style={styles.badgeName} numberOfLines={2}>{b.name}</Text>
+                <Text style={styles.badgeName} numberOfLines={2}>
+                  {b.name}
+                </Text>
               </View>
             ))}
           </View>
@@ -105,19 +159,28 @@ export function SideRail() {
       </TouchableOpacity>
 
       {/* Offline sync widget */}
-      <TouchableOpacity 
-        activeOpacity={0.85} 
-        onPress={() => setShowCacheManager(true)} 
-        style={[styles.card, styles.offlineCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={() => setShowCacheManager(true)}
+        style={[
+          styles.card,
+          styles.offlineCard,
+          { backgroundColor: currentColors.card, borderColor: currentColors.border },
+        ]}
       >
         <View style={styles.offlineLeft}>
           <View style={[styles.iconBoxBeige, isDark && { backgroundColor: currentColors.divider }]}>
-            <BootstrapIcon name="wifi-off" size={18} color={isDark ? currentColors.text : "#78350f"} />
+            <BootstrapIcon
+              name="wifi-off"
+              size={18}
+              color={isDark ? currentColors.text : "#78350f"}
+            />
           </View>
           <View style={styles.offlineText}>
             <Text style={[styles.offlineTitle, { color: currentColors.text }]}>Low-data mode</Text>
             <Text style={[styles.offlineSubtitle, { color: currentColors.subtext }]}>
-              {store.lowDataMode ? "Active" : "Disabled"} • {store.cachedMaterials.length} files cached
+              {store.lowDataMode ? "Active" : "Disabled"} • {store.cachedMaterials.length} files
+              cached
             </Text>
           </View>
         </View>
@@ -136,7 +199,9 @@ export function SideRail() {
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { backgroundColor: currentColors.card }]}>
             <View style={[styles.modalHeader, { borderBottomColor: currentColors.divider }]}>
-              <Text style={[styles.modalTitle, { color: currentColors.text }]}>Offline Cache Settings</Text>
+              <Text style={[styles.modalTitle, { color: currentColors.text }]}>
+                Offline Cache Settings
+              </Text>
               <TouchableOpacity onPress={() => setShowCacheManager(false)} style={styles.closeBtn}>
                 <BootstrapIcon name="x" size={18} color={currentColors.subtext} />
               </TouchableOpacity>
@@ -144,15 +209,15 @@ export function SideRail() {
 
             <View style={styles.cacheSettingRow}>
               <View style={{ flex: 1, marginRight: 8 }}>
-                <Text style={[styles.cacheSettingLabel, { color: currentColors.text }]}>Enable Low-Data Caching</Text>
+                <Text style={[styles.cacheSettingLabel, { color: currentColors.text }]}>
+                  Enable Low-Data Caching
+                </Text>
                 <Text style={[styles.cacheSettingDesc, { color: currentColors.subtext }]}>
-                  Stores all course documents, syllabus guides, and notes locally when opened so you don't need internet to revisit them.
+                  Stores all course documents, syllabus guides, and notes locally when opened so you
+                  don't need internet to revisit them.
                 </Text>
               </View>
-              <Switch
-                value={store.lowDataMode}
-                onValueChange={store.toggleLowDataMode}
-              />
+              <Switch value={store.lowDataMode} onValueChange={store.toggleLowDataMode} />
             </View>
 
             <Text style={[styles.cachedSectionHeader, { color: currentColors.text }]}>
@@ -161,12 +226,22 @@ export function SideRail() {
 
             <ScrollView style={styles.cachedListScroll} showsVerticalScrollIndicator={true}>
               {store.cachedMaterials.length === 0 ? (
-                <Text style={[styles.emptyCacheText, { color: currentColors.subtext }]}>No items stored in local cache memory yet.</Text>
+                <Text style={[styles.emptyCacheText, { color: currentColors.subtext }]}>
+                  No items stored in local cache memory yet.
+                </Text>
               ) : (
                 store.cachedMaterials.map((m, idx) => (
                   <View key={idx} style={styles.cachedItemRow}>
-                    <BootstrapIcon name="file-text" size={12} color="#6366f1" style={{ marginRight: 6 }} />
-                    <Text style={[styles.cachedItemText, { color: currentColors.text }]} numberOfLines={1}>
+                    <BootstrapIcon
+                      name="file-text"
+                      size={12}
+                      color="#6366f1"
+                      style={{ marginRight: 6 }}
+                    />
+                    <Text
+                      style={[styles.cachedItemText, { color: currentColors.text }]}
+                      numberOfLines={1}
+                    >
                       {m.title}
                     </Text>
                     <Text style={[styles.cachedItemDate, { color: currentColors.subtext }]}>
@@ -178,8 +253,8 @@ export function SideRail() {
             </ScrollView>
 
             <View style={styles.cacheFooterActions}>
-              <TouchableOpacity 
-                style={[styles.cacheActionBtn, { backgroundColor: "#ef4444" }]} 
+              <TouchableOpacity
+                style={[styles.cacheActionBtn, { backgroundColor: "#ef4444" }]}
                 onPress={() => {
                   store.clearOfflineCache();
                   Alert.alert("Success", "Offline cache memory has been cleared successfully.");
@@ -188,10 +263,13 @@ export function SideRail() {
                 <Text style={styles.cacheActionBtnText}>Clear Cache</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity 
-                style={[styles.cacheActionBtn, { backgroundColor: "#6366f1" }]} 
+              <TouchableOpacity
+                style={[styles.cacheActionBtn, { backgroundColor: "#6366f1" }]}
                 onPress={() => {
-                  Alert.alert("Cache Synced", "All focus domain learning documents are synced locally for offline revisit.");
+                  Alert.alert(
+                    "Cache Synced",
+                    "All focus domain learning documents are synced locally for offline revisit.",
+                  );
                 }}
               >
                 <Text style={styles.cacheActionBtnText}>Sync Domain</Text>

@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 import { BootstrapIcon } from "../components/ui/BootstrapIcon";
 import { Header } from "../components/skillora/Header";
 import { LinearGradient } from "expo-linear-gradient";
@@ -27,11 +35,13 @@ export default function EvaluationScreen() {
   useEffect(() => {
     async function checkSubmissions() {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (user) {
           const { fetchDBAssessments } = await import("../lib/supabase-db");
           const dbAssessments = await fetchDBAssessments(user.id, focusDomain, userProficiency);
-          
+
           const submitted = dbAssessments.filter((a) => a.status === "submitted");
           setSubmittedAssessments(submitted);
 
@@ -40,11 +50,11 @@ export default function EvaluationScreen() {
 
           if (store.submittedAssessmentId) {
             setSubmittedId(store.submittedAssessmentId);
-            const currentAsset = dbAssessments.find(a => a.id === store.submittedAssessmentId);
+            const currentAsset = dbAssessments.find((a) => a.id === store.submittedAssessmentId);
             if (currentAsset) {
               setSubmittedTitle(currentAsset.title);
             }
-            const idx = sorted.findIndex(a => a.id === store.submittedAssessmentId);
+            const idx = sorted.findIndex((a) => a.id === store.submittedAssessmentId);
             setSubmissionNumber(idx !== -1 ? idx + 1 : 1);
           } else {
             const firstSubmitted = submitted[0];
@@ -67,14 +77,16 @@ export default function EvaluationScreen() {
     async function loadEvaluation() {
       setLoading(true);
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (user) {
           const dbEval = await fetchDBEvaluation(
             user.id,
             submittedId!,
             submittedTitle,
             focusDomain,
-            userProficiency
+            userProficiency,
           );
           setEvaluation(dbEval);
         }
@@ -87,27 +99,44 @@ export default function EvaluationScreen() {
     loadEvaluation();
   }, [submittedId, focusDomain, userProficiency, submittedTitle]);
 
-
-
   if (!submittedId) {
     return (
-      <ScrollView style={[styles.container, { backgroundColor: currentColors.background }]} contentContainerStyle={[styles.contentContainer, { flexGrow: 1 }]} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={[styles.container, { backgroundColor: currentColors.background }]}
+        contentContainerStyle={[styles.contentContainer, { flexGrow: 1 }]}
+        showsVerticalScrollIndicator={false}
+      >
         <Header hideSurvey={true} />
-        <View style={[styles.emptyStateCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
+        <View
+          style={[
+            styles.emptyStateCard,
+            { backgroundColor: currentColors.card, borderColor: currentColors.border },
+          ]}
+        >
           <LinearGradient
-            colors={isDark ? ["rgba(129, 140, 248, 0.05)", "rgba(20, 184, 166, 0.05)"] : ["rgba(99, 102, 241, 0.05)", "rgba(13, 148, 136, 0.05)"]}
+            colors={
+              isDark
+                ? ["rgba(129, 140, 248, 0.05)", "rgba(20, 184, 166, 0.05)"]
+                : ["rgba(99, 102, 241, 0.05)", "rgba(13, 148, 136, 0.05)"]
+            }
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.emptyStateGradient}
           >
-            <View style={[styles.emptyIconCircle, isDark && { backgroundColor: currentColors.divider }]}>
+            <View
+              style={[styles.emptyIconCircle, isDark && { backgroundColor: currentColors.divider }]}
+            >
               <BootstrapIcon name="award" size={32} color="#6366f1" />
             </View>
-            <Text style={[styles.emptyTitle, { color: currentColors.text }]}>AI Gradebook Ready</Text>
+            <Text style={[styles.emptyTitle, { color: currentColors.text }]}>
+              AI Gradebook Ready
+            </Text>
             <Text style={[styles.emptyDescription, { color: currentColors.subtext }]}>
-              You haven't submitted any projects or coding challenges for evaluation yet! 
-              Once you upload your first task under the <Text style={{fontWeight: "700", color: "#6366f1"}}>Assessments</Text> tab, 
-              your dynamically calculated scores, verified mentor feedback, transparent rubrics, and response metrics will display right here.
+              You haven't submitted any projects or coding challenges for evaluation yet! Once you
+              upload your first task under the{" "}
+              <Text style={{ fontWeight: "700", color: "#6366f1" }}>Assessments</Text> tab, your
+              dynamically calculated scores, verified mentor feedback, transparent rubrics, and
+              response metrics will display right here.
             </Text>
           </LinearGradient>
         </View>
@@ -117,7 +146,14 @@ export default function EvaluationScreen() {
 
   if (loading || !evaluation) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: currentColors.background }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: currentColors.background,
+        }}
+      >
         <ActivityIndicator size="large" color="#6366f1" />
       </View>
     );
@@ -130,14 +166,29 @@ export default function EvaluationScreen() {
   const max = rubric.reduce((s, r) => s + r.max, 0);
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: currentColors.background }]} contentContainerStyle={[styles.contentContainer, { flexGrow: 1 }]} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={[styles.container, { backgroundColor: currentColors.background }]}
+      contentContainerStyle={[styles.contentContainer, { flexGrow: 1 }]}
+      showsVerticalScrollIndicator={false}
+    >
       <Header hideSurvey={true} />
 
       {/* Selector Row */}
       {submittedAssessments.length > 1 && (
-        <View style={[styles.selectorCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
-          <Text style={[styles.selectorLabel, { color: currentColors.subtext }]}>Select Assessment Analytics:</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.selectorScroll}>
+        <View
+          style={[
+            styles.selectorCard,
+            { backgroundColor: currentColors.card, borderColor: currentColors.border },
+          ]}
+        >
+          <Text style={[styles.selectorLabel, { color: currentColors.subtext }]}>
+            Select Assessment Analytics:
+          </Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.selectorScroll}
+          >
             {submittedAssessments.map((a, idx) => {
               const isSel = a.id === submittedId;
               return (
@@ -148,9 +199,22 @@ export default function EvaluationScreen() {
                     setSubmittedTitle(a.title);
                     setSubmissionNumber(idx + 1);
                   }}
-                  style={[styles.selectorPill, { borderColor: currentColors.border, backgroundColor: isDark ? currentColors.divider : "#f1f5f9" }, isSel && styles.activeSelectorPill]}
+                  style={[
+                    styles.selectorPill,
+                    {
+                      borderColor: currentColors.border,
+                      backgroundColor: isDark ? currentColors.divider : "#f1f5f9",
+                    },
+                    isSel && styles.activeSelectorPill,
+                  ]}
                 >
-                  <Text style={[styles.selectorPillText, { color: currentColors.subtext }, isSel && styles.activeSelectorPillText]}>
+                  <Text
+                    style={[
+                      styles.selectorPillText,
+                      { color: currentColors.subtext },
+                      isSel && styles.activeSelectorPillText,
+                    ]}
+                  >
                     {a.title}
                   </Text>
                 </TouchableOpacity>
@@ -161,12 +225,21 @@ export default function EvaluationScreen() {
       )}
 
       {/* Main Score Overview Card */}
-      <View style={[styles.scoreCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
+      <View
+        style={[
+          styles.scoreCard,
+          { backgroundColor: currentColors.card, borderColor: currentColors.border },
+        ]}
+      >
         <View style={styles.scoreHeader}>
           <View style={styles.scoreMeta}>
-            <Text style={[styles.scoreMetaText, { color: currentColors.subtext }]}>Evaluated · Submission #{submissionNumber}</Text>
+            <Text style={[styles.scoreMetaText, { color: currentColors.subtext }]}>
+              Evaluated · Submission #{submissionNumber}
+            </Text>
             <Text style={[styles.scoreTitle, { color: currentColors.text }]}>{submittedTitle}</Text>
-            <Text style={[styles.scoreMentor, { color: currentColors.subtext }]}>Reviewed by AI · {evaluation.mentor}</Text>
+            <Text style={[styles.scoreMentor, { color: currentColors.subtext }]}>
+              Reviewed by AI · {evaluation.mentor}
+            </Text>
           </View>
           <View style={styles.scoreContainer}>
             <View style={styles.scoreIconWrapper}>
@@ -174,18 +247,21 @@ export default function EvaluationScreen() {
             </View>
             <View style={styles.scoreTextWrapper}>
               <Text style={styles.scoreNumberText}>
-                {total}<Text style={[styles.scoreMaxText, { color: currentColors.subtext }]}>/{max}</Text>
+                {total}
+                <Text style={[styles.scoreMaxText, { color: currentColors.subtext }]}>/{max}</Text>
               </Text>
               <Text style={styles.scoreLabelText}>Score</Text>
             </View>
           </View>
         </View>
-        
+
         {/* AI generated feedback banner */}
         <View style={styles.feedbackBanner}>
           <BootstrapIcon name="sparkles" size={16} color="#6366f1" style={styles.feedbackIcon} />
           <View style={styles.feedbackDetails}>
-            <Text style={[styles.feedbackTitle, { color: currentColors.text }]}>AI-generated feedback</Text>
+            <Text style={[styles.feedbackTitle, { color: currentColors.text }]}>
+              AI-generated feedback
+            </Text>
             <Text style={[styles.feedbackText, { color: currentColors.subtext }]}>
               {evaluation.ai_feedback}
             </Text>
@@ -193,16 +269,23 @@ export default function EvaluationScreen() {
         </View>
 
         {/* Rubric list */}
-        <Text style={[styles.rubricTitle, { color: currentColors.text }]}>Transparent rubric breakdown</Text>
+        <Text style={[styles.rubricTitle, { color: currentColors.text }]}>
+          Transparent rubric breakdown
+        </Text>
         <View style={styles.rubricList}>
           {rubric.map((r) => {
             const ratio = r.score / r.max;
-            const barColors: [string, string] = ratio >= 0.8 ? ["#0d9488", "#2dd4bf"] : ["#6366f1", "#818cf8"];
+            const barColors: [string, string] =
+              ratio >= 0.8 ? ["#0d9488", "#2dd4bf"] : ["#6366f1", "#818cf8"];
             return (
               <View key={r.criterion} style={styles.rubricRow}>
                 <View style={styles.rubricLabelRow}>
-                  <Text style={[styles.rubricLabel, { color: currentColors.text }]}>{r.criterion}</Text>
-                  <Text style={[styles.rubricScore, { color: currentColors.text }]}>{r.score}/{r.max}</Text>
+                  <Text style={[styles.rubricLabel, { color: currentColors.text }]}>
+                    {r.criterion}
+                  </Text>
+                  <Text style={[styles.rubricScore, { color: currentColors.text }]}>
+                    {r.score}/{r.max}
+                  </Text>
                 </View>
                 <View style={[styles.rubricBarTrack, { backgroundColor: currentColors.divider }]}>
                   <LinearGradient
@@ -220,19 +303,30 @@ export default function EvaluationScreen() {
       </View>
 
       {/* Answer Sheet Card */}
-      <View style={[styles.rubricBreakdownCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
+      <View
+        style={[
+          styles.rubricBreakdownCard,
+          { backgroundColor: currentColors.card, borderColor: currentColors.border },
+        ]}
+      >
         <View style={styles.cardHeader}>
           <BootstrapIcon name="file-earmark-text" size={16} color="#6366f1" />
-          <Text style={[styles.cardTitle, { color: currentColors.text }]}>Evaluated Answer Sheet</Text>
+          <Text style={[styles.cardTitle, { color: currentColors.text }]}>
+            Evaluated Answer Sheet
+          </Text>
         </View>
-        
+
         <View style={styles.answersList}>
           {dynamicAnswers.map((a, i) => {
             const isCorrect = a.verdict === "correct";
             const isPartial = a.verdict === "partial";
             const icon = isCorrect ? "check-circle" : isPartial ? "exclamation-circle" : "x-circle";
             const tintColor = isCorrect ? "#0d9488" : isPartial ? "#6366f1" : "#ef4444";
-            const bgClass = isCorrect ? styles.bgMint : isPartial ? styles.bgPrimary : styles.bgDestructive;
+            const bgClass = isCorrect
+              ? styles.bgMint
+              : isPartial
+                ? styles.bgPrimary
+                : styles.bgDestructive;
 
             return (
               <View key={i} style={[styles.answerItem, { borderColor: currentColors.border }]}>
@@ -243,11 +337,22 @@ export default function EvaluationScreen() {
                   <Text style={[styles.answerQuestion, { color: currentColors.text }]}>{a.q}</Text>
                   <Text style={[styles.answerMarks, { color: currentColors.text }]}>{a.marks}</Text>
                 </View>
-                <Text style={[styles.answerText, { color: currentColors.subtext }]}>{a.student}</Text>
+                <Text style={[styles.answerText, { color: currentColors.subtext }]}>
+                  {a.student}
+                </Text>
                 {"feedback" in a && a.feedback && (
-                  <View style={[styles.answerFeedbackBox, { backgroundColor: isDark ? currentColors.divider : "#f8fafc" }]}>
-                    <Text style={[styles.feedbackLabel, { color: currentColors.text }]}>Feedback: </Text>
-                    <Text style={[styles.feedbackVal, { color: currentColors.subtext }]}>{a.feedback}</Text>
+                  <View
+                    style={[
+                      styles.answerFeedbackBox,
+                      { backgroundColor: isDark ? currentColors.divider : "#f8fafc" },
+                    ]}
+                  >
+                    <Text style={[styles.feedbackLabel, { color: currentColors.text }]}>
+                      Feedback:{" "}
+                    </Text>
+                    <Text style={[styles.feedbackVal, { color: currentColors.subtext }]}>
+                      {a.feedback}
+                    </Text>
                   </View>
                 )}
               </View>

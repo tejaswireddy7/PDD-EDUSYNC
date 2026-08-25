@@ -1,12 +1,17 @@
 import { useState, useEffect } from "react";
-import { getRecommendations, RecommendationOutput, SurveyAnswers, UserProfile } from "./recommender";
+import {
+  getRecommendations,
+  RecommendationOutput,
+  SurveyAnswers,
+  UserProfile,
+} from "./recommender";
 import { recommendationsApi, surveyApi } from "./api";
 import { supabase } from "./supabase";
-import { 
-  fetchDBProfile, 
-  saveDBProfile, 
-  fetchDBCourses, 
-  fetchDBResources, 
+import {
+  fetchDBProfile,
+  saveDBProfile,
+  fetchDBCourses,
+  fetchDBResources,
   fetchDBMilestones,
   fetchDBAssessments,
   updateDBAssessment,
@@ -14,7 +19,7 @@ import {
   saveDBCourseProgress,
   fetchDBUserEnrollments,
   enrollInDBCourse,
-  saveDBRecommendations
+  saveDBRecommendations,
 } from "./supabase-db";
 
 function parseDeadline(deadline: string): Date | null {
@@ -23,17 +28,33 @@ function parseDeadline(deadline: string): Date | null {
     const parts = cleaned.split(" ");
     const monthStr = parts[1];
     const dayStr = parts[2];
-    
+
     if (monthStr && dayStr) {
-      const monthNames = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
-      const cleanMonth = monthStr.replace(/[^a-zA-Z]/g, "").toLowerCase().substring(0, 3);
+      const monthNames = [
+        "jan",
+        "feb",
+        "mar",
+        "apr",
+        "may",
+        "jun",
+        "jul",
+        "aug",
+        "sep",
+        "oct",
+        "nov",
+        "dec",
+      ];
+      const cleanMonth = monthStr
+        .replace(/[^a-zA-Z]/g, "")
+        .toLowerCase()
+        .substring(0, 3);
       const monthIdx = monthNames.indexOf(cleanMonth);
       const cleanDay = parseInt(dayStr.replace(/[^0-9]/g, ""));
-      
+
       if (monthIdx !== -1 && !isNaN(cleanDay)) {
         const timePart = parts[3] || "12:00";
         const ampmPart = parts[4] || "AM";
-        
+
         let hours = 12;
         let minutes = 0;
         const timeMatch = timePart.match(/(\d+):(\d+)/);
@@ -41,13 +62,13 @@ function parseDeadline(deadline: string): Date | null {
           hours = parseInt(timeMatch[1]);
           minutes = parseInt(timeMatch[2]);
         }
-        
+
         if (ampmPart.toLowerCase().includes("pm") && hours < 12) {
           hours += 12;
         } else if (ampmPart.toLowerCase().includes("am") && hours === 12) {
           hours = 0;
         }
-        
+
         return new Date(2026, monthIdx, cleanDay, hours, minutes);
       }
     }
@@ -55,7 +76,11 @@ function parseDeadline(deadline: string): Date | null {
   return null;
 }
 
-async function getNextAssessmentTitle(userId: string, focusDomain: string, proficiency: string): Promise<string> {
+async function getNextAssessmentTitle(
+  userId: string,
+  focusDomain: string,
+  proficiency: string,
+): Promise<string> {
   try {
     const assessments = await fetchDBAssessments(userId, focusDomain, proficiency);
     const nextAss = assessments.find((a) => a.status !== "submitted");
@@ -65,9 +90,12 @@ async function getNextAssessmentTitle(userId: string, focusDomain: string, profi
   } catch (err) {
     console.warn("Failed to get dynamic next assessment title:", err);
   }
-  return focusDomain === "Frontend" ? "React State & Styling Quiz"
-    : focusDomain === "Backend" ? "Dockerized Server Setup Challenge"
-      : focusDomain === "Mobile" ? "App Navigation & Screen Mapping"
+  return focusDomain === "Frontend"
+    ? "React State & Styling Quiz"
+    : focusDomain === "Backend"
+      ? "Dockerized Server Setup Challenge"
+      : focusDomain === "Mobile"
+        ? "App Navigation & Screen Mapping"
         : "PyTorch Data Loading & Gradient descent";
 }
 
@@ -123,7 +151,7 @@ if (typeof window !== "undefined" && window.localStorage) {
   const savedToken = window.localStorage.getItem("supabase_session_token");
   const savedTheme = (window.localStorage.getItem("app-theme") || "light") as "light" | "dark";
   state.appTheme = savedTheme;
-  
+
   // Apply theme immediately
   if (typeof document !== "undefined") {
     const root = document.documentElement;
@@ -147,16 +175,19 @@ if (typeof window !== "undefined" && window.localStorage) {
           id: lastUserId,
           name: parsedProfile.name || "Student",
           email: parsedProfile.email || "",
-          registeredAt: parsedProfile.created_at ? new Date(parsedProfile.created_at).getTime() : Date.now(),
+          registeredAt: parsedProfile.created_at
+            ? new Date(parsedProfile.created_at).getTime()
+            : Date.now(),
           streak: parsedProfile.streak ?? 1,
           coursesCompleted: parsedProfile.courses_completed ?? 0,
           careerFitScore: parsedProfile.career_fit_score ?? 0,
-          xp: parsedProfile.xp ?? 0
+          xp: parsedProfile.xp ?? 0,
         };
         state.token = savedToken;
-        state.surveyCompleted = window.localStorage.getItem(`survey_completed_${parsedProfile.email}`) === "true";
+        state.surveyCompleted =
+          window.localStorage.getItem(`survey_completed_${parsedProfile.email}`) === "true";
         state.isLoadingProfile = false;
-        
+
         const savedAnswers = window.localStorage.getItem(`survey_answers_${parsedProfile.email}`);
         if (savedAnswers) {
           state.surveyAnswers = JSON.parse(savedAnswers);
@@ -179,7 +210,9 @@ if (typeof window !== "undefined" && window.localStorage) {
 const listeners = new Set<() => void>();
 
 // Centralized state updater
-function updateState(updater: Partial<DashboardState> | ((prev: DashboardState) => Partial<DashboardState>)) {
+function updateState(
+  updater: Partial<DashboardState> | ((prev: DashboardState) => Partial<DashboardState>),
+) {
   const next = typeof updater === "function" ? updater(state) : updater;
   state = { ...state, ...next };
 
@@ -196,14 +229,14 @@ export function useDashboardStore() {
     if (typeof window !== "undefined" && window.localStorage) {
       const cached = window.localStorage.getItem("cached_materials");
       const mode = window.localStorage.getItem("low_data_mode");
-      
+
       let hydratedUser = null;
       let hydratedToken = null;
       let hydratedSurveyCompleted = false;
       let hydratedSurveyAnswers = null;
       let hydratedEnrolled = [];
       let hydratedSuggested = [];
-      
+
       const lastUserId = window.localStorage.getItem("last_logged_in_user_id");
       const savedToken = window.localStorage.getItem("supabase_session_token");
       if (lastUserId && savedToken) {
@@ -215,16 +248,21 @@ export function useDashboardStore() {
               id: lastUserId,
               name: parsedProfile.name || "Student",
               email: parsedProfile.email || "",
-              registeredAt: parsedProfile.created_at ? new Date(parsedProfile.created_at).getTime() : Date.now(),
+              registeredAt: parsedProfile.created_at
+                ? new Date(parsedProfile.created_at).getTime()
+                : Date.now(),
               streak: parsedProfile.streak ?? 1,
               coursesCompleted: parsedProfile.courses_completed ?? 0,
               careerFitScore: parsedProfile.career_fit_score ?? 0,
-              xp: parsedProfile.xp ?? 0
+              xp: parsedProfile.xp ?? 0,
             };
             hydratedToken = savedToken;
-            hydratedSurveyCompleted = window.localStorage.getItem(`survey_completed_${parsedProfile.email}`) === "true";
-            
-            const savedAnswers = window.localStorage.getItem(`survey_answers_${parsedProfile.email}`);
+            hydratedSurveyCompleted =
+              window.localStorage.getItem(`survey_completed_${parsedProfile.email}`) === "true";
+
+            const savedAnswers = window.localStorage.getItem(
+              `survey_answers_${parsedProfile.email}`,
+            );
             if (savedAnswers) {
               hydratedSurveyAnswers = JSON.parse(savedAnswers);
             }
@@ -233,12 +271,16 @@ export function useDashboardStore() {
 
         const savedEnrolled = window.localStorage.getItem(`enrolled_courses_${lastUserId}`);
         if (savedEnrolled) {
-          try { hydratedEnrolled = JSON.parse(savedEnrolled); } catch (e) {}
+          try {
+            hydratedEnrolled = JSON.parse(savedEnrolled);
+          } catch (e) {}
         }
 
         const savedSuggested = window.localStorage.getItem(`suggested_courses_${lastUserId}`);
         if (savedSuggested) {
-          try { hydratedSuggested = JSON.parse(savedSuggested); } catch (e) {}
+          try {
+            hydratedSuggested = JSON.parse(savedSuggested);
+          } catch (e) {}
         }
       }
 
@@ -248,13 +290,15 @@ export function useDashboardStore() {
         appTheme: (window.localStorage.getItem("app-theme") || "light") as any,
         enrolledCourses: hydratedEnrolled.length > 0 ? hydratedEnrolled : state.enrolledCourses,
         suggestedCourses: hydratedSuggested.length > 0 ? hydratedSuggested : state.suggestedCourses,
-        ...(hydratedUser ? {
-          user: hydratedUser,
-          token: hydratedToken,
-          surveyCompleted: hydratedSurveyCompleted,
-          surveyAnswers: hydratedSurveyAnswers,
-          isLoadingProfile: false
-        } : {})
+        ...(hydratedUser
+          ? {
+              user: hydratedUser,
+              token: hydratedToken,
+              surveyCompleted: hydratedSurveyCompleted,
+              surveyAnswers: hydratedSurveyAnswers,
+              isLoadingProfile: false,
+            }
+          : {}),
       });
     }
 
@@ -266,71 +310,95 @@ export function useDashboardStore() {
   }, []);
 
   const recommendedCourses = current.recommendations?.courses || [];
-  const allCoursesCompleted = recommendedCourses.length > 0 && recommendedCourses.every(c => c.progress === 100);
+  const allCoursesCompleted =
+    recommendedCourses.length > 0 && recommendedCourses.every((c) => c.progress === 100);
 
   const isResurveyDue =
-    current.surveyCompleted &&
-    (current.forceResurveyTriggered || allCoursesCompleted);
+    current.surveyCompleted && (current.forceResurveyTriggered || allCoursesCompleted);
 
   const applyLateAssessmentXPCheck = async () => {
     const prevUser = state.user;
     if (!prevUser) return;
-    
+
     const sessionData = await supabase.auth.getSession();
     const session = sessionData.data.session;
     const userId = session?.user?.id;
     if (!userId) return;
 
     try {
-      const assessments = await fetchDBAssessments(userId, state.surveyAnswers?.focusDomain || "Mobile", state.surveyAnswers?.proficiency || "Beginner");
+      const assessments = await fetchDBAssessments(
+        userId,
+        state.surveyAnswers?.focusDomain || "Mobile",
+        state.surveyAnswers?.proficiency || "Beginner",
+      );
       const now = new Date();
       let xpDeducted = 0;
-      
-      const updatedAssessments = await Promise.all(assessments.map(async (ass) => {
-        const dueDateStr = ass.due_date || (ass.deadline ? parseDeadline(ass.deadline)?.toISOString() : null);
-        if (ass.status !== "submitted" && dueDateStr) {
-          const dueDate = new Date(dueDateStr);
-          if (now > dueDate) {
-            const lastPenalized = ass.last_penalized_at ? new Date(ass.last_penalized_at) : dueDate;
-            const msLate = now.getTime() - lastPenalized.getTime();
-            const daysLate = Math.floor(msLate / (24 * 60 * 60 * 1000));
-            
-            if (daysLate >= 1) {
-              const penalty = daysLate * 50;
-              xpDeducted += penalty;
-              const nextPenalizedDate = new Date(lastPenalized.getTime() + daysLate * 24 * 60 * 60 * 1000).toISOString();
-              
-              await updateDBAssessment(userId, ass.id, { 
-                start_date: ass.start_date || new Date(dueDate.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-                due_date: dueDateStr,
-                last_penalized_at: nextPenalizedDate 
-              });
-              
-              return { ...ass, start_date: ass.start_date || new Date(dueDate.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString(), due_date: dueDateStr, last_penalized_at: nextPenalizedDate };
+
+      const updatedAssessments = await Promise.all(
+        assessments.map(async (ass) => {
+          const dueDateStr =
+            ass.due_date || (ass.deadline ? parseDeadline(ass.deadline)?.toISOString() : null);
+          if (ass.status !== "submitted" && dueDateStr) {
+            const dueDate = new Date(dueDateStr);
+            if (now > dueDate) {
+              const lastPenalized = ass.last_penalized_at
+                ? new Date(ass.last_penalized_at)
+                : dueDate;
+              const msLate = now.getTime() - lastPenalized.getTime();
+              const daysLate = Math.floor(msLate / (24 * 60 * 60 * 1000));
+
+              if (daysLate >= 1) {
+                const penalty = daysLate * 50;
+                xpDeducted += penalty;
+                const nextPenalizedDate = new Date(
+                  lastPenalized.getTime() + daysLate * 24 * 60 * 60 * 1000,
+                ).toISOString();
+
+                await updateDBAssessment(userId, ass.id, {
+                  start_date:
+                    ass.start_date ||
+                    new Date(dueDate.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+                  due_date: dueDateStr,
+                  last_penalized_at: nextPenalizedDate,
+                });
+
+                return {
+                  ...ass,
+                  start_date:
+                    ass.start_date ||
+                    new Date(dueDate.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+                  due_date: dueDateStr,
+                  last_penalized_at: nextPenalizedDate,
+                };
+              } else if (!ass.due_date) {
+                await updateDBAssessment(userId, ass.id, {
+                  start_date:
+                    ass.start_date ||
+                    new Date(dueDate.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+                  due_date: dueDateStr,
+                  last_penalized_at: ass.last_penalized_at || dueDateStr,
+                });
+              }
             } else if (!ass.due_date) {
               await updateDBAssessment(userId, ass.id, {
-                start_date: ass.start_date || new Date(dueDate.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+                start_date:
+                  ass.start_date ||
+                  new Date(dueDate.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString(),
                 due_date: dueDateStr,
-                last_penalized_at: ass.last_penalized_at || dueDateStr
+                last_penalized_at: ass.last_penalized_at || dueDateStr,
               });
             }
-          } else if (!ass.due_date) {
-            await updateDBAssessment(userId, ass.id, {
-              start_date: ass.start_date || new Date(dueDate.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-              due_date: dueDateStr,
-              last_penalized_at: ass.last_penalized_at || dueDateStr
-            });
           }
-        }
-        return ass;
-      }));
+          return ass;
+        }),
+      );
 
       if (xpDeducted > 0) {
         const nextXp = Math.max(0, (prevUser.xp || 0) - xpDeducted);
         const nextUser = { ...prevUser, xp: nextXp };
-        
+
         updateState({ user: nextUser });
-        
+
         if (typeof window !== "undefined" && window.localStorage) {
           const saved = window.localStorage.getItem(`user_profile_${userId}`);
           const profile = saved ? JSON.parse(saved) : {};
@@ -347,11 +415,13 @@ export function useDashboardStore() {
           streak: nextUser.streak ?? 0,
           coursesCompleted: nextUser.coursesCompleted ?? 0,
           careerFitScore: nextUser.careerFitScore ?? 0,
-          xp: nextXp
+          xp: nextXp,
         });
 
         if (typeof window !== "undefined") {
-          alert(`Oops! You have late assessments. Deducted ${xpDeducted} XP! Complete them to stop further deductions.`);
+          alert(
+            `Oops! You have late assessments. Deducted ${xpDeducted} XP! Complete them to stop further deductions.`,
+          );
         }
       }
     } catch (err) {
@@ -363,7 +433,7 @@ export function useDashboardStore() {
     ...current,
     isResurveyDue,
     applyLateAssessmentXPCheck,
-    
+
     // Action methods
     setAuth: (user: any, token: string) => {
       const userId = user.id || user.uid;
@@ -384,11 +454,11 @@ export function useDashboardStore() {
           streak: user.streak ?? 0,
           coursesCompleted: user.coursesCompleted ?? 0,
           careerFitScore: user.careerFitScore ?? 0,
-          xp: user.xp ?? 0
+          xp: user.xp ?? 0,
         },
         token,
         isRecoveringPassword: false,
-        isProfileHydrated: false
+        isProfileHydrated: false,
       });
 
       // Hydrate profile details asynchronously
@@ -398,8 +468,8 @@ export function useDashboardStore() {
           user: {
             id: userId,
             email: userEmail,
-            created_at: new Date().toISOString()
-          }
+            created_at: new Date().toISOString(),
+          },
         };
         syncProfile(userId, userEmail, userName, session);
       });
@@ -436,7 +506,7 @@ export function useDashboardStore() {
           const answers = state.surveyAnswers;
           if (answers) {
             const courses = await fetchDBCourses(answers.focusDomain, answers.proficiency);
-            
+
             let coursesWithProgress = courses;
             if (typeof window !== "undefined" && window.localStorage) {
               const email = state.user?.email || "guest";
@@ -444,9 +514,10 @@ export function useDashboardStore() {
               if (savedProgress) {
                 try {
                   const progressMap = JSON.parse(savedProgress);
-                  coursesWithProgress = courses.map(c => ({
+                  coursesWithProgress = courses.map((c) => ({
                     ...c,
-                    progress: progressMap[c.title] !== undefined ? progressMap[c.title] : c.progress
+                    progress:
+                      progressMap[c.title] !== undefined ? progressMap[c.title] : c.progress,
                   }));
                 } catch (e) {}
               }
@@ -456,7 +527,7 @@ export function useDashboardStore() {
             const enrolledTitles = new Set<string>();
             const progressMap: Record<number, number> = {};
 
-            enrollments.forEach(e => {
+            enrollments.forEach((e) => {
               if (e.courses && e.courses.title) {
                 enrolledTitles.add(e.courses.title.toLowerCase());
               }
@@ -466,46 +537,60 @@ export function useDashboardStore() {
             const enrolled: any[] = [];
             const suggested: any[] = [];
 
-            coursesWithProgress.forEach(c => {
-              const isEnrolled = enrolledTitles.has(c.title.toLowerCase()) || 
-                (c.id !== undefined ? (progressMap[c.id] !== undefined) : false);
+            coursesWithProgress.forEach((c) => {
+              const isEnrolled =
+                enrolledTitles.has(c.title.toLowerCase()) ||
+                (c.id !== undefined ? progressMap[c.id] !== undefined : false);
 
               if (isEnrolled) {
                 enrolled.push({
                   ...c,
-                  progress: c.id !== undefined && progressMap[c.id] !== undefined ? progressMap[c.id] : (c.progress || 0)
+                  progress:
+                    c.id !== undefined && progressMap[c.id] !== undefined
+                      ? progressMap[c.id]
+                      : c.progress || 0,
                 });
               } else {
                 suggested.push(c);
               }
             });
 
-            const completedCount = enrolled.filter(c => c.progress === 100).length;
+            const completedCount = enrolled.filter((c) => c.progress === 100).length;
             if (state.user) {
-              updateState({ 
-                enrolledCourses: enrolled, 
+              updateState({
+                enrolledCourses: enrolled,
                 suggestedCourses: suggested,
                 user: {
                   ...state.user,
-                  coursesCompleted: completedCount
-                }
+                  coursesCompleted: completedCount,
+                },
               });
             } else {
               updateState({ enrolledCourses: enrolled, suggestedCourses: suggested });
             }
 
             if (typeof window !== "undefined" && window.localStorage && session.user.id) {
-              window.localStorage.setItem(`enrolled_courses_${session.user.id}`, JSON.stringify(enrolled));
-              window.localStorage.setItem(`suggested_courses_${session.user.id}`, JSON.stringify(suggested));
+              window.localStorage.setItem(
+                `enrolled_courses_${session.user.id}`,
+                JSON.stringify(enrolled),
+              );
+              window.localStorage.setItem(
+                `suggested_courses_${session.user.id}`,
+                JSON.stringify(suggested),
+              );
             }
           }
         } else {
-          const target = state.suggestedCourses.find(c => 
-            typeof courseIdOrTitle === "number" ? c.id === courseIdOrTitle : c.title.toLowerCase() === courseIdOrTitle.toLowerCase()
+          const target = state.suggestedCourses.find((c) =>
+            typeof courseIdOrTitle === "number"
+              ? c.id === courseIdOrTitle
+              : c.title.toLowerCase() === courseIdOrTitle.toLowerCase(),
           );
           if (target) {
-            const updatedSuggested = state.suggestedCourses.filter(c => 
-              typeof courseIdOrTitle === "number" ? c.id !== courseIdOrTitle : c.title.toLowerCase() !== courseIdOrTitle.toLowerCase()
+            const updatedSuggested = state.suggestedCourses.filter((c) =>
+              typeof courseIdOrTitle === "number"
+                ? c.id !== courseIdOrTitle
+                : c.title.toLowerCase() !== courseIdOrTitle.toLowerCase(),
             );
             const updatedEnrolled = [...state.enrolledCourses, { ...target, progress: 0 }];
             updateState({ enrolledCourses: updatedEnrolled, suggestedCourses: updatedSuggested });
@@ -526,19 +611,22 @@ export function useDashboardStore() {
 
           if (typeof courseIdOrTitle === "number") {
             targetId = courseIdOrTitle;
-            const foundCourse = state.enrolledCourses.find(c => c.id === targetId) || 
-                                state.suggestedCourses.find(c => c.id === targetId);
+            const foundCourse =
+              state.enrolledCourses.find((c) => c.id === targetId) ||
+              state.suggestedCourses.find((c) => c.id === targetId);
             if (foundCourse) {
               courseTitle = foundCourse.title;
             }
           } else {
             courseTitle = courseIdOrTitle;
             // 1. Try to find the ID from local store state first (fast & case-insensitive)
-            const foundCourse = state.enrolledCourses.find(
-              c => c.title.toLowerCase() === courseIdOrTitle.toLowerCase()
-            ) || state.suggestedCourses.find(
-              c => c.title.toLowerCase() === courseIdOrTitle.toLowerCase()
-            );
+            const foundCourse =
+              state.enrolledCourses.find(
+                (c) => c.title.toLowerCase() === courseIdOrTitle.toLowerCase(),
+              ) ||
+              state.suggestedCourses.find(
+                (c) => c.title.toLowerCase() === courseIdOrTitle.toLowerCase(),
+              );
 
             if (foundCourse && foundCourse.id !== undefined) {
               targetId = foundCourse.id;
@@ -582,13 +670,15 @@ export function useDashboardStore() {
           // Clean up local storage cache for assessments as well
           if (typeof window !== "undefined" && window.localStorage) {
             const keys = Object.keys(window.localStorage);
-            keys.forEach(key => {
+            keys.forEach((key) => {
               if (key.startsWith(`assessments_${session.user.id}_`)) {
                 try {
                   const cachedData = JSON.parse(window.localStorage.getItem(key) || "[]");
                   const filteredData = cachedData.filter((ass: any) => {
                     const isStaleId = targetId ? ass.id.startsWith(`course_${targetId}_`) : false;
-                    const isStaleSubject = courseTitle ? (ass.subject && ass.subject.toLowerCase() === courseTitle.toLowerCase()) : false;
+                    const isStaleSubject = courseTitle
+                      ? ass.subject && ass.subject.toLowerCase() === courseTitle.toLowerCase()
+                      : false;
                     return !isStaleId && !isStaleSubject;
                   });
                   window.localStorage.setItem(key, JSON.stringify(filteredData));
@@ -602,7 +692,7 @@ export function useDashboardStore() {
           const answers = state.surveyAnswers;
           if (answers) {
             const courses = await fetchDBCourses(answers.focusDomain, answers.proficiency);
-            
+
             let coursesWithProgress = courses;
             if (typeof window !== "undefined" && window.localStorage) {
               const email = state.user?.email || "guest";
@@ -610,9 +700,10 @@ export function useDashboardStore() {
               if (savedProgress) {
                 try {
                   const progressMap = JSON.parse(savedProgress);
-                  coursesWithProgress = courses.map(c => ({
+                  coursesWithProgress = courses.map((c) => ({
                     ...c,
-                    progress: progressMap[c.title] !== undefined ? progressMap[c.title] : c.progress
+                    progress:
+                      progressMap[c.title] !== undefined ? progressMap[c.title] : c.progress,
                   }));
                 } catch (e) {}
               }
@@ -622,7 +713,7 @@ export function useDashboardStore() {
             const enrolledTitles = new Set<string>();
             const progressMap: Record<number, number> = {};
 
-            enrollments.forEach(e => {
+            enrollments.forEach((e) => {
               if (e.courses && e.courses.title) {
                 enrolledTitles.add(e.courses.title.toLowerCase());
               }
@@ -632,63 +723,87 @@ export function useDashboardStore() {
             const enrolled: any[] = [];
             const suggested: any[] = [];
 
-            coursesWithProgress.forEach(c => {
-              const isEnrolled = enrolledTitles.has(c.title.toLowerCase()) || 
-                (c.id !== undefined ? (progressMap[c.id] !== undefined) : false);
+            coursesWithProgress.forEach((c) => {
+              const isEnrolled =
+                enrolledTitles.has(c.title.toLowerCase()) ||
+                (c.id !== undefined ? progressMap[c.id] !== undefined : false);
 
               if (isEnrolled) {
                 enrolled.push({
                   ...c,
-                  progress: c.id !== undefined && progressMap[c.id] !== undefined ? progressMap[c.id] : (c.progress || 0)
+                  progress:
+                    c.id !== undefined && progressMap[c.id] !== undefined
+                      ? progressMap[c.id]
+                      : c.progress || 0,
                 });
               } else {
                 suggested.push(c);
               }
             });
 
-            const completedCount = enrolled.filter(c => c.progress === 100).length;
+            const completedCount = enrolled.filter((c) => c.progress === 100).length;
             if (state.user) {
-              updateState({ 
-                enrolledCourses: enrolled, 
+              updateState({
+                enrolledCourses: enrolled,
                 suggestedCourses: suggested,
                 user: {
                   ...state.user,
-                  coursesCompleted: completedCount
-                }
+                  coursesCompleted: completedCount,
+                },
               });
             } else {
               updateState({ enrolledCourses: enrolled, suggestedCourses: suggested });
             }
 
             if (typeof window !== "undefined" && window.localStorage && session.user.id) {
-              window.localStorage.setItem(`enrolled_courses_${session.user.id}`, JSON.stringify(enrolled));
-              window.localStorage.setItem(`suggested_courses_${session.user.id}`, JSON.stringify(suggested));
+              window.localStorage.setItem(
+                `enrolled_courses_${session.user.id}`,
+                JSON.stringify(enrolled),
+              );
+              window.localStorage.setItem(
+                `suggested_courses_${session.user.id}`,
+                JSON.stringify(suggested),
+              );
             }
           } else {
             // Fallback if survey answers are not available in authenticated session
-            const target = state.enrolledCourses.find(c => 
-              typeof courseIdOrTitle === "number" ? c.id === courseIdOrTitle : c.title.toLowerCase() === courseIdOrTitle.toLowerCase()
+            const target = state.enrolledCourses.find((c) =>
+              typeof courseIdOrTitle === "number"
+                ? c.id === courseIdOrTitle
+                : c.title.toLowerCase() === courseIdOrTitle.toLowerCase(),
             );
             if (target) {
-              const updatedEnrolled = state.enrolledCourses.filter(c => 
-                typeof courseIdOrTitle === "number" ? c.id !== courseIdOrTitle : c.title.toLowerCase() !== courseIdOrTitle.toLowerCase()
+              const updatedEnrolled = state.enrolledCourses.filter((c) =>
+                typeof courseIdOrTitle === "number"
+                  ? c.id !== courseIdOrTitle
+                  : c.title.toLowerCase() !== courseIdOrTitle.toLowerCase(),
               );
               const updatedSuggested = [...state.suggestedCourses, target];
               updateState({ enrolledCourses: updatedEnrolled, suggestedCourses: updatedSuggested });
-              
+
               if (typeof window !== "undefined" && window.localStorage) {
-                window.localStorage.setItem(`enrolled_courses_${session.user.id}`, JSON.stringify(updatedEnrolled));
-                window.localStorage.setItem(`suggested_courses_${session.user.id}`, JSON.stringify(updatedSuggested));
+                window.localStorage.setItem(
+                  `enrolled_courses_${session.user.id}`,
+                  JSON.stringify(updatedEnrolled),
+                );
+                window.localStorage.setItem(
+                  `suggested_courses_${session.user.id}`,
+                  JSON.stringify(updatedSuggested),
+                );
               }
             }
           }
         } else {
-          const target = state.enrolledCourses.find(c => 
-            typeof courseIdOrTitle === "number" ? c.id === courseIdOrTitle : c.title.toLowerCase() === courseIdOrTitle.toLowerCase()
+          const target = state.enrolledCourses.find((c) =>
+            typeof courseIdOrTitle === "number"
+              ? c.id === courseIdOrTitle
+              : c.title.toLowerCase() === courseIdOrTitle.toLowerCase(),
           );
           if (target) {
-            const updatedEnrolled = state.enrolledCourses.filter(c => 
-              typeof courseIdOrTitle === "number" ? c.id !== courseIdOrTitle : c.title.toLowerCase() !== courseIdOrTitle.toLowerCase()
+            const updatedEnrolled = state.enrolledCourses.filter((c) =>
+              typeof courseIdOrTitle === "number"
+                ? c.id !== courseIdOrTitle
+                : c.title.toLowerCase() !== courseIdOrTitle.toLowerCase(),
             );
             const updatedSuggested = [...state.suggestedCourses, target];
             updateState({ enrolledCourses: updatedEnrolled, suggestedCourses: updatedSuggested });
@@ -711,9 +826,9 @@ export function useDashboardStore() {
           if (savedProgress) {
             try {
               const progressMap = JSON.parse(savedProgress);
-              return coursesList.map(c => ({
+              return coursesList.map((c) => ({
                 ...c,
-                progress: progressMap[c.title] !== undefined ? progressMap[c.title] : c.progress
+                progress: progressMap[c.title] !== undefined ? progressMap[c.title] : c.progress,
               }));
             } catch (e) {}
           }
@@ -739,21 +854,25 @@ export function useDashboardStore() {
             const enrolledTitles = new Set<string>();
             const progressMap: Record<number, number> = {};
 
-            enrollments.forEach(e => {
+            enrollments.forEach((e) => {
               if (e.courses && e.courses.title) {
                 enrolledTitles.add(e.courses.title.toLowerCase());
               }
               progressMap[e.course_id] = e.progress;
             });
 
-            allCourses.forEach(c => {
-              const isEnrolled = enrolledTitles.has(c.title.toLowerCase()) || 
-                (c.id !== undefined ? (progressMap[c.id] !== undefined) : false);
+            allCourses.forEach((c) => {
+              const isEnrolled =
+                enrolledTitles.has(c.title.toLowerCase()) ||
+                (c.id !== undefined ? progressMap[c.id] !== undefined : false);
 
               if (isEnrolled) {
                 enrolled.push({
                   ...c,
-                  progress: c.id !== undefined && progressMap[c.id] !== undefined ? progressMap[c.id] : (c.progress || 0)
+                  progress:
+                    c.id !== undefined && progressMap[c.id] !== undefined
+                      ? progressMap[c.id]
+                      : c.progress || 0,
                 });
               } else {
                 suggested.push(c);
@@ -766,23 +885,29 @@ export function useDashboardStore() {
           }
         }
 
-        const completedCount = enrolled.filter(c => c.progress === 100).length;
+        const completedCount = enrolled.filter((c) => c.progress === 100).length;
         if (state.user) {
           updateState({
             enrolledCourses: enrolled,
             suggestedCourses: suggested,
             user: {
               ...state.user,
-              coursesCompleted: completedCount
-            }
+              coursesCompleted: completedCount,
+            },
           });
         } else {
           updateState({ enrolledCourses: enrolled, suggestedCourses: suggested });
         }
 
         if (currentUserId && typeof window !== "undefined" && window.localStorage) {
-          window.localStorage.setItem(`enrolled_courses_${currentUserId}`, JSON.stringify(enrolled));
-          window.localStorage.setItem(`suggested_courses_${currentUserId}`, JSON.stringify(suggested));
+          window.localStorage.setItem(
+            `enrolled_courses_${currentUserId}`,
+            JSON.stringify(enrolled),
+          );
+          window.localStorage.setItem(
+            `suggested_courses_${currentUserId}`,
+            JSON.stringify(suggested),
+          );
         }
       };
 
@@ -791,8 +916,11 @@ export function useDashboardStore() {
           const dbRec = await fetchDBRecommendations(userId);
           if (dbRec && dbRec.courses && dbRec.courses.length > 0) {
             const firstCourse = dbRec.courses[0];
-            const isMatching = !answers || !firstCourse || firstCourse.subject.toLowerCase() === answers.focusDomain.toLowerCase();
-            
+            const isMatching =
+              !answers ||
+              !firstCourse ||
+              firstCourse.subject.toLowerCase() === answers.focusDomain.toLowerCase();
+
             if (isMatching) {
               const coursesWithProgress = overlayProgress(dbRec.courses);
               await partitionAndSetCourses(coursesWithProgress, userId);
@@ -801,10 +929,11 @@ export function useDashboardStore() {
                   courses: coursesWithProgress,
                   resources: dbRec.resources,
                   milestones: dbRec.milestones,
-                  weeklyHoursTarget: dbRec.weeklyHoursTarget || (answers ? answers.learningHours : 5),
-                  nextAssessment: dbRec.nextAssessment
+                  weeklyHoursTarget:
+                    dbRec.weeklyHoursTarget || (answers ? answers.learningHours : 5),
+                  nextAssessment: dbRec.nextAssessment,
                 },
-                isLoadingRecommendations: false
+                isLoadingRecommendations: false,
               });
               return;
             }
@@ -824,24 +953,31 @@ export function useDashboardStore() {
             userId
               ? getNextAssessmentTitle(userId, answers.focusDomain, answers.proficiency)
               : Promise.resolve(
-                  answers.focusDomain === "Frontend" ? "React State & Styling Quiz"
-                    : answers.focusDomain === "Backend" ? "Dockerized Server Setup Challenge"
-                      : answers.focusDomain === "Mobile" ? "App Navigation & Screen Mapping"
-                        : "PyTorch Data Loading & Gradient descent"
-                )
+                  answers.focusDomain === "Frontend"
+                    ? "React State & Styling Quiz"
+                    : answers.focusDomain === "Backend"
+                      ? "Dockerized Server Setup Challenge"
+                      : answers.focusDomain === "Mobile"
+                        ? "App Navigation & Screen Mapping"
+                        : "PyTorch Data Loading & Gradient descent",
+                ),
           ]);
-          
+
           const coursesWithProgress = overlayProgress(courses);
           await partitionAndSetCourses(coursesWithProgress, userId);
           updateState({
             recommendations: {
               courses: coursesWithProgress,
-              resources: resources.map(r => ({ title: r.title, type: r.type, duration: "15 min" })),
+              resources: resources.map((r) => ({
+                title: r.title,
+                type: r.type,
+                duration: "15 min",
+              })),
               milestones,
               weeklyHoursTarget: answers.learningHours,
-              nextAssessment
+              nextAssessment,
             },
-            isLoadingRecommendations: false
+            isLoadingRecommendations: false,
           });
           return;
         } catch (e) {
@@ -854,7 +990,7 @@ export function useDashboardStore() {
       try {
         const { data, error } = await recommendationsApi.getRecommendations(current.token);
         let recData = data?.data || data;
-        
+
         if (recData?.recommendations === null || recData?.message) {
           recData = null;
         }
@@ -878,7 +1014,7 @@ export function useDashboardStore() {
           state.surveyAnswers.proficiency,
           state.surveyAnswers.learningHours,
           [],
-          state.surveyAnswers.targetLearningGoal
+          state.surveyAnswers.targetLearningGoal,
         );
         const coursesWithProgress = overlayProgress(localRecs.courses);
         await partitionAndSetCourses(coursesWithProgress, userId);
@@ -893,9 +1029,9 @@ export function useDashboardStore() {
         surveyCompleted: true,
         surveyAnswers: answers,
         lastSurveyDate: Date.now(),
-        forceResurveyTriggered: false
+        forceResurveyTriggered: false,
       });
-      
+
       if (typeof window !== "undefined" && window.localStorage) {
         const email = state.user?.email || "guest";
         window.localStorage.setItem(`survey_completed_${email}`, "true");
@@ -916,7 +1052,7 @@ export function useDashboardStore() {
           coursesCompleted: state.user?.coursesCompleted ?? 0,
           careerFitScore: state.user?.careerFitScore ?? 0,
           xp: state.user?.xp ?? 0,
-          lastSurveyDate: Date.now()
+          lastSurveyDate: Date.now(),
         });
 
         // Save local cache backup as well
@@ -924,15 +1060,18 @@ export function useDashboardStore() {
           const profileKey = `user_profile_${session.user.id}`;
           const saved = window.localStorage.getItem(profileKey);
           const cached = saved ? JSON.parse(saved) : {};
-          window.localStorage.setItem(profileKey, JSON.stringify({
-            ...cached,
-            name: state.user?.name || session.user.email?.split("@")[0],
-            email: session.user.email || "",
-            focus_domain: answers.focusDomain,
-            proficiency: answers.proficiency,
-            learning_hours: answers.learningHours,
-            last_survey_date: new Date(Date.now()).toISOString()
-          }));
+          window.localStorage.setItem(
+            profileKey,
+            JSON.stringify({
+              ...cached,
+              name: state.user?.name || session.user.email?.split("@")[0],
+              email: session.user.email || "",
+              focus_domain: answers.focusDomain,
+              proficiency: answers.proficiency,
+              learning_hours: answers.learningHours,
+              last_survey_date: new Date(Date.now()).toISOString(),
+            }),
+          );
         }
       }
 
@@ -949,13 +1088,16 @@ export function useDashboardStore() {
           session?.user
             ? getNextAssessmentTitle(session.user.id, answers.focusDomain, answers.proficiency)
             : Promise.resolve(
-                answers.focusDomain === "Frontend" ? "React State & Styling Quiz"
-                  : answers.focusDomain === "Backend" ? "Dockerized Server Setup Challenge"
-                    : answers.focusDomain === "Mobile" ? "App Navigation & Screen Mapping"
-                      : "PyTorch Data Loading & Gradient descent"
-              )
+                answers.focusDomain === "Frontend"
+                  ? "React State & Styling Quiz"
+                  : answers.focusDomain === "Backend"
+                    ? "Dockerized Server Setup Challenge"
+                    : answers.focusDomain === "Mobile"
+                      ? "App Navigation & Screen Mapping"
+                      : "PyTorch Data Loading & Gradient descent",
+              ),
         ]);
-        
+
         const overlayProgress = (coursesList: any[]) => {
           if (typeof window !== "undefined" && window.localStorage) {
             const email = state.user?.email || "guest";
@@ -963,9 +1105,9 @@ export function useDashboardStore() {
             if (savedProgress) {
               try {
                 const progressMap = JSON.parse(savedProgress);
-                return coursesList.map(c => ({
+                return coursesList.map((c) => ({
                   ...c,
-                  progress: progressMap[c.title] !== undefined ? progressMap[c.title] : c.progress
+                  progress: progressMap[c.title] !== undefined ? progressMap[c.title] : c.progress,
                 }));
               } catch (e) {}
             }
@@ -974,7 +1116,7 @@ export function useDashboardStore() {
         };
 
         const coursesWithProgress = overlayProgress(courses);
-        
+
         let enrolled: any[] = [];
         let suggested: any[] = [];
         if (session?.user?.id) {
@@ -983,21 +1125,25 @@ export function useDashboardStore() {
             const enrolledTitles = new Set<string>();
             const progressMap: Record<number, number> = {};
 
-            enrollments.forEach(e => {
+            enrollments.forEach((e) => {
               if (e.courses && e.courses.title) {
                 enrolledTitles.add(e.courses.title.toLowerCase());
               }
               progressMap[e.course_id] = e.progress;
             });
 
-            coursesWithProgress.forEach(c => {
-              const isEnrolled = enrolledTitles.has(c.title.toLowerCase()) || 
-                (c.id !== undefined ? (progressMap[c.id] !== undefined) : false);
+            coursesWithProgress.forEach((c) => {
+              const isEnrolled =
+                enrolledTitles.has(c.title.toLowerCase()) ||
+                (c.id !== undefined ? progressMap[c.id] !== undefined : false);
 
               if (isEnrolled) {
                 enrolled.push({
                   ...c,
-                  progress: c.id !== undefined && progressMap[c.id] !== undefined ? progressMap[c.id] : (c.progress || 0)
+                  progress:
+                    c.id !== undefined && progressMap[c.id] !== undefined
+                      ? progressMap[c.id]
+                      : c.progress || 0,
                 });
               } else {
                 suggested.push(c);
@@ -1015,10 +1161,10 @@ export function useDashboardStore() {
 
         const newRecs = {
           courses: coursesWithProgress,
-          resources: resources.map(r => ({ title: r.title, type: r.type, duration: "15 min" })),
+          resources: resources.map((r) => ({ title: r.title, type: r.type, duration: "15 min" })),
           milestones,
           weeklyHoursTarget: answers.learningHours,
-          nextAssessment
+          nextAssessment,
         };
 
         if (session?.user?.id) {
@@ -1029,7 +1175,7 @@ export function useDashboardStore() {
           }
         }
 
-        const completedCount = enrolled.filter(c => c.progress === 100).length;
+        const completedCount = enrolled.filter((c) => c.progress === 100).length;
         if (state.user) {
           updateState({
             recommendations: newRecs,
@@ -1037,16 +1183,16 @@ export function useDashboardStore() {
             suggestedCourses: suggested,
             user: {
               ...state.user,
-              coursesCompleted: completedCount
+              coursesCompleted: completedCount,
             },
-            isLoadingRecommendations: false
+            isLoadingRecommendations: false,
           });
         } else {
           updateState({
             recommendations: newRecs,
             enrolledCourses: enrolled,
             suggestedCourses: suggested,
-            isLoadingRecommendations: false
+            isLoadingRecommendations: false,
           });
         }
       } catch (e) {
@@ -1054,7 +1200,7 @@ export function useDashboardStore() {
         const localRecs = getRecommendations(
           answers.focusDomain,
           answers.proficiency,
-          answers.learningHours
+          answers.learningHours,
         );
         if (typeof window !== "undefined" && window.localStorage) {
           const email = state.user?.email || "guest";
@@ -1062,36 +1208,36 @@ export function useDashboardStore() {
           if (savedProgress) {
             try {
               const progressMap = JSON.parse(savedProgress);
-              localRecs.courses = localRecs.courses.map(c => ({
+              localRecs.courses = localRecs.courses.map((c) => ({
                 ...c,
-                progress: progressMap[c.title] !== undefined ? progressMap[c.title] : c.progress
+                progress: progressMap[c.title] !== undefined ? progressMap[c.title] : c.progress,
               }));
             } catch (e) {}
           }
         }
-        
+
         const localCourses = localRecs.courses;
         const enrolled: any[] = [];
         const suggested = localCourses;
 
-        const completedCount = enrolled.filter(c => c.progress === 100).length;
+        const completedCount = enrolled.filter((c) => c.progress === 100).length;
         if (state.user) {
-          updateState({ 
-            recommendations: localRecs, 
+          updateState({
+            recommendations: localRecs,
             enrolledCourses: enrolled,
             suggestedCourses: suggested,
             user: {
               ...state.user,
-              coursesCompleted: completedCount
+              coursesCompleted: completedCount,
             },
-            isLoadingRecommendations: false 
+            isLoadingRecommendations: false,
           });
         } else {
-          updateState({ 
-            recommendations: localRecs, 
+          updateState({
+            recommendations: localRecs,
             enrolledCourses: enrolled,
             suggestedCourses: suggested,
-            isLoadingRecommendations: false 
+            isLoadingRecommendations: false,
           });
         }
       }
@@ -1101,13 +1247,13 @@ export function useDashboardStore() {
       updateState({
         surveyCompleted: true,
         skippedResurveyAt: Date.now(),
-        forceResurveyTriggered: false
+        forceResurveyTriggered: false,
       });
     },
 
     triggerInstantResurvey: () => {
       updateState({
-        forceResurveyTriggered: true
+        forceResurveyTriggered: true,
       });
     },
 
@@ -1116,7 +1262,7 @@ export function useDashboardStore() {
       if (!prevUser) return;
       const nextUser = {
         ...prevUser,
-        xp: (prevUser.xp || 0) + amount
+        xp: (prevUser.xp || 0) + amount,
       };
       updateState({ user: nextUser });
       try {
@@ -1140,7 +1286,7 @@ export function useDashboardStore() {
             streak: nextUser.streak,
             coursesCompleted: nextUser.coursesCompleted,
             careerFitScore: nextUser.careerFitScore,
-            xp: nextUser.xp
+            xp: nextUser.xp,
           });
         }
       } catch (e) {
@@ -1151,35 +1297,35 @@ export function useDashboardStore() {
     completeCourse: async (courseTitle: string) => {
       const prevUser = state.user;
       if (!prevUser) return;
-      
+
       let nextRecs = state.recommendations;
       let nextEnrolled = state.enrolledCourses;
       if (nextRecs && nextRecs.courses) {
         nextRecs = {
           ...nextRecs,
-          courses: nextRecs.courses.map(c => 
-            c.title === courseTitle ? { ...c, progress: 100 } : c
-          )
+          courses: nextRecs.courses.map((c) =>
+            c.title === courseTitle ? { ...c, progress: 100 } : c,
+          ),
         };
       }
       if (nextEnrolled) {
-        nextEnrolled = nextEnrolled.map(c =>
-          c.title === courseTitle ? { ...c, progress: 100 } : c
+        nextEnrolled = nextEnrolled.map((c) =>
+          c.title === courseTitle ? { ...c, progress: 100 } : c,
         );
       }
-      
-      const completedCount = nextEnrolled.filter(c => c.progress === 100).length;
+
+      const completedCount = nextEnrolled.filter((c) => c.progress === 100).length;
 
       const nextUser = {
         ...prevUser,
         coursesCompleted: completedCount,
-        xp: (prevUser.xp || 0) + 100
+        xp: (prevUser.xp || 0) + 100,
       };
-      
+
       updateState({
         user: nextUser,
         recommendations: nextRecs,
-        enrolledCourses: nextEnrolled
+        enrolledCourses: nextEnrolled,
       });
 
       if (typeof window !== "undefined" && window.localStorage) {
@@ -1212,7 +1358,7 @@ export function useDashboardStore() {
             streak: nextUser.streak ?? 0,
             coursesCompleted: nextUser.coursesCompleted,
             careerFitScore: nextUser.careerFitScore ?? 0,
-            xp: nextUser.xp
+            xp: nextUser.xp,
           });
 
           if (nextRecs && nextRecs.courses) {
@@ -1229,9 +1375,9 @@ export function useDashboardStore() {
       if (nextRecs && nextRecs.courses) {
         nextRecs = {
           ...nextRecs,
-          courses: nextRecs.courses.map(c => 
-            c.title === courseTitle ? { ...c, progress: Math.max(c.progress || 0, progress) } : c
-          )
+          courses: nextRecs.courses.map((c) =>
+            c.title === courseTitle ? { ...c, progress: Math.max(c.progress || 0, progress) } : c,
+          ),
         };
       }
       updateState({ recommendations: nextRecs });
@@ -1257,16 +1403,18 @@ export function useDashboardStore() {
 
     submitAssessment: async (id: string) => {
       const prevUser = state.user;
-      const nextUser = prevUser ? {
-        ...prevUser,
-        streak: prevUser.streak || 0,
-        careerFitScore: Math.min((prevUser.careerFitScore || 0) + 12, 100),
-        xp: (prevUser.xp || 0) + 800
-      } : null;
+      const nextUser = prevUser
+        ? {
+            ...prevUser,
+            streak: prevUser.streak || 0,
+            careerFitScore: Math.min((prevUser.careerFitScore || 0) + 12, 100),
+            xp: (prevUser.xp || 0) + 800,
+          }
+        : null;
 
       updateState({
         submittedAssessmentId: id,
-        user: nextUser
+        user: nextUser,
       });
 
       if (nextUser) {
@@ -1293,19 +1441,23 @@ export function useDashboardStore() {
               streak: nextUser.streak,
               coursesCompleted: nextUser.coursesCompleted,
               careerFitScore: nextUser.careerFitScore,
-              xp: nextUser.xp
+              xp: nextUser.xp,
             });
 
             // Update next assessment in store recommendations directly
             const focusDomain = state.surveyAnswers?.focusDomain || "Mobile";
             const proficiency = state.surveyAnswers?.proficiency || "Beginner";
-            const nextAssessmentTitle = await getNextAssessmentTitle(session.user.id, focusDomain, proficiency);
+            const nextAssessmentTitle = await getNextAssessmentTitle(
+              session.user.id,
+              focusDomain,
+              proficiency,
+            );
             if (state.recommendations) {
               updateState({
                 recommendations: {
                   ...state.recommendations,
-                  nextAssessment: nextAssessmentTitle
-                }
+                  nextAssessment: nextAssessmentTitle,
+                },
               });
             }
           }
@@ -1324,7 +1476,7 @@ export function useDashboardStore() {
     },
 
     cacheMaterial: (title: string, url: string) => {
-      const alreadyCached = state.cachedMaterials.some(m => m.title === title);
+      const alreadyCached = state.cachedMaterials.some((m) => m.title === title);
       if (alreadyCached) return;
       const nextCache = [...state.cachedMaterials, { title, url, cachedAt: Date.now() }];
       updateState({ cachedMaterials: nextCache });
@@ -1345,7 +1497,7 @@ export function useDashboardStore() {
         surveyCompleted: false,
         surveyAnswers: null,
         lastSurveyDate: null,
-        recommendations: null
+        recommendations: null,
       });
 
       // Clear survey state in localStorage
@@ -1373,7 +1525,7 @@ export function useDashboardStore() {
               last_survey_date: null,
               focus_domain: "Mobile",
               proficiency: "Beginner",
-              learning_hours: 5
+              learning_hours: 5,
             })
             .eq("id", session.user.id);
           if (error) throw error;
@@ -1392,13 +1544,13 @@ export function useDashboardStore() {
         submittedAssessmentId: null,
         token: null,
         recommendations: null,
-        isLoadingRecommendations: false
+        isLoadingRecommendations: false,
       });
     },
 
     triggerManualSurvey: () => {
       updateState({
-        surveyCompleted: false
+        surveyCompleted: false,
       });
     },
 
@@ -1406,10 +1558,12 @@ export function useDashboardStore() {
       if (typeof window !== "undefined" && window.localStorage) {
         const lastUserId = window.localStorage.getItem("last_logged_in_user_id");
         const savedToken = window.localStorage.getItem("supabase_session_token");
-        const savedTheme = (window.localStorage.getItem("app-theme") || "light") as "light" | "dark";
-        
+        const savedTheme = (window.localStorage.getItem("app-theme") || "light") as
+          | "light"
+          | "dark";
+
         const nextState: Partial<DashboardState> = {
-          appTheme: savedTheme
+          appTheme: savedTheme,
         };
 
         if (lastUserId && savedToken) {
@@ -1421,17 +1575,22 @@ export function useDashboardStore() {
                 id: lastUserId,
                 name: parsedProfile.name || "Student",
                 email: parsedProfile.email || "",
-                registeredAt: parsedProfile.created_at ? new Date(parsedProfile.created_at).getTime() : Date.now(),
+                registeredAt: parsedProfile.created_at
+                  ? new Date(parsedProfile.created_at).getTime()
+                  : Date.now(),
                 streak: parsedProfile.streak ?? 1,
                 coursesCompleted: parsedProfile.courses_completed ?? 0,
                 careerFitScore: parsedProfile.career_fit_score ?? 0,
-                xp: parsedProfile.xp ?? 0
+                xp: parsedProfile.xp ?? 0,
               };
               nextState.token = savedToken;
-              nextState.surveyCompleted = window.localStorage.getItem(`survey_completed_${parsedProfile.email}`) === "true";
+              nextState.surveyCompleted =
+                window.localStorage.getItem(`survey_completed_${parsedProfile.email}`) === "true";
               nextState.isLoadingProfile = false;
-              
-              const savedAnswers = window.localStorage.getItem(`survey_answers_${parsedProfile.email}`);
+
+              const savedAnswers = window.localStorage.getItem(
+                `survey_answers_${parsedProfile.email}`,
+              );
               if (savedAnswers) {
                 nextState.surveyAnswers = JSON.parse(savedAnswers);
               }
@@ -1469,7 +1628,7 @@ export function useDashboardStore() {
           root.style.setProperty("--ring", "oklch(0.62 0.2 255)");
         }
       }
-    }
+    },
   };
 }
 
@@ -1498,7 +1657,7 @@ async function syncProfile(userId: string, userEmail: string, userName: string, 
     const profile = dbProfile || cachedProfile;
 
     let finalStreak = 1;
-    let finalLastActive = now.toISOString();
+    const finalLastActive = now.toISOString();
     let finalCoursesCompleted = 0;
     let finalCareerFitScore = 0;
     let finalXp = 0;
@@ -1518,23 +1677,29 @@ async function syncProfile(userId: string, userEmail: string, userName: string, 
         lastActiveDate: finalLastActive,
         coursesCompleted: 0,
         careerFitScore: 0,
-        xp: 0
+        xp: 0,
       });
 
       if (typeof window !== "undefined" && window.localStorage) {
-        window.localStorage.setItem(`user_profile_${userId}`, JSON.stringify({
-          name: userName,
-          email: userEmail,
-          streak: 1,
-          created_at: registrationDateObj.toISOString(),
-          last_active_date: finalLastActive,
-          courses_completed: 0,
-          career_fit_score: 0,
-          xp: 0
-        }));
+        window.localStorage.setItem(
+          `user_profile_${userId}`,
+          JSON.stringify({
+            name: userName,
+            email: userEmail,
+            streak: 1,
+            created_at: registrationDateObj.toISOString(),
+            last_active_date: finalLastActive,
+            courses_completed: 0,
+            career_fit_score: 0,
+            xp: 0,
+          }),
+        );
       }
     } else {
-      const lastActiveStr = profile.last_active_date || profile.lastActiveDate ? new Date(profile.last_active_date || profile.lastActiveDate).toDateString() : "";
+      const lastActiveStr =
+        profile.last_active_date || profile.lastActiveDate
+          ? new Date(profile.last_active_date || profile.lastActiveDate).toDateString()
+          : "";
       finalCoursesCompleted = profile.courses_completed ?? profile.coursesCompleted ?? 0;
       finalCareerFitScore = profile.career_fit_score ?? profile.careerFitScore ?? 0;
       finalXp = profile.xp ?? 0;
@@ -1544,19 +1709,23 @@ async function syncProfile(userId: string, userEmail: string, userName: string, 
         finalStreak = 1;
       } else if (lastActiveStr === todayStr) {
         // Already logged in today, keep the same streak (heal 0 to 1)
-        finalStreak = (profile.streak && profile.streak > 0) ? profile.streak : 1;
+        finalStreak = profile.streak && profile.streak > 0 ? profile.streak : 1;
       } else {
         // Calculate calendar difference
         const localToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         const lastActiveDateObj = new Date(profile.last_active_date || profile.lastActiveDate);
-        const localLastActive = new Date(lastActiveDateObj.getFullYear(), lastActiveDateObj.getMonth(), lastActiveDateObj.getDate());
-        
+        const localLastActive = new Date(
+          lastActiveDateObj.getFullYear(),
+          lastActiveDateObj.getMonth(),
+          lastActiveDateObj.getDate(),
+        );
+
         const diffTime = Math.abs(localToday.getTime() - localLastActive.getTime());
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
         if (diffDays === 1) {
           // Consecutive day: increment streak (heal 0 to 0 + 1)
-          const baseStreak = (profile.streak && profile.streak > 0) ? profile.streak : 0;
+          const baseStreak = profile.streak && profile.streak > 0 ? profile.streak : 0;
           finalStreak = baseStreak + 1;
         } else {
           // Missed a day: reset streak to 1 for today's activity
@@ -1566,20 +1735,24 @@ async function syncProfile(userId: string, userEmail: string, userName: string, 
 
       await saveDBProfile(userId, {
         streak: finalStreak,
-        lastActiveDate: finalLastActive
+        lastActiveDate: finalLastActive,
       });
 
       if (typeof window !== "undefined" && window.localStorage) {
-        window.localStorage.setItem(`user_profile_${userId}`, JSON.stringify({
-          name: profile.name || userName,
-          email: userEmail,
-          streak: finalStreak,
-          created_at: profile.created_at || profile.createdAt || registrationDateObj.toISOString(),
-          last_active_date: finalLastActive,
-          courses_completed: finalCoursesCompleted,
-          career_fit_score: finalCareerFitScore,
-          xp: finalXp
-        }));
+        window.localStorage.setItem(
+          `user_profile_${userId}`,
+          JSON.stringify({
+            name: profile.name || userName,
+            email: userEmail,
+            streak: finalStreak,
+            created_at:
+              profile.created_at || profile.createdAt || registrationDateObj.toISOString(),
+            last_active_date: finalLastActive,
+            courses_completed: finalCoursesCompleted,
+            career_fit_score: finalCareerFitScore,
+            xp: finalXp,
+          }),
+        );
       }
     }
 
@@ -1602,19 +1775,36 @@ async function syncProfile(userId: string, userEmail: string, userName: string, 
         id: userId,
         name: profile?.name || userName,
         email: userEmail,
-        registeredAt: new Date(profile?.created_at || profile?.createdAt || registrationDateObj).getTime(),
+        registeredAt: new Date(
+          profile?.created_at || profile?.createdAt || registrationDateObj,
+        ).getTime(),
         streak: finalStreak,
         coursesCompleted: finalCoursesCompleted,
         careerFitScore: finalCareerFitScore,
-        xp: finalXp
+        xp: finalXp,
       },
-      surveyCompleted: localSurveyDone || (profile ? (!!profile.last_survey_date || !!profile.lastSurveyDate || !!profile.focus_domain || !!profile.focusDomain) : false),
-      lastSurveyDate: profile?.last_survey_date || profile?.lastSurveyDate ? new Date(profile.last_survey_date || profile.lastSurveyDate).getTime() : (localSurveyDone ? Date.now() : null),
-      surveyAnswers: profile && (profile.focus_domain || profile.focusDomain) ? {
-        focusDomain: profile.focus_domain || profile.focusDomain,
-        proficiency: profile.proficiency || "Beginner",
-        learningHours: profile.learning_hours || profile.learningHours || 5
-      } : (localAnswers || null)
+      surveyCompleted:
+        localSurveyDone ||
+        (profile
+          ? !!profile.last_survey_date ||
+            !!profile.lastSurveyDate ||
+            !!profile.focus_domain ||
+            !!profile.focusDomain
+          : false),
+      lastSurveyDate:
+        profile?.last_survey_date || profile?.lastSurveyDate
+          ? new Date(profile.last_survey_date || profile.lastSurveyDate).getTime()
+          : localSurveyDone
+            ? Date.now()
+            : null,
+      surveyAnswers:
+        profile && (profile.focus_domain || profile.focusDomain)
+          ? {
+              focusDomain: profile.focus_domain || profile.focusDomain,
+              proficiency: profile.proficiency || "Beginner",
+              learningHours: profile.learning_hours || profile.learningHours || 5,
+            }
+          : localAnswers || null,
     });
   } catch (err) {
     console.warn("Background fetch profile failed:", err);
@@ -1640,7 +1830,7 @@ supabase.auth.onAuthStateChange((event: any, session: any) => {
       surveyAnswers: null,
       token: null,
       recommendations: null,
-      isLoadingProfile: false
+      isLoadingProfile: false,
     });
     return;
   }
@@ -1660,9 +1850,10 @@ supabase.auth.onAuthStateChange((event: any, session: any) => {
     window.localStorage.setItem("supabase_session_token", session.access_token);
   }
 
-  const cachedSurveyCompleted = typeof window !== "undefined" && window.localStorage 
-    ? window.localStorage.getItem(`survey_completed_${userEmail}`) === "true"
-    : false;
+  const cachedSurveyCompleted =
+    typeof window !== "undefined" && window.localStorage
+      ? window.localStorage.getItem(`survey_completed_${userEmail}`) === "true"
+      : false;
 
   // Set user state immediately so login completes instantly
   updateState({
@@ -1675,11 +1866,11 @@ supabase.auth.onAuthStateChange((event: any, session: any) => {
       streak: 0,
       coursesCompleted: 0,
       careerFitScore: 0,
-      xp: 0
+      xp: 0,
     },
     surveyCompleted: cachedSurveyCompleted,
     surveyAnswers: null,
-    token: session.access_token
+    token: session.access_token,
   });
 
   syncProfile(userId, userEmail, userName, session);
@@ -1697,7 +1888,7 @@ export const themeColors = {
     subtext: "#64748b",
     border: "#cbd5e1",
     divider: "#f1f5f9",
-    inputBg: "#f8fafc"
+    inputBg: "#f8fafc",
   },
   dark: {
     primary: "#818cf8",
@@ -1708,6 +1899,6 @@ export const themeColors = {
     subtext: "#94a3b8",
     border: "#1e293b",
     divider: "#1e293b",
-    inputBg: "#111827"
-  }
+    inputBg: "#111827",
+  },
 };

@@ -1,5 +1,21 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Dimensions, ActivityIndicator, Linking, Platform, Modal, Pressable, Alert, Image, RefreshControl } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+  Dimensions,
+  ActivityIndicator,
+  Linking,
+  Platform,
+  Modal,
+  Pressable,
+  Alert,
+  Image,
+  RefreshControl,
+} from "react-native";
 import { Feather, FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Header } from "../components/skillora/Header";
 import { useDashboardStore, themeColors } from "../lib/store";
@@ -37,17 +53,27 @@ function getResourceIcon(type: string): string {
   }
 }
 
-function BootstrapIcon({ name, size, color, style }: { name: string; size: number; color: string; style?: any }) {
+function BootstrapIcon({
+  name,
+  size,
+  color,
+  style,
+}: {
+  name: string;
+  size: number;
+  color: string;
+  style?: any;
+}) {
   if (Platform.OS === "web") {
     const className = name.startsWith("bi-") ? name : `bi-${name}`;
     return (
-      <i 
-        className={`bi ${className}`} 
-        style={{ fontSize: size, color: color, display: "inline-block", lineHeight: 1, ...style }} 
+      <i
+        className={`bi ${className}`}
+        style={{ fontSize: size, color: color, display: "inline-block", lineHeight: 1, ...style }}
       />
     );
   }
-  
+
   let nativeName: any = "help-circle";
   let iconLibrary: "Feather" | "MaterialCommunityIcons" = "Feather";
 
@@ -71,7 +97,13 @@ function BootstrapIcon({ name, size, color, style }: { name: string; size: numbe
     nativeName = "star";
   } else if (name.includes("layers")) {
     nativeName = "layers";
-  } else if (name.includes("journal-code") || name.includes("notebook") || name.includes("journal") || name.includes("file-earmark-text") || name.includes("file-earmark-pdf")) {
+  } else if (
+    name.includes("journal-code") ||
+    name.includes("notebook") ||
+    name.includes("journal") ||
+    name.includes("file-earmark-text") ||
+    name.includes("file-earmark-pdf")
+  ) {
     nativeName = "book-open";
   } else if (name.includes("clock")) {
     nativeName = "clock";
@@ -156,12 +188,29 @@ const getResourceVideo = (title: string): string => {
   const matched = RESOURCE_VIDEOS[title];
   if (matched) return matched;
   const lower = title.toLowerCase();
-  if (lower.includes("next.js") || lower.includes("nextjs") || lower.includes("ssr")) return "https://www.youtube.com/embed/Dp3c7G1Qhgo";
-  if (lower.includes("react native") || lower.includes("expo") || lower.includes("mobile")) return "https://www.youtube.com/embed/gvkqT_qiVxM";
-  if (lower.includes("react") || lower.includes("frontend") || lower.includes("html") || lower.includes("css")) return "https://www.youtube.com/embed/Ke90Tje7VS0";
-  if (lower.includes("docker") || lower.includes("kubernetes") || lower.includes("devops")) return "https://www.youtube.com/embed/Oe421EPjeBE";
-  if (lower.includes("pandas") || lower.includes("numpy") || lower.includes("pytorch") || lower.includes("ai") || lower.includes("python")) return "https://www.youtube.com/embed/V_xro1bcAuA";
-  if (lower.includes("sql") || lower.includes("database") || lower.includes("postgresql")) return "https://www.youtube.com/embed/HXTt1AjbTtc";
+  if (lower.includes("next.js") || lower.includes("nextjs") || lower.includes("ssr"))
+    return "https://www.youtube.com/embed/Dp3c7G1Qhgo";
+  if (lower.includes("react native") || lower.includes("expo") || lower.includes("mobile"))
+    return "https://www.youtube.com/embed/gvkqT_qiVxM";
+  if (
+    lower.includes("react") ||
+    lower.includes("frontend") ||
+    lower.includes("html") ||
+    lower.includes("css")
+  )
+    return "https://www.youtube.com/embed/Ke90Tje7VS0";
+  if (lower.includes("docker") || lower.includes("kubernetes") || lower.includes("devops"))
+    return "https://www.youtube.com/embed/Oe421EPjeBE";
+  if (
+    lower.includes("pandas") ||
+    lower.includes("numpy") ||
+    lower.includes("pytorch") ||
+    lower.includes("ai") ||
+    lower.includes("python")
+  )
+    return "https://www.youtube.com/embed/V_xro1bcAuA";
+  if (lower.includes("sql") || lower.includes("database") || lower.includes("postgresql"))
+    return "https://www.youtube.com/embed/HXTt1AjbTtc";
   return "https://www.youtube.com/embed/zjsYHGK6a4Q";
 };
 
@@ -174,7 +223,7 @@ const ALL_COURSES = [
   "Neural Networks with PyTorch",
   "SQL Fundamentals & Relational DBs",
   "Intro to Node.js & REST API",
-  "Pandas & Numpy Data Wrangling"
+  "Pandas & Numpy Data Wrangling",
 ];
 
 export default function ResourcesScreen() {
@@ -193,7 +242,9 @@ export default function ResourcesScreen() {
 
   useEffect(() => {
     async function getActiveUser() {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
         setActiveUserId(user.id);
       }
@@ -260,7 +311,7 @@ export default function ResourcesScreen() {
           setNewFileName(file.name);
           const mime = file.mimeType || "application/octet-stream";
           setSelectedFileType(mime);
-          
+
           if (mime.startsWith("text/")) {
             const content = await FileSystem.readAsStringAsync(file.uri, {
               encoding: FileSystem.EncodingType.UTF8,
@@ -284,7 +335,7 @@ export default function ResourcesScreen() {
     if (store.lowDataMode) {
       showNotice(
         "Low-Data Cache Success",
-        `"${r.title}" has been saved in local cache memory for offline revisiting without internet access.`
+        `"${r.title}" has been saved in local cache memory for offline revisiting without internet access.`,
       );
     }
     setViewingResource(r);
@@ -307,7 +358,7 @@ export default function ResourcesScreen() {
         fileName: x.file_name,
         fileType: x.file_type,
         fileContent: x.file_content,
-        userId: x.user_id
+        userId: x.user_id,
       }));
       setResources(mapped as any);
     } catch (err) {
@@ -342,19 +393,25 @@ export default function ResourcesScreen() {
   const [showFilters, setShowFilters] = useState(false);
 
   const results = useMemo(() => {
-    let r = resources.filter((x) =>
-      (subject === "All" || x.subject === subject) &&
-      (level === "All levels" || x.level === level) &&
-      (type === "All types" || x.type === type) &&
-      (q.trim() === "" || [x.title, x.subject, x.author].some((f) => f.toLowerCase().includes(q.toLowerCase())))
+    let r = resources.filter(
+      (x) =>
+        (subject === "All" || x.subject === subject) &&
+        (level === "All levels" || x.level === level) &&
+        (type === "All types" || x.type === type) &&
+        (q.trim() === "" ||
+          [x.title, x.subject, x.author].some((f) => f.toLowerCase().includes(q.toLowerCase()))),
     );
     if (sort === "Top rated") r = [...r].sort((a, b) => b.rating - a.rating);
     else if (sort === "Most downloaded") r = [...r].sort((a, b) => b.downloads - a.downloads);
-    else if (sort === "Trending") r = [...r].sort((a, b) => Number(b.trending) - Number(a.trending) || b.downloads - a.downloads);
+    else if (sort === "Trending")
+      r = [...r].sort(
+        (a, b) => Number(b.trending) - Number(a.trending) || b.downloads - a.downloads,
+      );
     return r;
   }, [resources, q, subject, level, type, sort]);
 
-  const activeFiltersCount = (subject !== "All" ? 1 : 0) + (level !== "All levels" ? 1 : 0) + (type !== "All types" ? 1 : 0);
+  const activeFiltersCount =
+    (subject !== "All" ? 1 : 0) + (level !== "All levels" ? 1 : 0) + (type !== "All types" ? 1 : 0);
 
   const toggleBookmark = (id: string) => {
     setBookmarks((s) => {
@@ -388,7 +445,7 @@ export default function ResourcesScreen() {
       fileName: newFileName,
       fileType: selectedFileType,
       fileContent: selectedFileContent,
-      userId: activeUserId
+      userId: activeUserId,
     };
 
     setResources((prev) => [uploadedResource, ...prev]);
@@ -397,13 +454,18 @@ export default function ResourcesScreen() {
     if (typeof window !== "undefined" && window.localStorage) {
       const local = window.localStorage.getItem("uploaded_resources");
       const localItems = local ? JSON.parse(local) : [];
-      window.localStorage.setItem("uploaded_resources", JSON.stringify([uploadedResource, ...localItems]));
+      window.localStorage.setItem(
+        "uploaded_resources",
+        JSON.stringify([uploadedResource, ...localItems]),
+      );
     }
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       const authorName = user?.user_metadata?.full_name || store.user?.name || "Anonymous Learner";
-      
+
       const { error } = await supabase.from("resources").insert({
         id: uploadedResource.id,
         title: uploadedResource.title,
@@ -419,7 +481,7 @@ export default function ResourcesScreen() {
         file_name: uploadedResource.fileName,
         file_type: uploadedResource.fileType,
         file_content: uploadedResource.fileContent,
-        user_id: activeUserId
+        user_id: activeUserId,
       });
       if (error) {
         console.error("Database insert error:", error);
@@ -446,16 +508,23 @@ export default function ResourcesScreen() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: currentColors.background }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: currentColors.background,
+        }}
+      >
         <ActivityIndicator size="large" color="#6366f1" />
       </View>
     );
   }
 
   return (
-    <ScrollView 
-      style={[styles.container, { backgroundColor: currentColors.background }]} 
-      contentContainerStyle={styles.contentContainer} 
+    <ScrollView
+      style={[styles.container, { backgroundColor: currentColors.background }]}
+      contentContainerStyle={styles.contentContainer}
       showsVerticalScrollIndicator={false}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#6366f1"]} />
@@ -465,12 +534,18 @@ export default function ResourcesScreen() {
 
       {/* Main Intro */}
       <View style={styles.introBox}>
-        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+        <View
+          style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}
+        >
           <View style={{ flex: 1, paddingRight: 12 }}>
-            <Text style={[styles.introTitle, { color: currentColors.text }]}>Collaborative Resource Hub</Text>
-            <Text style={[styles.introSub, { color: currentColors.subtext }]}>Notes, PDFs and mini-projects shared by peers and mentors.</Text>
+            <Text style={[styles.introTitle, { color: currentColors.text }]}>
+              Collaborative Resource Hub
+            </Text>
+            <Text style={[styles.introSub, { color: currentColors.subtext }]}>
+              Notes, PDFs and mini-projects shared by peers and mentors.
+            </Text>
           </View>
-          <TouchableOpacity 
+          <TouchableOpacity
             activeOpacity={0.85}
             onPress={() => {
               setNewTitle("");
@@ -488,7 +563,12 @@ export default function ResourcesScreen() {
       </View>
 
       {/* Search and Filters Toggle Card */}
-      <View style={[styles.filterCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
+      <View
+        style={[
+          styles.filterCard,
+          { backgroundColor: currentColors.card, borderColor: currentColors.border },
+        ]}
+      >
         <View style={styles.searchRow}>
           <View style={[styles.searchBar, { backgroundColor: isDark ? "#1f2937" : "#f1f5f9" }]}>
             <BootstrapIcon name="search" size={14} color={currentColors.subtext} />
@@ -505,11 +585,19 @@ export default function ResourcesScreen() {
               </TouchableOpacity>
             )}
           </View>
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => setShowFilters(!showFilters)}
-            style={[styles.filterToggle, { backgroundColor: isDark ? "#1f2937" : "#f1f5f9" }, showFilters && styles.filterToggleActive]}
+            style={[
+              styles.filterToggle,
+              { backgroundColor: isDark ? "#1f2937" : "#f1f5f9" },
+              showFilters && styles.filterToggleActive,
+            ]}
           >
-            <BootstrapIcon name="sliders" size={14} color={showFilters ? "#6366f1" : currentColors.subtext} />
+            <BootstrapIcon
+              name="sliders"
+              size={14}
+              color={showFilters ? "#6366f1" : currentColors.subtext}
+            />
             {activeFiltersCount > 0 && (
               <View style={styles.badgeCount}>
                 <Text style={styles.badgeCountText}>{activeFiltersCount}</Text>
@@ -523,16 +611,30 @@ export default function ResourcesScreen() {
           <View style={styles.drawer}>
             <FilterGroup label="Subject" options={SUBJECTS} value={subject} onChange={setSubject} />
             <FilterGroup label="Level" options={LEVELS} value={level} onChange={setLevel} />
-            <FilterGroup label="Type" options={TYPES as any} value={type} onChange={setType as any} />
-            <FilterGroup label="Sort by" options={SORTS as any} value={sort} onChange={setSort as any} />
+            <FilterGroup
+              label="Type"
+              options={TYPES as any}
+              value={type}
+              onChange={setType as any}
+            />
+            <FilterGroup
+              label="Sort by"
+              options={SORTS as any}
+              value={sort}
+              onChange={setSort as any}
+            />
           </View>
         )}
       </View>
 
       {/* Stats row */}
       <View style={styles.statsRow}>
-        <Text style={[styles.statsCount, { color: currentColors.subtext }]}>{results.length} resources found</Text>
-        <Text style={[styles.statsSort, { color: currentColors.subtext }]}>Sorted by: <Text style={[styles.statsBold, { color: currentColors.text }]}>{sort}</Text></Text>
+        <Text style={[styles.statsCount, { color: currentColors.subtext }]}>
+          {results.length} resources found
+        </Text>
+        <Text style={[styles.statsSort, { color: currentColors.subtext }]}>
+          Sorted by: <Text style={[styles.statsBold, { color: currentColors.text }]}>{sort}</Text>
+        </Text>
       </View>
 
       {/* Resources items list */}
@@ -540,9 +642,12 @@ export default function ResourcesScreen() {
         {results.map((r) => {
           const isBookmarked = bookmarks.has(r.id);
           return (
-            <TouchableOpacity 
-              key={r.id} 
-              style={[styles.resourceCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}
+            <TouchableOpacity
+              key={r.id}
+              style={[
+                styles.resourceCard,
+                { backgroundColor: currentColors.card, borderColor: currentColors.border },
+              ]}
               onPress={() => handleOpenResource(r)}
               activeOpacity={0.85}
             >
@@ -552,14 +657,14 @@ export default function ResourcesScreen() {
                 </View>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                   <TouchableOpacity onPress={() => toggleBookmark(r.id)}>
-                    <BootstrapIcon 
-                      name={isBookmarked ? "bookmark-fill" : "bookmark"} 
-                      size={16} 
-                      color={isBookmarked ? "#6366f1" : currentColors.subtext} 
+                    <BootstrapIcon
+                      name={isBookmarked ? "bookmark-fill" : "bookmark"}
+                      size={16}
+                      color={isBookmarked ? "#6366f1" : currentColors.subtext}
                     />
                   </TouchableOpacity>
                   {r.userId === activeUserId && (
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       onPress={(e) => {
                         e.stopPropagation();
                         handleDeleteResource(r.id);
@@ -577,8 +682,18 @@ export default function ResourcesScreen() {
                 <View style={[styles.badge, styles.bgPrimary]}>
                   <Text style={[styles.badgeText, styles.textPrimary]}>{r.subject}</Text>
                 </View>
-                <View style={[styles.badge, styles.bgMuted, { backgroundColor: isDark ? "rgba(255, 255, 255, 0.1)" : "#f1f5f9" }]}>
-                  <Text style={[styles.badgeText, styles.textGray, { color: currentColors.subtext }]}>{r.level}</Text>
+                <View
+                  style={[
+                    styles.badge,
+                    styles.bgMuted,
+                    { backgroundColor: isDark ? "rgba(255, 255, 255, 0.1)" : "#f1f5f9" },
+                  ]}
+                >
+                  <Text
+                    style={[styles.badgeText, styles.textGray, { color: currentColors.subtext }]}
+                  >
+                    {r.level}
+                  </Text>
                 </View>
                 <View style={[styles.badge, styles.bgAccent]}>
                   <Text style={[styles.badgeText, styles.textAccent]}>{r.type}</Text>
@@ -596,15 +711,21 @@ export default function ResourcesScreen() {
               </Text>
 
               <View style={styles.resourceFooter}>
-                <Text style={[styles.author, { color: currentColors.subtext }]} numberOfLines={1}>by {r.author}</Text>
+                <Text style={[styles.author, { color: currentColors.subtext }]} numberOfLines={1}>
+                  by {r.author}
+                </Text>
                 <View style={styles.stats}>
                   <View style={styles.statItem}>
                     <BootstrapIcon name="star-fill" size={10} color="#0d9488" />
-                    <Text style={[styles.statText, { color: currentColors.subtext }]}>{r.rating}</Text>
+                    <Text style={[styles.statText, { color: currentColors.subtext }]}>
+                      {r.rating}
+                    </Text>
                   </View>
                   <View style={styles.statItem}>
                     <BootstrapIcon name="download" size={10} color={currentColors.subtext} />
-                    <Text style={[styles.statText, { color: currentColors.subtext }]}>{r.downloads}</Text>
+                    <Text style={[styles.statText, { color: currentColors.subtext }]}>
+                      {r.downloads}
+                    </Text>
                   </View>
                 </View>
               </View>
@@ -613,9 +734,21 @@ export default function ResourcesScreen() {
         })}
 
         {results.length === 0 && (
-          <View style={[styles.emptyCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
-            <BootstrapIcon name="file-earmark-x" size={24} color={currentColors.subtext} style={styles.emptyIcon} />
-            <Text style={[styles.emptyText, { color: currentColors.subtext }]}>No matching study resources found for your filter criteria.</Text>
+          <View
+            style={[
+              styles.emptyCard,
+              { backgroundColor: currentColors.card, borderColor: currentColors.border },
+            ]}
+          >
+            <BootstrapIcon
+              name="file-earmark-x"
+              size={24}
+              color={currentColors.subtext}
+              style={styles.emptyIcon}
+            />
+            <Text style={[styles.emptyText, { color: currentColors.subtext }]}>
+              No matching study resources found for your filter criteria.
+            </Text>
           </View>
         )}
       </View>
@@ -628,9 +761,17 @@ export default function ResourcesScreen() {
         onRequestClose={() => setShowUploadModal(false)}
       >
         <Pressable style={styles.overlay} onPress={() => setShowUploadModal(false)}>
-          <Pressable style={[styles.modalCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }]} onPress={(e: any) => e.stopPropagation()}>
+          <Pressable
+            style={[
+              styles.modalCard,
+              { backgroundColor: currentColors.card, borderColor: currentColors.border },
+            ]}
+            onPress={(e: any) => e.stopPropagation()}
+          >
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: currentColors.text }]}>Upload Study Resource</Text>
+              <Text style={[styles.modalTitle, { color: currentColors.text }]}>
+                Upload Study Resource
+              </Text>
               <TouchableOpacity onPress={() => setShowUploadModal(false)}>
                 <BootstrapIcon name="x-lg" size={18} color={currentColors.subtext} />
               </TouchableOpacity>
@@ -643,29 +784,60 @@ export default function ResourcesScreen() {
                 onChangeText={setNewTitle}
                 placeholder="e.g. Next.js Routing Cheatsheet"
                 placeholderTextColor={currentColors.subtext}
-                style={[styles.textInput, { backgroundColor: isDark ? "#1f2937" : "#f8fafc", borderColor: currentColors.border, color: currentColors.text }]}
+                style={[
+                  styles.textInput,
+                  {
+                    backgroundColor: isDark ? "#1f2937" : "#f8fafc",
+                    borderColor: currentColors.border,
+                    color: currentColors.text,
+                  },
+                ]}
               />
 
-              <Text style={[styles.inputLabel, { color: currentColors.subtext }]}>Associate with Course</Text>
+              <Text style={[styles.inputLabel, { color: currentColors.subtext }]}>
+                Associate with Course
+              </Text>
               <View style={{ marginBottom: 12 }}>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingVertical: 4 }}>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ gap: 6, paddingVertical: 4 }}
+                >
                   {ALL_COURSES.map((course) => {
                     const active = selectedCourse === course;
                     return (
                       <TouchableOpacity
                         key={course}
                         onPress={() => setSelectedCourse(course)}
-                        style={[styles.pickerChip, active ? styles.pickerChipActive : { backgroundColor: isDark ? "#1f2937" : "#f1f5f9", borderColor: currentColors.border }]}
+                        style={[
+                          styles.pickerChip,
+                          active
+                            ? styles.pickerChipActive
+                            : {
+                                backgroundColor: isDark ? "#1f2937" : "#f1f5f9",
+                                borderColor: currentColors.border,
+                              },
+                        ]}
                         activeOpacity={0.7}
                       >
-                        <Text style={[styles.pickerText, active ? styles.pickerTextActive : { color: currentColors.subtext }, { fontSize: 10 }]}>{course}</Text>
+                        <Text
+                          style={[
+                            styles.pickerText,
+                            active ? styles.pickerTextActive : { color: currentColors.subtext },
+                            { fontSize: 10 },
+                          ]}
+                        >
+                          {course}
+                        </Text>
                       </TouchableOpacity>
                     );
                   })}
                 </ScrollView>
               </View>
 
-              <Text style={[styles.inputLabel, { color: currentColors.subtext }]}>Subject Focus</Text>
+              <Text style={[styles.inputLabel, { color: currentColors.subtext }]}>
+                Subject Focus
+              </Text>
               <View style={styles.pickerRow}>
                 {["Frontend", "Backend", "Mobile", "AI", "General"].map((sub) => {
                   const active = newSubject === sub;
@@ -673,15 +845,32 @@ export default function ResourcesScreen() {
                     <TouchableOpacity
                       key={sub}
                       onPress={() => setNewSubject(sub)}
-                      style={[styles.pickerChip, active ? styles.pickerChipActive : { backgroundColor: isDark ? "#1f2937" : "#f1f5f9", borderColor: currentColors.border }]}
+                      style={[
+                        styles.pickerChip,
+                        active
+                          ? styles.pickerChipActive
+                          : {
+                              backgroundColor: isDark ? "#1f2937" : "#f1f5f9",
+                              borderColor: currentColors.border,
+                            },
+                      ]}
                     >
-                      <Text style={[styles.pickerText, active ? styles.pickerTextActive : { color: currentColors.subtext }]}>{sub}</Text>
+                      <Text
+                        style={[
+                          styles.pickerText,
+                          active ? styles.pickerTextActive : { color: currentColors.subtext },
+                        ]}
+                      >
+                        {sub}
+                      </Text>
                     </TouchableOpacity>
                   );
                 })}
               </View>
 
-              <Text style={[styles.inputLabel, { color: currentColors.subtext }]}>Proficiency Level</Text>
+              <Text style={[styles.inputLabel, { color: currentColors.subtext }]}>
+                Proficiency Level
+              </Text>
               <View style={styles.pickerRow}>
                 {["Beginner", "Intermediate", "Advanced"].map((lv) => {
                   const active = newLevel === lv;
@@ -689,15 +878,32 @@ export default function ResourcesScreen() {
                     <TouchableOpacity
                       key={lv}
                       onPress={() => setNewLevel(lv)}
-                      style={[styles.pickerChip, active ? styles.pickerChipActive : { backgroundColor: isDark ? "#1f2937" : "#f1f5f9", borderColor: currentColors.border }]}
+                      style={[
+                        styles.pickerChip,
+                        active
+                          ? styles.pickerChipActive
+                          : {
+                              backgroundColor: isDark ? "#1f2937" : "#f1f5f9",
+                              borderColor: currentColors.border,
+                            },
+                      ]}
                     >
-                      <Text style={[styles.pickerText, active ? styles.pickerTextActive : { color: currentColors.subtext }]}>{lv}</Text>
+                      <Text
+                        style={[
+                          styles.pickerText,
+                          active ? styles.pickerTextActive : { color: currentColors.subtext },
+                        ]}
+                      >
+                        {lv}
+                      </Text>
                     </TouchableOpacity>
                   );
                 })}
               </View>
 
-              <Text style={[styles.inputLabel, { color: currentColors.subtext }]}>Resource Type</Text>
+              <Text style={[styles.inputLabel, { color: currentColors.subtext }]}>
+                Resource Type
+              </Text>
               <View style={styles.pickerRow}>
                 {["Notes", "PDF", "Slides", "Project"].map((tp) => {
                   const active = newType === tp;
@@ -705,17 +911,48 @@ export default function ResourcesScreen() {
                     <TouchableOpacity
                       key={tp}
                       onPress={() => setNewType(tp as any)}
-                      style={[styles.pickerChip, active ? styles.pickerChipActive : { backgroundColor: isDark ? "#1f2937" : "#f1f5f9", borderColor: currentColors.border }]}
+                      style={[
+                        styles.pickerChip,
+                        active
+                          ? styles.pickerChipActive
+                          : {
+                              backgroundColor: isDark ? "#1f2937" : "#f1f5f9",
+                              borderColor: currentColors.border,
+                            },
+                      ]}
                     >
-                      <Text style={[styles.pickerText, active ? styles.pickerTextActive : { color: currentColors.subtext }]}>{tp}</Text>
+                      <Text
+                        style={[
+                          styles.pickerText,
+                          active ? styles.pickerTextActive : { color: currentColors.subtext },
+                        ]}
+                      >
+                        {tp}
+                      </Text>
                     </TouchableOpacity>
                   );
                 })}
               </View>
 
-              <Text style={[styles.inputLabel, { color: currentColors.subtext }]}>Attach Document</Text>
-              <TouchableOpacity style={[styles.attachBox, { backgroundColor: isDark ? "#1f2937" : "#f8fafc", borderColor: currentColors.border }]} onPress={handleAttachClick}>
-                <BootstrapIcon name="paperclip" size={16} color={currentColors.subtext} style={{ marginRight: 6 }} />
+              <Text style={[styles.inputLabel, { color: currentColors.subtext }]}>
+                Attach Document
+              </Text>
+              <TouchableOpacity
+                style={[
+                  styles.attachBox,
+                  {
+                    backgroundColor: isDark ? "#1f2937" : "#f8fafc",
+                    borderColor: currentColors.border,
+                  },
+                ]}
+                onPress={handleAttachClick}
+              >
+                <BootstrapIcon
+                  name="paperclip"
+                  size={16}
+                  color={currentColors.subtext}
+                  style={{ marginRight: 6 }}
+                />
                 <Text style={{ fontSize: 12, color: currentColors.text }}>
                   {newFileName || "Choose image, PDF, or text notes file..."}
                 </Text>
@@ -748,7 +985,10 @@ export default function ResourcesScreen() {
             </ScrollView>
 
             <View style={styles.modalFooter}>
-              <TouchableOpacity style={[styles.cancelBtn, { backgroundColor: isDark ? "#1f2937" : "#f1f5f9" }]} onPress={() => setShowUploadModal(false)}>
+              <TouchableOpacity
+                style={[styles.cancelBtn, { backgroundColor: isDark ? "#1f2937" : "#f1f5f9" }]}
+                onPress={() => setShowUploadModal(false)}
+              >
                 <Text style={[styles.cancelBtnText, { color: currentColors.subtext }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.publishBtn} onPress={handleUploadSubmit}>
@@ -764,7 +1004,9 @@ export default function ResourcesScreen() {
         <View style={styles.videoOverlay}>
           <View style={styles.videoModal}>
             <View style={styles.videoHeader}>
-              <Text style={styles.videoTitle} numberOfLines={1}>{videoTitle}</Text>
+              <Text style={styles.videoTitle} numberOfLines={1}>
+                {videoTitle}
+              </Text>
               <TouchableOpacity onPress={() => setVideoUrl(null)} style={styles.closeBtn}>
                 <BootstrapIcon name="x-lg" size={18} color="#ffffff" />
               </TouchableOpacity>
@@ -808,7 +1050,7 @@ export default function ResourcesScreen() {
                         </body>
                       </html>
                     `,
-                    baseUrl: "https://google.com"
+                    baseUrl: "https://google.com",
                   }}
                 />
               )}
@@ -828,23 +1070,37 @@ export default function ResourcesScreen() {
           <View style={[styles.viewerModal, { backgroundColor: currentColors.card }]}>
             <View style={styles.viewerHeader}>
               <View style={{ flex: 1, marginRight: 8 }}>
-                <Text style={[styles.viewerTitle, { color: currentColors.text }]} numberOfLines={1}>{viewingResource?.title}</Text>
+                <Text style={[styles.viewerTitle, { color: currentColors.text }]} numberOfLines={1}>
+                  {viewingResource?.title}
+                </Text>
                 <Text style={[styles.viewerSubtitle, { color: currentColors.subtext }]}>
                   Uploaded by {viewingResource?.author} • {viewingResource?.type}
                 </Text>
               </View>
-              <TouchableOpacity onPress={() => setViewingResource(null)} style={styles.viewerCloseBtn}>
+              <TouchableOpacity
+                onPress={() => setViewingResource(null)}
+                style={styles.viewerCloseBtn}
+              >
                 <BootstrapIcon name="x-lg" size={18} color={currentColors.text} />
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.viewerBody} contentContainerStyle={{ paddingBottom: 20 }} showsVerticalScrollIndicator={true}>
+            <ScrollView
+              style={styles.viewerBody}
+              contentContainerStyle={{ paddingBottom: 20 }}
+              showsVerticalScrollIndicator={true}
+            >
               {viewingResource?.fileContent ? (
                 <>
                   {viewingResource.fileType?.startsWith("image/") ? (
                     <Image
                       source={{ uri: viewingResource.fileContent }}
-                      style={{ width: "100%", height: 320, borderRadius: 16, backgroundColor: "#0f172a" }}
+                      style={{
+                        width: "100%",
+                        height: 320,
+                        borderRadius: 16,
+                        backgroundColor: "#0f172a",
+                      }}
                       resizeMode="contain"
                     />
                   ) : viewingResource.fileType?.includes("pdf") ? (
@@ -863,17 +1119,35 @@ export default function ResourcesScreen() {
                     )
                   ) : (
                     // Plain text notes/files
-                    <View style={[styles.notesTextContainer, { backgroundColor: isDark ? "#1f2937" : "#0f172a" }]}>
-                      <Text style={[styles.notesTextContent, { color: isDark ? "#f3f4f6" : "#cbd5e1" }]}>{viewingResource.fileContent}</Text>
+                    <View
+                      style={[
+                        styles.notesTextContainer,
+                        { backgroundColor: isDark ? "#1f2937" : "#0f172a" },
+                      ]}
+                    >
+                      <Text
+                        style={[styles.notesTextContent, { color: isDark ? "#f3f4f6" : "#cbd5e1" }]}
+                      >
+                        {viewingResource.fileContent}
+                      </Text>
                     </View>
                   )}
                 </>
               ) : (
                 // Preseeded / fallback notes text content
-                <View style={[styles.notesTextContainer, { backgroundColor: isDark ? "#1f2937" : "#0f172a" }]}>
-                  <Text style={[styles.notesTextContent, { color: isDark ? "#f3f4f6" : "#cbd5e1" }]}>
+                <View
+                  style={[
+                    styles.notesTextContainer,
+                    { backgroundColor: isDark ? "#1f2937" : "#0f172a" },
+                  ]}
+                >
+                  <Text
+                    style={[styles.notesTextContent, { color: isDark ? "#f3f4f6" : "#cbd5e1" }]}
+                  >
                     {viewingResource?.title} description and details:{"\n\n"}
-                    This reference material has been prepared to help you study dynamic concepts related to {viewingResource?.subject || focusDomain}.{"\n\n"}Revisit this guide to prepare for checkpoints!
+                    This reference material has been prepared to help you study dynamic concepts
+                    related to {viewingResource?.subject || focusDomain}.{"\n\n"}Revisit this guide
+                    to prepare for checkpoints!
                   </Text>
                 </View>
               )}
@@ -887,7 +1161,17 @@ export default function ResourcesScreen() {
   );
 }
 
-function FilterGroup({ label, options, value, onChange }: { label: string; options: readonly string[]; value: string; onChange: (x: any) => void }) {
+function FilterGroup({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: readonly string[];
+  value: string;
+  onChange: (x: any) => void;
+}) {
   const store = useDashboardStore();
   const appTheme = store.appTheme || "light";
   const currentColors = themeColors[appTheme as "light" | "dark"] || themeColors.light;
@@ -896,16 +1180,40 @@ function FilterGroup({ label, options, value, onChange }: { label: string; optio
   return (
     <View style={styles.group}>
       <Text style={[styles.groupLabel, { color: currentColors.subtext }]}>{label}:</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.groupScroll}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.groupScroll}
+      >
         {options.map((opt) => {
           const active = value === opt;
           return (
-            <TouchableOpacity 
-              key={opt} 
+            <TouchableOpacity
+              key={opt}
               onPress={() => onChange(opt)}
-              style={[styles.chip, active ? styles.chipActive : [styles.chipInactive, { backgroundColor: isDark ? "#1f2937" : "#f1f5f9", borderColor: currentColors.border }]]}
+              style={[
+                styles.chip,
+                active
+                  ? styles.chipActive
+                  : [
+                      styles.chipInactive,
+                      {
+                        backgroundColor: isDark ? "#1f2937" : "#f1f5f9",
+                        borderColor: currentColors.border,
+                      },
+                    ],
+              ]}
             >
-              <Text style={[styles.chipText, active ? styles.chipTextActive : [styles.chipTextInactive, { color: currentColors.subtext }]]}>{opt}</Text>
+              <Text
+                style={[
+                  styles.chipText,
+                  active
+                    ? styles.chipTextActive
+                    : [styles.chipTextInactive, { color: currentColors.subtext }],
+                ]}
+              >
+                {opt}
+              </Text>
             </TouchableOpacity>
           );
         })}
@@ -1204,8 +1512,8 @@ const styles = StyleSheet.create({
     ...Platform.select({
       web: {
         backdropFilter: "blur(8px)",
-      }
-    })
+      },
+    }),
   },
   modalCard: {
     width: "95%",

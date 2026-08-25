@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator, RefreshControl } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  Platform,
+  ActivityIndicator,
+  RefreshControl,
+} from "react-native";
 import { Header } from "../components/skillora/Header";
 import { StatCards } from "../components/skillora/StatCards";
 import { ContinueLearning } from "../components/skillora/ContinueLearning";
@@ -37,16 +46,16 @@ export default function DashboardScreen() {
 
   return (
     <View style={[styles.outerContainer, { backgroundColor: currentColors.background }]}>
-
-
-      {store.isLoadingRecommendations || !store.recommendations || !store.recommendations.courses ? (
+      {store.isLoadingRecommendations ||
+      !store.recommendations ||
+      !store.recommendations.courses ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#6366f1" />
           <Text style={styles.loadingText}>Personalizing your learning path...</Text>
         </View>
       ) : (
-        <ScrollView 
-          style={[styles.container, { backgroundColor: currentColors.background }]} 
+        <ScrollView
+          style={[styles.container, { backgroundColor: currentColors.background }]}
           contentContainerStyle={styles.contentContainer}
           showsVerticalScrollIndicator={false}
           refreshControl={
@@ -67,11 +76,7 @@ export default function DashboardScreen() {
       {/* DUAL SURVEILLANCE OVERLAYS                                                */}
       {/* ========================================================================= */}
       {/* Modal 1: Onboarding Survey (First login) */}
-      <SurveyModal 
-        visible={!store.isLoadingProfile && !store.surveyCompleted} 
-        isResurvey={false} 
-      />
-
+      <SurveyModal visible={!store.isLoadingProfile && !store.surveyCompleted} isResurvey={false} />
     </View>
   );
 }
@@ -102,5 +107,4 @@ const styles = StyleSheet.create({
     color: "#64748b",
     fontWeight: "500",
   },
-
 });

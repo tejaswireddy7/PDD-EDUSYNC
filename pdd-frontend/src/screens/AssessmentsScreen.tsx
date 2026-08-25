@@ -1,5 +1,17 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Dimensions, Alert, ActivityIndicator, Platform, RefreshControl } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  Dimensions,
+  Alert,
+  ActivityIndicator,
+  Platform,
+  RefreshControl,
+} from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Header } from "../components/skillora/Header";
 import { BootstrapIcon } from "../components/ui/BootstrapIcon";
@@ -52,17 +64,33 @@ function parseDeadline(deadline: string): Date | null {
     const parts = cleaned.split(" ");
     const monthStr = parts[1];
     const dayStr = parts[2];
-    
+
     if (monthStr && dayStr) {
-      const monthNames = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
-      const cleanMonth = monthStr.replace(/[^a-zA-Z]/g, "").toLowerCase().substring(0, 3);
+      const monthNames = [
+        "jan",
+        "feb",
+        "mar",
+        "apr",
+        "may",
+        "jun",
+        "jul",
+        "aug",
+        "sep",
+        "oct",
+        "nov",
+        "dec",
+      ];
+      const cleanMonth = monthStr
+        .replace(/[^a-zA-Z]/g, "")
+        .toLowerCase()
+        .substring(0, 3);
       const monthIdx = monthNames.indexOf(cleanMonth);
       const cleanDay = parseInt(dayStr.replace(/[^0-9]/g, ""));
-      
+
       if (monthIdx !== -1 && !isNaN(cleanDay)) {
         const timePart = parts[3] || "12:00";
         const ampmPart = parts[4] || "AM";
-        
+
         let hours = 12;
         let minutes = 0;
         const timeMatch = timePart.match(/(\d+):(\d+)/);
@@ -70,13 +98,13 @@ function parseDeadline(deadline: string): Date | null {
           hours = parseInt(timeMatch[1]);
           minutes = parseInt(timeMatch[2]);
         }
-        
+
         if (ampmPart.toLowerCase().includes("pm") && hours < 12) {
           hours += 12;
         } else if (ampmPart.toLowerCase().includes("am") && hours === 12) {
           hours = 0;
         }
-        
+
         return new Date(2026, monthIdx, cleanDay, hours, minutes);
       }
     }
@@ -128,7 +156,9 @@ export default function AssessmentsScreen() {
   const loadData = async (showLoadingIndicator = true) => {
     if (showLoadingIndicator) setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
         const dbAssessments = await fetchDBAssessments(user.id, focusDomain, userProficiency);
         setItems(dbAssessments as any);
@@ -165,7 +195,9 @@ export default function AssessmentsScreen() {
     if (!current) return;
     setItems((prev) => prev.map((i) => (i.id === current.id ? { ...i, ...patch } : i)));
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
         await updateDBAssessment(user.id, current.id, patch as any);
       }
@@ -179,7 +211,14 @@ export default function AssessmentsScreen() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: currentColors.background }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: currentColors.background,
+        }}
+      >
         <ActivityIndicator size="large" color="#6366f1" />
       </View>
     );
@@ -187,20 +226,53 @@ export default function AssessmentsScreen() {
 
   if (items.length === 0) {
     return (
-      <ScrollView 
-        ref={scrollViewRef} 
-        style={[styles.container, { backgroundColor: currentColors.background }]} 
-        contentContainerStyle={[styles.contentContainer, { justifyContent: "center", alignItems: "center", minHeight: 500, flexGrow: 1 }]} 
+      <ScrollView
+        ref={scrollViewRef}
+        style={[styles.container, { backgroundColor: currentColors.background }]}
+        contentContainerStyle={[
+          styles.contentContainer,
+          { justifyContent: "center", alignItems: "center", minHeight: 500, flexGrow: 1 },
+        ]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#6366f1"]} />
         }
       >
         <Header />
-        <View style={{ padding: 40, alignItems: "center", backgroundColor: currentColors.card, borderRadius: 16, borderStyle: "dashed", borderWidth: 2, borderColor: currentColors.border, marginTop: 40, width: "90%", maxWidth: 500 }}>
-          <Text style={{ fontSize: 20, fontWeight: "bold", color: currentColors.text, marginBottom: 12 }}>No Assessments Available</Text>
-          <Text style={{ fontSize: 15, color: currentColors.subtext, textAlign: "center", lineHeight: 22 }}>
-            You are not currently enrolled in any courses. Please go to the Dashboard and enroll in a course to view and start your assessments!
+        <View
+          style={{
+            padding: 40,
+            alignItems: "center",
+            backgroundColor: currentColors.card,
+            borderRadius: 16,
+            borderStyle: "dashed",
+            borderWidth: 2,
+            borderColor: currentColors.border,
+            marginTop: 40,
+            width: "90%",
+            maxWidth: 500,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: "bold",
+              color: currentColors.text,
+              marginBottom: 12,
+            }}
+          >
+            No Assessments Available
+          </Text>
+          <Text
+            style={{
+              fontSize: 15,
+              color: currentColors.subtext,
+              textAlign: "center",
+              lineHeight: 22,
+            }}
+          >
+            You are not currently enrolled in any courses. Please go to the Dashboard and enroll in
+            a course to view and start your assessments!
           </Text>
         </View>
       </ScrollView>
@@ -209,17 +281,24 @@ export default function AssessmentsScreen() {
 
   if (!current) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: currentColors.background }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: currentColors.background,
+        }}
+      >
         <ActivityIndicator size="large" color="#6366f1" />
       </View>
     );
   }
 
   return (
-    <ScrollView 
-      ref={scrollViewRef} 
-      style={[styles.container, { backgroundColor: currentColors.background }]} 
-      contentContainerStyle={[styles.contentContainer, { flexGrow: 1 }]} 
+    <ScrollView
+      ref={scrollViewRef}
+      style={[styles.container, { backgroundColor: currentColors.background }]}
+      contentContainerStyle={[styles.contentContainer, { flexGrow: 1 }]}
       showsVerticalScrollIndicator={false}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#6366f1"]} />
@@ -241,7 +320,10 @@ export default function AssessmentsScreen() {
 // 2. Submission Panel Component
 type Uploaded = { name: string; size: number };
 
-const QUIZ_QUESTIONS: Record<string, Array<{ question: string; options: string[]; correctAnswer: number }>> = {
+const QUIZ_QUESTIONS: Record<
+  string,
+  Array<{ question: string; options: string[]; correctAnswer: number }>
+> = {
   Frontend: [
     {
       question: "Which React hook is used to perform side effects in functional components?",
@@ -255,7 +337,12 @@ const QUIZ_QUESTIONS: Record<string, Array<{ question: string; options: string[]
     },
     {
       question: "What does semantic HTML primarily improve?",
-      options: ["SEO and Accessibility", "Page load speed", "JavaScript execution time", "Database security"],
+      options: [
+        "SEO and Accessibility",
+        "Page load speed",
+        "JavaScript execution time",
+        "Database security",
+      ],
       correctAnswer: 0,
     },
     {
@@ -264,10 +351,10 @@ const QUIZ_QUESTIONS: Record<string, Array<{ question: string; options: string[]
         "To directly modify the browser's DOM for speed",
         "To synchronize local state with cloud databases",
         "To compute UI updates in memory before updating the real DOM",
-        "To style web pages using CSS variables"
+        "To style web pages using CSS variables",
       ],
       correctAnswer: 2,
-    }
+    },
   ],
   Backend: [
     {
@@ -276,7 +363,8 @@ const QUIZ_QUESTIONS: Record<string, Array<{ question: string; options: string[]
       correctAnswer: 1,
     },
     {
-      question: "In REST API design, which HTTP method should be used to update an existing resource completely?",
+      question:
+        "In REST API design, which HTTP method should be used to update an existing resource completely?",
       options: ["GET", "POST", "PUT", "DELETE"],
       correctAnswer: 2,
     },
@@ -286,7 +374,7 @@ const QUIZ_QUESTIONS: Record<string, Array<{ question: string; options: string[]
         "To encrypt credentials",
         "To optimize query search and data retrieval speeds",
         "To eliminate duplicate table rows",
-        "To transform relational data to JSON automatically"
+        "To transform relational data to JSON automatically",
       ],
       correctAnswer: 1,
     },
@@ -296,14 +384,15 @@ const QUIZ_QUESTIONS: Record<string, Array<{ question: string; options: string[]
         "To generate random secret keys",
         "To package code and all its dependencies into a portable, isolated container",
         "To compile TypeScript into optimized JavaScript bundles",
-        "To automatically write API documentation"
+        "To automatically write API documentation",
       ],
       correctAnswer: 1,
-    }
+    },
   ],
   Mobile: [
     {
-      question: "In React Native, which component is best suited for rendering long, scrollable lists efficiently?",
+      question:
+        "In React Native, which component is best suited for rendering long, scrollable lists efficiently?",
       options: ["ScrollView", "FlatList", "View", "SafeAreaView"],
       correctAnswer: 1,
     },
@@ -319,14 +408,25 @@ const QUIZ_QUESTIONS: Record<string, Array<{ question: string; options: string[]
     },
     {
       question: "How is routing and navigation usually handled in modern Expo apps?",
-      options: ["HTML anchor links", "Expo Router or React Navigation", "Window location redirects", "Conditional view rendering only"],
+      options: [
+        "HTML anchor links",
+        "Expo Router or React Navigation",
+        "Window location redirects",
+        "Conditional view rendering only",
+      ],
       correctAnswer: 1,
-    }
+    },
   ],
   AI: [
     {
-      question: "What is the process of adjusting network parameters to minimize the loss function called?",
-      options: ["Validation", "Regularization", "Optimization (e.g. Gradient Descent)", "Data augmentation"],
+      question:
+        "What is the process of adjusting network parameters to minimize the loss function called?",
+      options: [
+        "Validation",
+        "Regularization",
+        "Optimization (e.g. Gradient Descent)",
+        "Data augmentation",
+      ],
       correctAnswer: 2,
     },
     {
@@ -335,7 +435,8 @@ const QUIZ_QUESTIONS: Record<string, Array<{ question: string; options: string[]
       correctAnswer: 1,
     },
     {
-      question: "Which activation function is most widely used in hidden layers of deep neural networks?",
+      question:
+        "Which activation function is most widely used in hidden layers of deep neural networks?",
       options: ["Linear", "ReLU (Rectified Linear Unit)", "Softmax", "Sigmoid"],
       correctAnswer: 1,
     },
@@ -345,37 +446,79 @@ const QUIZ_QUESTIONS: Record<string, Array<{ question: string; options: string[]
         "To minimize memory storage sizes",
         "To memorize all training samples exactly",
         "To generalize effectively to new, unseen data",
-        "To execute network training as fast as possible"
+        "To execute network training as fast as possible",
       ],
       correctAnswer: 2,
-    }
-  ]
+    },
+  ],
 };
 
 const PROJECT_TEMPLATES: Record<string, Array<{ title: string; files: string[] }>> = {
   Frontend: [
-    { title: "React Vite Dashboard template", files: ["src/App.tsx", "package.json", "vite.config.ts", "index.html"] },
-    { title: "Tailwind Portfolio Starter", files: ["index.html", "tailwind.config.js", "src/main.css", "package.json"] },
-    { title: "Next.js E-Commerce Landing Page", files: ["app/page.tsx", "app/layout.tsx", "package.json", "next.config.js"] }
+    {
+      title: "React Vite Dashboard template",
+      files: ["src/App.tsx", "package.json", "vite.config.ts", "index.html"],
+    },
+    {
+      title: "Tailwind Portfolio Starter",
+      files: ["index.html", "tailwind.config.js", "src/main.css", "package.json"],
+    },
+    {
+      title: "Next.js E-Commerce Landing Page",
+      files: ["app/page.tsx", "app/layout.tsx", "package.json", "next.config.js"],
+    },
   ],
   Backend: [
-    { title: "Express.js PostgreSQL API Boilerplate", files: ["src/index.js", "src/db.js", "package.json", "docker-compose.yml"] },
-    { title: "Fastify Redis Cache Server", files: ["server.js", "config.js", "package.json", "README.md"] },
-    { title: "Django Dockerized Microservice", files: ["manage.py", "requirements.txt", "Dockerfile", "docker-compose.yml"] }
+    {
+      title: "Express.js PostgreSQL API Boilerplate",
+      files: ["src/index.js", "src/db.js", "package.json", "docker-compose.yml"],
+    },
+    {
+      title: "Fastify Redis Cache Server",
+      files: ["server.js", "config.js", "package.json", "README.md"],
+    },
+    {
+      title: "Django Dockerized Microservice",
+      files: ["manage.py", "requirements.txt", "Dockerfile", "docker-compose.yml"],
+    },
   ],
   Mobile: [
-    { title: "Expo Router Tab Navigation App", files: ["App.tsx", "package.json", "app/_layout.tsx", "app/index.tsx"] },
-    { title: "React Native Maps Integration Starter", files: ["App.tsx", "package.json", "src/components/Map.tsx"] },
-    { title: "Mobile Health Tracker template", files: ["App.tsx", "package.json", "src/store/health.ts"] }
+    {
+      title: "Expo Router Tab Navigation App",
+      files: ["App.tsx", "package.json", "app/_layout.tsx", "app/index.tsx"],
+    },
+    {
+      title: "React Native Maps Integration Starter",
+      files: ["App.tsx", "package.json", "src/components/Map.tsx"],
+    },
+    {
+      title: "Mobile Health Tracker template",
+      files: ["App.tsx", "package.json", "src/store/health.ts"],
+    },
   ],
   AI: [
-    { title: "PyTorch Image Classifier Pipeline", files: ["train.py", "model.py", "dataset.py", "requirements.txt"] },
-    { title: "HuggingFace LLM Chat API Wrapper", files: ["app.py", "config.py", "requirements.txt", "Dockerfile"] },
-    { title: "Pandas Data Processing Sandbox", files: ["analyze.py", "data.csv", "requirements.txt"] }
-  ]
+    {
+      title: "PyTorch Image Classifier Pipeline",
+      files: ["train.py", "model.py", "dataset.py", "requirements.txt"],
+    },
+    {
+      title: "HuggingFace LLM Chat API Wrapper",
+      files: ["app.py", "config.py", "requirements.txt", "Dockerfile"],
+    },
+    {
+      title: "Pandas Data Processing Sandbox",
+      files: ["analyze.py", "data.csv", "requirements.txt"],
+    },
+  ],
 };
 
-function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onUpdate: (patch: Partial<Assessment>) => void }) {
+function SubmissionPanel({
+  assessment,
+  onUpdate,
+}: {
+  assessment: Assessment;
+  onUpdate: (patch: Partial<Assessment>) => void;
+}) {
   const store = useDashboardStore();
   const appTheme = store.appTheme || "light";
   const currentColors = themeColors[appTheme as "light" | "dark"] || themeColors.light;
@@ -426,20 +569,20 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
   const selectTemplate = (title: string, templateFiles: string[]) => {
     setSelectedTemplate(title);
     setValidationError("");
-    const initialFiles = templateFiles.map(f => ({
+    const initialFiles = templateFiles.map((f) => ({
       name: f,
-      size: (Math.floor(Math.random() * 80) + 12) * 1024
+      size: (Math.floor(Math.random() * 80) + 12) * 1024,
     }));
     setFiles(initialFiles);
   };
 
   // Toggle template file inclusion
   const toggleTemplateFile = (fileName: string) => {
-    if (files.some(f => f.name === fileName)) {
-      setFiles(prev => prev.filter(f => f.name !== fileName));
+    if (files.some((f) => f.name === fileName)) {
+      setFiles((prev) => prev.filter((f) => f.name !== fileName));
     } else {
       const size = (Math.floor(Math.random() * 80) + 12) * 1024;
-      setFiles(prev => [...prev, { name: fileName, size }]);
+      setFiles((prev) => [...prev, { name: fileName, size }]);
     }
   };
 
@@ -447,12 +590,12 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
   const handleAddCustomFile = () => {
     if (!customFileText.trim()) return;
     const name = customFileText.trim();
-    if (files.some(f => f.name === name)) {
+    if (files.some((f) => f.name === name)) {
       Alert.alert("Duplicate File", "This file is already added.");
       return;
     }
     const size = (Math.floor(Math.random() * 80) + 12) * 1024;
-    setFiles(prev => [...prev, { name, size }]);
+    setFiles((prev) => [...prev, { name, size }]);
     setCustomFileText("");
   };
 
@@ -463,7 +606,7 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
   const handleSelectQuizAnswer = (qIdx: number, oIdx: number) => {
     const updated = {
       ...selectedAnswers,
-      [qIdx]: oIdx
+      [qIdx]: oIdx,
     };
     setSelectedAnswers(updated);
     setValidationError("");
@@ -497,8 +640,8 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
             responses: {
               githubUrl,
               selectedTemplate,
-              files
-            }
+              files,
+            },
           });
           return 100;
         }
@@ -541,25 +684,38 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
   const isLateAssessment = isLate(assessment);
   const statusBg = isLateAssessment ? "bgRed" : tintByStatus[assessment.status];
   const statusText = isLateAssessment ? "textRed" : tintTextByStatus[assessment.status];
-  const statusLabel = isLateAssessment ? "LATE" : (assessment.status === "in-progress" ? "in progress" : assessment.status);
+  const statusLabel = isLateAssessment
+    ? "LATE"
+    : assessment.status === "in-progress"
+      ? "in progress"
+      : assessment.status;
 
   // SUBMITTED STATE VIEW
   if (assessment.status === "submitted") {
     return (
-      <View style={[styles.panelCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
+      <View
+        style={[
+          styles.panelCard,
+          { backgroundColor: currentColors.card, borderColor: currentColors.border },
+        ]}
+      >
         <View style={styles.successCard}>
           <View style={styles.successIconBox}>
             <BootstrapIcon name="check-circle" size={24} color="#0d9488" />
           </View>
-          <Text style={[styles.successTitle, { color: currentColors.text }]}>Assessment Submitted!</Text>
+          <Text style={[styles.successTitle, { color: currentColors.text }]}>
+            Assessment Submitted!
+          </Text>
 
           {isAdvanced ? (
             <Text style={[styles.successDesc, { color: currentColors.subtext }]}>
-              Your project "{selectedTemplate || "Source Code Submission"}" has been submitted for AI feedback. Detailed rubric mapping is ready in the Gradebook.
+              Your project "{selectedTemplate || "Source Code Submission"}" has been submitted for
+              AI feedback. Detailed rubric mapping is ready in the Gradebook.
             </Text>
           ) : (
             <Text style={[styles.successDesc, { color: currentColors.subtext }]}>
-              Interactive quiz completed successfully! Earned +800 XP and streak bonus. Check your transparent rubric scoring details in the Gradebook.
+              Interactive quiz completed successfully! Earned +800 XP and streak bonus. Check your
+              transparent rubric scoring details in the Gradebook.
             </Text>
           )}
 
@@ -582,7 +738,12 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
   }
 
   return (
-    <View style={[styles.panelCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
+    <View
+      style={[
+        styles.panelCard,
+        { backgroundColor: currentColors.card, borderColor: currentColors.border },
+      ]}
+    >
       <View style={styles.panelHeader}>
         <View style={styles.panelHeaderLeft}>
           <Text style={[styles.panelCategory, { color: currentColors.subtext }]}>
@@ -608,19 +769,31 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
         </View>
       </View>
 
-      <View style={[
-        styles.deadlineBox, 
-        { backgroundColor: isDark ? currentColors.divider : "#f8fafc" },
-        isLateAssessment && { backgroundColor: isDark ? 'rgba(239, 68, 68, 0.08)' : '#fef2f2', borderColor: '#fee2e2', borderWidth: 1 }
-      ]}>
+      <View
+        style={[
+          styles.deadlineBox,
+          { backgroundColor: isDark ? currentColors.divider : "#f8fafc" },
+          isLateAssessment && {
+            backgroundColor: isDark ? "rgba(239, 68, 68, 0.08)" : "#fef2f2",
+            borderColor: "#fee2e2",
+            borderWidth: 1,
+          },
+        ]}
+      >
         <BootstrapIcon name="clock" size={14} color={isLateAssessment ? "#ef4444" : "#6366f1"} />
         <View style={{ flex: 1 }}>
           <Text style={[styles.deadlineLabel, { color: currentColors.subtext }]}>Deadline</Text>
-          <Text style={[styles.deadlineValue, { color: currentColors.text }, isLateAssessment && { color: '#ef4444', fontWeight: 'bold' }]}>
+          <Text
+            style={[
+              styles.deadlineValue,
+              { color: currentColors.text },
+              isLateAssessment && { color: "#ef4444", fontWeight: "bold" },
+            ]}
+          >
             {assessment.deadline}
           </Text>
           {isLateAssessment && (
-            <Text style={{ color: '#ef4444', fontSize: 11, fontWeight: 'bold', marginTop: 2 }}>
+            <Text style={{ color: "#ef4444", fontSize: 11, fontWeight: "bold", marginTop: 2 }}>
               Late Penalty: -{getXpLost(assessment)} XP
             </Text>
           )}
@@ -630,9 +803,20 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
       {/* RENDER INTERACTIVE QUIZ FOR BEGINNER / INTERMEDIATE */}
       {!isAdvanced && (
         <View style={{ marginBottom: 12 }}>
-          <Text style={[styles.quizTitle, { color: currentColors.text }]}>Interactive Knowledge Check</Text>
+          <Text style={[styles.quizTitle, { color: currentColors.text }]}>
+            Interactive Knowledge Check
+          </Text>
           {questions.map((q, qIdx) => (
-            <View key={qIdx} style={[styles.quizCard, { backgroundColor: isDark ? currentColors.divider : "#ffffff", borderColor: currentColors.border }]}>
+            <View
+              key={qIdx}
+              style={[
+                styles.quizCard,
+                {
+                  backgroundColor: isDark ? currentColors.divider : "#ffffff",
+                  borderColor: currentColors.border,
+                },
+              ]}
+            >
               <Text style={[styles.quizQuestionText, { color: currentColors.text }]}>
                 {qIdx + 1}. {q.question}
               </Text>
@@ -642,12 +826,30 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
                   <TouchableOpacity
                     key={oIdx}
                     onPress={() => handleSelectQuizAnswer(qIdx, oIdx)}
-                    style={[styles.optionButton, { backgroundColor: currentColors.card, borderColor: currentColors.border }, isSel && styles.selectedOptionButton, isSel && isDark && { backgroundColor: 'rgba(99, 102, 241, 0.1)' }]}
+                    style={[
+                      styles.optionButton,
+                      { backgroundColor: currentColors.card, borderColor: currentColors.border },
+                      isSel && styles.selectedOptionButton,
+                      isSel && isDark && { backgroundColor: "rgba(99, 102, 241, 0.1)" },
+                    ]}
                   >
-                    <View style={[styles.optionCircle, { borderColor: currentColors.border }, isSel && styles.selectedOptionCircle]}>
+                    <View
+                      style={[
+                        styles.optionCircle,
+                        { borderColor: currentColors.border },
+                        isSel && styles.selectedOptionCircle,
+                      ]}
+                    >
                       {isSel && <View style={styles.selectedOptionInnerCircle} />}
                     </View>
-                    <Text style={[styles.optionText, { color: currentColors.subtext }, isSel && styles.selectedOptionText, isSel && { color: currentColors.text }]}>
+                    <Text
+                      style={[
+                        styles.optionText,
+                        { color: currentColors.subtext },
+                        isSel && styles.selectedOptionText,
+                        isSel && { color: currentColors.text },
+                      ]}
+                    >
                       {opt}
                     </Text>
                   </TouchableOpacity>
@@ -662,7 +864,9 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
       {isAdvanced && (
         <View style={{ marginBottom: 12 }}>
           {/* Template Selection */}
-          <Text style={[styles.templateSectionTitle, { color: currentColors.subtext }]}>Choose a Project Template</Text>
+          <Text style={[styles.templateSectionTitle, { color: currentColors.subtext }]}>
+            Choose a Project Template
+          </Text>
           <View style={styles.templateList}>
             {templates.map((t) => {
               const isSel = selectedTemplate === t.title;
@@ -670,10 +874,21 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
                 <TouchableOpacity
                   key={t.title}
                   onPress={() => selectTemplate(t.title, t.files)}
-                  style={[styles.templateCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }, isSel && styles.selectedTemplateCard]}
+                  style={[
+                    styles.templateCard,
+                    { backgroundColor: currentColors.card, borderColor: currentColors.border },
+                    isSel && styles.selectedTemplateCard,
+                  ]}
                 >
-                  <Text style={[styles.templateTitle, { color: currentColors.text }]} numberOfLines={1}>{t.title}</Text>
-                  <Text style={[styles.templateDesc, { color: currentColors.subtext }]}>{t.files.length} boilerplate files</Text>
+                  <Text
+                    style={[styles.templateTitle, { color: currentColors.text }]}
+                    numberOfLines={1}
+                  >
+                    {t.title}
+                  </Text>
+                  <Text style={[styles.templateDesc, { color: currentColors.subtext }]}>
+                    {t.files.length} boilerplate files
+                  </Text>
                 </TouchableOpacity>
               );
             })}
@@ -682,28 +897,42 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
           {/* Template files selector (Only visible once a template is chosen) */}
           {selectedTemplate !== "" && (
             <View style={{ marginBottom: 12 }}>
-              <Text style={[styles.fileTogglesTitle, { color: currentColors.text }]}>Project Files Configuration</Text>
-              <View style={[styles.fileTogglesContainer, { backgroundColor: isDark ? currentColors.divider : "#f8fafc", borderColor: currentColors.border }]}>
-                {templates.find(t => t.title === selectedTemplate)?.files.map((fileName) => {
-                  const included = files.some(f => f.name === fileName);
-                  return (
-                    <TouchableOpacity
-                      key={fileName}
-                      onPress={() => toggleTemplateFile(fileName)}
-                      style={styles.fileToggleRow}
-                    >
-                      <View style={styles.fileToggleLeft}>
-                        <BootstrapIcon name="file-earmark" size={12} color="#64748b" />
-                        <Text style={[styles.fileToggleText, { color: currentColors.text }]}>{fileName}</Text>
-                      </View>
-                      <BootstrapIcon
-                        name={included ? "check-square" : "square"}
-                        size={14}
-                        color={included ? "#6366f1" : "#94a3b8"}
-                      />
-                    </TouchableOpacity>
-                  );
-                })}
+              <Text style={[styles.fileTogglesTitle, { color: currentColors.text }]}>
+                Project Files Configuration
+              </Text>
+              <View
+                style={[
+                  styles.fileTogglesContainer,
+                  {
+                    backgroundColor: isDark ? currentColors.divider : "#f8fafc",
+                    borderColor: currentColors.border,
+                  },
+                ]}
+              >
+                {templates
+                  .find((t) => t.title === selectedTemplate)
+                  ?.files.map((fileName) => {
+                    const included = files.some((f) => f.name === fileName);
+                    return (
+                      <TouchableOpacity
+                        key={fileName}
+                        onPress={() => toggleTemplateFile(fileName)}
+                        style={styles.fileToggleRow}
+                      >
+                        <View style={styles.fileToggleLeft}>
+                          <BootstrapIcon name="file-earmark" size={12} color="#64748b" />
+                          <Text style={[styles.fileToggleText, { color: currentColors.text }]}>
+                            {fileName}
+                          </Text>
+                        </View>
+                        <BootstrapIcon
+                          name={included ? "check-square" : "square"}
+                          size={14}
+                          color={included ? "#6366f1" : "#94a3b8"}
+                        />
+                      </TouchableOpacity>
+                    );
+                  })}
 
                 {/* Custom File Adder Row */}
                 <View style={styles.fileAddRow}>
@@ -712,7 +941,14 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
                     onChangeText={setCustomFileText}
                     placeholder="Add custom file name (e.g. index.js)"
                     placeholderTextColor="#94a3b8"
-                    style={[styles.fileAddInput, { backgroundColor: currentColors.inputBg, borderColor: currentColors.border, color: currentColors.text }]}
+                    style={[
+                      styles.fileAddInput,
+                      {
+                        backgroundColor: currentColors.inputBg,
+                        borderColor: currentColors.border,
+                        color: currentColors.text,
+                      },
+                    ]}
                   />
                   <TouchableOpacity onPress={handleAddCustomFile} style={styles.fileAddBtn}>
                     <Text style={styles.fileAddBtnText}>Add</Text>
@@ -725,14 +961,29 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
           {/* Custom attached files summary */}
           {files.length > 0 && (
             <View style={{ marginBottom: 12 }}>
-              <Text style={[styles.fileTogglesTitle, { color: currentColors.text }]}>Included Submission Files</Text>
+              <Text style={[styles.fileTogglesTitle, { color: currentColors.text }]}>
+                Included Submission Files
+              </Text>
               <View style={styles.filesList}>
                 {files.map((f, idx) => (
-                  <View key={idx} style={[styles.fileItem, { backgroundColor: isDark ? currentColors.divider : "#f1f5f9" }]}>
+                  <View
+                    key={idx}
+                    style={[
+                      styles.fileItem,
+                      { backgroundColor: isDark ? currentColors.divider : "#f1f5f9" },
+                    ]}
+                  >
                     <BootstrapIcon name="file-earmark-text" size={14} color="#6366f1" />
                     <View style={styles.fileDetails}>
-                      <Text style={[styles.fileName, { color: currentColors.text }]} numberOfLines={1}>{f.name}</Text>
-                      <Text style={[styles.fileSize, { color: currentColors.subtext }]}>{(f.size / 1024).toFixed(1)} KB</Text>
+                      <Text
+                        style={[styles.fileName, { color: currentColors.text }]}
+                        numberOfLines={1}
+                      >
+                        {f.name}
+                      </Text>
+                      <Text style={[styles.fileSize, { color: currentColors.subtext }]}>
+                        {(f.size / 1024).toFixed(1)} KB
+                      </Text>
                     </View>
                     <TouchableOpacity onPress={() => removeFile(idx)}>
                       <BootstrapIcon name="x-lg" size={14} color="#ef4444" />
@@ -744,9 +995,21 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
           )}
 
           {/* GitHub Repository URL */}
-          <Text style={[styles.inputLabel, { color: currentColors.text }]}>GitHub Repository URL</Text>
+          <Text style={[styles.inputLabel, { color: currentColors.text }]}>
+            GitHub Repository URL
+          </Text>
           <TextInput
-            style={[styles.notesInput, { height: 40, marginBottom: 12, paddingVertical: 8, backgroundColor: currentColors.inputBg, borderColor: currentColors.border, color: currentColors.text }]}
+            style={[
+              styles.notesInput,
+              {
+                height: 40,
+                marginBottom: 12,
+                paddingVertical: 8,
+                backgroundColor: currentColors.inputBg,
+                borderColor: currentColors.border,
+                color: currentColors.text,
+              },
+            ]}
             value={githubUrl}
             onChangeText={(text) => {
               setGithubUrl(text);
@@ -757,9 +1020,18 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
           />
 
           {/* Note for Evaluator */}
-          <Text style={[styles.inputLabel, { color: currentColors.text }]}>Additional Notes (optional)</Text>
+          <Text style={[styles.inputLabel, { color: currentColors.text }]}>
+            Additional Notes (optional)
+          </Text>
           <TextInput
-            style={[styles.notesInput, { backgroundColor: currentColors.inputBg, borderColor: currentColors.border, color: currentColors.text }]}
+            style={[
+              styles.notesInput,
+              {
+                backgroundColor: currentColors.inputBg,
+                borderColor: currentColors.border,
+                color: currentColors.text,
+              },
+            ]}
             multiline
             numberOfLines={3}
             value={note}
@@ -771,18 +1043,22 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
       )}
 
       {/* Validation Error Message */}
-      {validationError !== "" && (
-        <Text style={styles.errorText}>{validationError}</Text>
-      )}
+      {validationError !== "" && <Text style={styles.errorText}>{validationError}</Text>}
 
       {/* Uploading progress bar */}
       {(uploading || progress === 100) && (
         <View style={styles.progressContainer}>
           <View style={styles.progressHeader}>
             <Text style={[styles.progressTitle, { color: currentColors.text }]}>
-              {progress === 100 ? "Submitted" : isAdvanced ? "Uploading files..." : "Evaluating answers..."}
+              {progress === 100
+                ? "Submitted"
+                : isAdvanced
+                  ? "Uploading files..."
+                  : "Evaluating answers..."}
             </Text>
-            <Text style={[styles.progressPercent, { color: currentColors.subtext }]}>{progress}%</Text>
+            <Text style={[styles.progressPercent, { color: currentColors.subtext }]}>
+              {progress}%
+            </Text>
           </View>
           <View style={styles.progressTrack}>
             <View style={[styles.progressBar, { width: `${progress}%` }]} />
@@ -801,40 +1077,80 @@ function SubmissionPanel({ assessment, onUpdate }: { assessment: Assessment; onU
           {isAdvanced ? "Submit project for AI evaluation" : "Submit answers for scoring"}
         </Text>
       </TouchableOpacity>
-      <Text style={[styles.evaluationTime, { color: currentColors.subtext }]}>AI feedback within 60s · Transparent rubric scoring</Text>
+      <Text style={[styles.evaluationTime, { color: currentColors.subtext }]}>
+        AI feedback within 60s · Transparent rubric scoring
+      </Text>
     </View>
   );
 }
 
-function AssessmentList({ items, activeId, onPick }: { items: Assessment[]; activeId: string; onPick: (a: Assessment) => void }) {
+function AssessmentList({
+  items,
+  activeId,
+  onPick,
+}: {
+  items: Assessment[];
+  activeId: string;
+  onPick: (a: Assessment) => void;
+}) {
   const store = useDashboardStore();
   const appTheme = store.appTheme || "light";
   const currentColors = themeColors[appTheme as "light" | "dark"] || themeColors.light;
   const isDark = appTheme === "dark";
 
   const [filter, setFilter] = useState<"all" | Status | "late">("all");
-  const filtered = filter === "all" ? items 
-    : filter === "late" ? items.filter(i => i.status !== "submitted" && isLate(i))
-    : filter === "open" ? items.filter(i => i.status !== "submitted")
-    : items.filter((i) => i.status === filter);
+  const filtered =
+    filter === "all"
+      ? items
+      : filter === "late"
+        ? items.filter((i) => i.status !== "submitted" && isLate(i))
+        : filter === "open"
+          ? items.filter((i) => i.status !== "submitted")
+          : items.filter((i) => i.status === filter);
   const tabs: Array<{ k: "all" | Status | "late"; label: string }> = [
-    { k: "all", label: "All" }, { k: "open", label: "Open" }, { k: "late", label: "Late" }, { k: "submitted", label: "Submitted" },
+    { k: "all", label: "All" },
+    { k: "open", label: "Open" },
+    { k: "late", label: "Late" },
+    { k: "submitted", label: "Submitted" },
   ];
 
   return (
-    <View style={[styles.listCard, { backgroundColor: currentColors.card, borderColor: currentColors.border }]}>
+    <View
+      style={[
+        styles.listCard,
+        { backgroundColor: currentColors.card, borderColor: currentColors.border },
+      ]}
+    >
       <View style={styles.listHeader}>
         <Text style={[styles.listTitle, { color: currentColors.text }]}>All Assessments</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.filterTabs, { backgroundColor: isDark ? currentColors.divider : "#f1f5f9" }]}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={[
+            styles.filterTabs,
+            { backgroundColor: isDark ? currentColors.divider : "#f1f5f9" },
+          ]}
+        >
           {tabs.map((t) => {
             const isActive = filter === t.k;
             return (
               <TouchableOpacity
                 key={t.k}
                 onPress={() => setFilter(t.k)}
-                style={[styles.tabButton, isActive && [styles.activeTabButton, { backgroundColor: currentColors.card }]]}
+                style={[
+                  styles.tabButton,
+                  isActive && [styles.activeTabButton, { backgroundColor: currentColors.card }],
+                ]}
               >
-                <Text style={[styles.tabText, { color: currentColors.subtext }, isActive && [styles.activeTabText, { color: currentColors.text }]]}>{t.label}</Text>
+                <Text
+                  style={[
+                    styles.tabText,
+                    { color: currentColors.subtext },
+                    isActive && [styles.activeTabText, { color: currentColors.text }],
+                  ]}
+                >
+                  {t.label}
+                </Text>
               </TouchableOpacity>
             );
           })}
@@ -848,17 +1164,36 @@ function AssessmentList({ items, activeId, onPick }: { items: Assessment[]; acti
           const isLateAssessment = isLate(a);
           const statusBg = isLateAssessment ? "bgRed" : tintByStatus[a.status];
           const statusText = isLateAssessment ? "textRed" : tintTextByStatus[a.status];
-          const statusLabel = isLateAssessment ? "LATE" : (a.status === "in-progress" ? "in progress" : a.status);
+          const statusLabel = isLateAssessment
+            ? "LATE"
+            : a.status === "in-progress"
+              ? "in progress"
+              : a.status;
           return (
             <TouchableOpacity
               key={a.id}
               onPress={() => onPick(a)}
               style={[
-                styles.listItem, 
-                isActive ? [styles.activeListItem, { backgroundColor: isDark ? currentColors.divider : "rgba(99, 102, 241, 0.03)", borderColor: "#6366f1" }] : [styles.inactiveListItem, { backgroundColor: currentColors.card, borderColor: currentColors.border }],
-                isLateAssessment && { backgroundColor: isDark ? 'rgba(239, 68, 68, 0.08)' : '#fff5f5' },
-                isLateAssessment && isActive && { borderColor: '#ef4444' },
-                isLateAssessment && !isActive && { borderColor: isDark ? '#b91c1c' : '#fca5a5' }
+                styles.listItem,
+                isActive
+                  ? [
+                      styles.activeListItem,
+                      {
+                        backgroundColor: isDark
+                          ? currentColors.divider
+                          : "rgba(99, 102, 241, 0.03)",
+                        borderColor: "#6366f1",
+                      },
+                    ]
+                  : [
+                      styles.inactiveListItem,
+                      { backgroundColor: currentColors.card, borderColor: currentColors.border },
+                    ],
+                isLateAssessment && {
+                  backgroundColor: isDark ? "rgba(239, 68, 68, 0.08)" : "#fff5f5",
+                },
+                isLateAssessment && isActive && { borderColor: "#ef4444" },
+                isLateAssessment && !isActive && { borderColor: isDark ? "#b91c1c" : "#fca5a5" },
               ]}
             >
               <View style={styles.listItemIconBox}>
@@ -866,32 +1201,61 @@ function AssessmentList({ items, activeId, onPick }: { items: Assessment[]; acti
               </View>
               <View style={styles.listItemDetails}>
                 <View style={styles.listItemRow}>
-                  <Text style={[styles.listItemTitle, { color: currentColors.text }]} numberOfLines={1}>{a.title}</Text>
+                  <Text
+                    style={[styles.listItemTitle, { color: currentColors.text }]}
+                    numberOfLines={1}
+                  >
+                    {a.title}
+                  </Text>
                   <View style={[styles.statusBadge, styles[statusBg as keyof typeof styles]]}>
-                    <Text style={[styles.statusBadgeText, styles[statusText as keyof typeof styles]]}>
+                    <Text
+                      style={[styles.statusBadgeText, styles[statusText as keyof typeof styles]]}
+                    >
                       {statusLabel}
                     </Text>
                   </View>
                 </View>
                 <View style={styles.listItemSubRow}>
-                  <Text style={[styles.listItemMetaText, { color: currentColors.subtext, flexShrink: 1 }]} numberOfLines={1}>{a.subject}</Text>
+                  <Text
+                    style={[
+                      styles.listItemMetaText,
+                      { color: currentColors.subtext, flexShrink: 1 },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {a.subject}
+                  </Text>
                   <View style={[styles.dot, { backgroundColor: currentColors.border }]} />
-                  <Text style={[styles.listItemMetaText, { color: currentColors.subtext }]}>{a.difficulty}</Text>
+                  <Text style={[styles.listItemMetaText, { color: currentColors.subtext }]}>
+                    {a.difficulty}
+                  </Text>
                   <View style={[styles.dot, { backgroundColor: currentColors.border }]} />
-                  <BootstrapIcon name="clock" size={10} color={isLateAssessment ? "#ef4444" : "#94a3b8"} />
-                  <Text style={[
-                    styles.listItemMetaText, 
-                    { color: currentColors.subtext },
-                    isLateAssessment && { color: '#ef4444', fontWeight: 'bold' }
-                  ]} numberOfLines={1}>
+                  <BootstrapIcon
+                    name="clock"
+                    size={10}
+                    color={isLateAssessment ? "#ef4444" : "#94a3b8"}
+                  />
+                  <Text
+                    style={[
+                      styles.listItemMetaText,
+                      { color: currentColors.subtext },
+                      isLateAssessment && { color: "#ef4444", fontWeight: "bold" },
+                    ]}
+                    numberOfLines={1}
+                  >
                     {a.deadline}
                   </Text>
                 </View>
 
                 {isLateAssessment && (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-                    <BootstrapIcon name="exclamation-triangle" size={12} color="#ef4444" style={{ marginRight: 4 }} />
-                    <Text style={{ color: '#ef4444', fontSize: 11, fontWeight: 'bold' }}>
+                  <View style={{ flexDirection: "row", alignItems: "center", marginTop: 4 }}>
+                    <BootstrapIcon
+                      name="exclamation-triangle"
+                      size={12}
+                      color="#ef4444"
+                      style={{ marginRight: 4 }}
+                    />
+                    <Text style={{ color: "#ef4444", fontSize: 11, fontWeight: "bold" }}>
                       Overdue Penalty: -{getXpLost(a)} XP
                     </Text>
                   </View>
@@ -899,13 +1263,25 @@ function AssessmentList({ items, activeId, onPick }: { items: Assessment[]; acti
 
                 {/* Mobile progress display */}
                 <View style={styles.listItemProgressRow}>
-                  <Text style={[styles.listItemProgressText, { color: currentColors.subtext }]}>{a.progress}% complete</Text>
-                  <View style={[styles.listItemProgressTrack, { backgroundColor: currentColors.divider }]}>
+                  <Text style={[styles.listItemProgressText, { color: currentColors.subtext }]}>
+                    {a.progress}% complete
+                  </Text>
+                  <View
+                    style={[
+                      styles.listItemProgressTrack,
+                      { backgroundColor: currentColors.divider },
+                    ]}
+                  >
                     <View style={[styles.listItemProgressBar, { width: `${a.progress}%` }]} />
                   </View>
                 </View>
               </View>
-              <BootstrapIcon name="chevron-right" size={16} color="#94a3b8" style={styles.chevron} />
+              <BootstrapIcon
+                name="chevron-right"
+                size={16}
+                color="#94a3b8"
+                style={styles.chevron}
+              />
             </TouchableOpacity>
           );
         })}

@@ -25,6 +25,12 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
       type: "sourceFile",
     };
   }
+  if (moduleName.startsWith("seroval-plugins")) {
+    return {
+      filePath: path.resolve(__dirname, "metro-mocks/empty.cjs"),
+      type: "sourceFile",
+    };
+  }
   // Fallback to default resolution
   return context.resolveRequest(context, moduleName, platform);
 };

@@ -249,7 +249,7 @@ jobs:
         env:
           HEADLESS: 'true'
           CI: 'true'
-          APP_URL: ${{ vars.APP_URL || 'https://edusync-black.vercel.app' }}
+          APP_URL: 'https://edusync-black.vercel.app'
           CHROME_BIN: ${{ env.CHROME_BIN }}
           CHROMEDRIVER_PATH: ${{ env.CHROMEDRIVER_PATH }}
 
@@ -309,7 +309,7 @@ jobs:
         run: node run-tests.js
         env:
           CI: 'true'
-          APP_URL: ${{ vars.APP_URL || 'https://edusync-black.vercel.app' }}
+          APP_URL: 'https://edusync-black.vercel.app'
 
       - name: Upload Appium test report (Excel)
         if: always()
@@ -637,7 +637,7 @@ jobs:
   test-summary:
     name: Test Summary
     runs-on: ubuntu-latest
-    needs: [ selenium-web-tests, appium-mobile-tests, load-and-performance-tests, vulnerability-tests, build-tests ]
+    needs: [ setup-nodejs, security-assessment, selenium-web-tests, appium-mobile-tests, load-and-performance-tests, vulnerability-tests, build-tests ]
     if: always()   # run even if test jobs fail
 
     steps:

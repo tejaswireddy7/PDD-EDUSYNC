@@ -97,3 +97,27 @@ if (fs.existsSync(specsDir)) {
     }
   }
 }
+
+// 4. Patch dynamic imports in @supabase (e.g. OTEL_PKG) that crash Hermes compiler
+function patchSupabaseOtel(dir) {
+  if (!fs.existsSync(dir)) return;
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      patchSupabaseOtel(fullPath);
+    } else if (entry.isFile() && (entry.name.endsWith(".js") || entry.name.endsWith(".mjs") || entry.name.endsWith(".cjs"))) {
+      let content = fs.readFileSync(fullPath, "utf8");
+      if (content.includes("OTEL_PKG") || content.includes("webpackIgnore")) {
+        content = content.replace(/import\s*\([\s\S]*?OTEL_PKG\)/g, 'Promise.reject(new Error("OTEL not found"))');
+        content = content.replace(/import\s*\(\s*\/\*[\s\S]*?\*\/\s*[a-zA-Z0-9_$]+\s*\)/g, 'Promise.reject(new Error("Dynamic import not supported"))');
+        fs.writeFileSync(fullPath, content, "utf8");
+        console.log(`Successfully patched dynamic import in: ${entry.name}`);
+      }
+    }
+  }
+}
+
+patchSupabaseOtel(path.join(projectRoot, "node_modules/@supabase"));
+
+

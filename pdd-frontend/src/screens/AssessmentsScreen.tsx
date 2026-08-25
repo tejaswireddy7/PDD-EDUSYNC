@@ -173,9 +173,11 @@ export default function AssessmentsScreen() {
     }
   };
 
+  const enrolledCoursesKey = (store.enrolledCourses || []).map((c: any) => c.id || c.course_id || c.title || "").join(",");
+
   useEffect(() => {
-    loadData(true);
-  }, [focusDomain, userProficiency, store.enrolledCourses]);
+    loadData(items.length === 0);
+  }, [focusDomain, userProficiency, enrolledCoursesKey]);
 
   const onRefresh = async () => {
     setRefreshing(true);

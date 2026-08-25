@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "postinstall": "node scripts/patch-screens.js"
+    "postinstall": "node scripts/patch-screens.js",
+    "eas-build-post-install": "node scripts/patch-screens.js"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.4",

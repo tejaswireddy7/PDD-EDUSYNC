@@ -92,3 +92,59 @@ export const surveyApi = {
     });
   },
 };
+
+// ---- Adaptive AI & Telemetry Endpoints -----------------------
+
+export const adaptiveApi = {
+  getNextQuestion: async (
+    token: string,
+    domain: string,
+    currentTheta: number,
+    answeredQuestionIds: string[]
+  ) => {
+    return apiFetch<{ success: boolean; data: { status: string; question: any } }>(
+      "/adaptive/next-question",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ domain, currentTheta, answeredQuestionIds }),
+      }
+    );
+  },
+
+  evaluateAbility: async (
+    token: string,
+    domain: string,
+    responses: Array<{ question_id: string; is_correct: boolean }>
+  ) => {
+    return apiFetch<{
+      success: boolean;
+      data: {
+        theta_score: number;
+        standard_error: number;
+        mastery_percentile: number;
+        grade: string;
+        recommended_difficulty: string;
+      };
+    }>("/adaptive/evaluate-ability", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ domain, responses }),
+    });
+  },
+
+  logTelemetry: async (token: string, event: Record<string, any>) => {
+    return apiFetch<any>("/adaptive/telemetry", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(event),
+    });
+  },
+};
+

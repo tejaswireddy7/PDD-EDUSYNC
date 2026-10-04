@@ -1,0 +1,4220 @@
+[
+  {
+    "user_id": "usr_0001",
+    "primary_domain": "AI/ML",
+    "level": "Intermediate",
+    "goal": "Portfolio Building",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -0.039,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0002",
+    "primary_domain": "Mobile",
+    "level": "Intermediate",
+    "goal": "Skill Upgrade",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -0.647,
+    "mastered_skills": [
+      "Machine Learning",
+      "Regression",
+      "Scikit-Learn"
+    ]
+  },
+  {
+    "user_id": "usr_0003",
+    "primary_domain": "Mobile",
+    "level": "Beginner",
+    "goal": "Exam Prep",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -0.894,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0004",
+    "primary_domain": "Mobile",
+    "level": "Intermediate",
+    "goal": "Exam Prep",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 1.208,
+    "mastered_skills": [
+      "Offline-First",
+      "Mobile UI",
+      "WatermelonDB",
+      "Expo",
+      "Reanimated",
+      "SQLite",
+      "Gesture Handler",
+      "React Native",
+      "React Navigation"
+    ]
+  },
+  {
+    "user_id": "usr_0005",
+    "primary_domain": "Frontend",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -0.882,
+    "mastered_skills": [
+      "Async/Await",
+      "ES6",
+      "JavaScript"
+    ]
+  },
+  {
+    "user_id": "usr_0006",
+    "primary_domain": "Backend",
+    "level": "Intermediate",
+    "goal": "Career Switch",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -0.006,
+    "mastered_skills": [
+      "Node.js",
+      "RESTful API",
+      "Express"
+    ]
+  },
+  {
+    "user_id": "usr_0007",
+    "primary_domain": "AI/ML",
+    "level": "Beginner",
+    "goal": "Exam Prep",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -1.107,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0008",
+    "primary_domain": "Mobile",
+    "level": "Advanced",
+    "goal": "Skill Upgrade",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 1.209,
+    "mastered_skills": [
+      "Mobile UI",
+      "HTML",
+      "Expo",
+      "Reanimated",
+      "Gesture Handler",
+      "Responsive Design",
+      "React Native",
+      "React Navigation",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0009",
+    "primary_domain": "AI/ML",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -0.853,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0010",
+    "primary_domain": "Backend",
+    "level": "Beginner",
+    "goal": "Portfolio Building",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -0.616,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0011",
+    "primary_domain": "AI/ML",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -0.878,
+    "mastered_skills": [
+      "Machine Learning",
+      "Regression",
+      "Scikit-Learn"
+    ]
+  },
+  {
+    "user_id": "usr_0012",
+    "primary_domain": "Backend",
+    "level": "Advanced",
+    "goal": "Career Switch",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 1.568,
+    "mastered_skills": [
+      "Microservices",
+      "gRPC",
+      "Docker"
+    ]
+  },
+  {
+    "user_id": "usr_0013",
+    "primary_domain": "AI/ML",
+    "level": "Beginner",
+    "goal": "Portfolio Building",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -1.102,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0014",
+    "primary_domain": "AI/ML",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -1.366,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0015",
+    "primary_domain": "AI/ML",
+    "level": "Beginner",
+    "goal": "Career Switch",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -1.825,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0016",
+    "primary_domain": "AI/ML",
+    "level": "Advanced",
+    "goal": "Skill Upgrade",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 0.772,
+    "mastered_skills": [
+      "Pandas",
+      "Python",
+      "NumPy"
+    ]
+  },
+  {
+    "user_id": "usr_0017",
+    "primary_domain": "AI/ML",
+    "level": "Intermediate",
+    "goal": "Career Switch",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -0.099,
+    "mastered_skills": [
+      "Machine Learning",
+      "Regression",
+      "Scikit-Learn"
+    ]
+  },
+  {
+    "user_id": "usr_0018",
+    "primary_domain": "Frontend",
+    "level": "Advanced",
+    "goal": "Portfolio Building",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 0.534,
+    "mastered_skills": [
+      "Hooks",
+      "HTML",
+      "JavaScript",
+      "Component Design",
+      "React",
+      "Responsive Design",
+      "Async/Await",
+      "ES6",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0019",
+    "primary_domain": "AI/ML",
+    "level": "Intermediate",
+    "goal": "Portfolio Building",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -0.129,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0020",
+    "primary_domain": "Frontend",
+    "level": "Intermediate",
+    "goal": "Skill Upgrade",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -0.189,
+    "mastered_skills": [
+      "HTML",
+      "JavaScript",
+      "Responsive Design",
+      "Async/Await",
+      "ES6",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0021",
+    "primary_domain": "Mobile",
+    "level": "Advanced",
+    "goal": "Exam Prep",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 1.394,
+    "mastered_skills": [
+      "Offline-First",
+      "Mobile UI",
+      "WatermelonDB",
+      "Expo",
+      "Reanimated",
+      "SQLite",
+      "Gesture Handler",
+      "React Native",
+      "React Navigation"
+    ]
+  },
+  {
+    "user_id": "usr_0022",
+    "primary_domain": "Mobile",
+    "level": "Beginner",
+    "goal": "Exam Prep",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -0.799,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0023",
+    "primary_domain": "Frontend",
+    "level": "Advanced",
+    "goal": "Skill Upgrade",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 0.878,
+    "mastered_skills": [
+      "Hooks",
+      "JavaScript",
+      "Next.js",
+      "Component Design",
+      "React",
+      "SSR",
+      "Server Components",
+      "Async/Await",
+      "ES6"
+    ]
+  },
+  {
+    "user_id": "usr_0024",
+    "primary_domain": "Backend",
+    "level": "Advanced",
+    "goal": "Skill Upgrade",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 0.784,
+    "mastered_skills": [
+      "Node.js",
+      "RESTful API",
+      "Database Design",
+      "PostgreSQL",
+      "SQL",
+      "OAuth2",
+      "JWT",
+      "Express",
+      "Authentication"
+    ]
+  },
+  {
+    "user_id": "usr_0025",
+    "primary_domain": "Mobile",
+    "level": "Advanced",
+    "goal": "Career Switch",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 1.609,
+    "mastered_skills": [
+      "WatermelonDB",
+      "Offline-First",
+      "TypeScript",
+      "SQLite",
+      "Generics",
+      "Type Safety"
+    ]
+  },
+  {
+    "user_id": "usr_0026",
+    "primary_domain": "Backend",
+    "level": "Advanced",
+    "goal": "Career Switch",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 1.013,
+    "mastered_skills": [
+      "Database Design",
+      "PostgreSQL",
+      "SQL",
+      "OAuth2",
+      "JWT",
+      "Kafka",
+      "Redis",
+      "RabbitMQ",
+      "Authentication"
+    ]
+  },
+  {
+    "user_id": "usr_0027",
+    "primary_domain": "Frontend",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -0.804,
+    "mastered_skills": [
+      "Async/Await",
+      "ES6",
+      "JavaScript"
+    ]
+  },
+  {
+    "user_id": "usr_0028",
+    "primary_domain": "AI/ML",
+    "level": "Beginner",
+    "goal": "Exam Prep",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -1.004,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0029",
+    "primary_domain": "Backend",
+    "level": "Intermediate",
+    "goal": "Portfolio Building",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 0.599,
+    "mastered_skills": [
+      "Node.js",
+      "RESTful API",
+      "Reanimated",
+      "Gesture Handler",
+      "Express",
+      "React Navigation"
+    ]
+  },
+  {
+    "user_id": "usr_0030",
+    "primary_domain": "AI/ML",
+    "level": "Intermediate",
+    "goal": "Skill Upgrade",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 0.338,
+    "mastered_skills": [
+      "Deep Learning",
+      "CNN",
+      "PyTorch"
+    ]
+  },
+  {
+    "user_id": "usr_0031",
+    "primary_domain": "Frontend",
+    "level": "Advanced",
+    "goal": "Career Switch",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 1.764,
+    "mastered_skills": [
+      "HTML",
+      "TypeScript",
+      "Responsive Design",
+      "Generics",
+      "Type Safety",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0032",
+    "primary_domain": "Frontend",
+    "level": "Beginner",
+    "goal": "Portfolio Building",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -1.478,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0033",
+    "primary_domain": "Backend",
+    "level": "Intermediate",
+    "goal": "Career Switch",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 0.229,
+    "mastered_skills": [
+      "Node.js",
+      "RESTful API",
+      "Database Design",
+      "PostgreSQL",
+      "SQL",
+      "OAuth2",
+      "JWT",
+      "Express",
+      "Authentication"
+    ]
+  },
+  {
+    "user_id": "usr_0034",
+    "primary_domain": "AI/ML",
+    "level": "Advanced",
+    "goal": "Portfolio Building",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 0.411,
+    "mastered_skills": [
+      "Pandas",
+      "Python",
+      "NumPy"
+    ]
+  },
+  {
+    "user_id": "usr_0035",
+    "primary_domain": "Frontend",
+    "level": "Intermediate",
+    "goal": "Portfolio Building",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 0.25,
+    "mastered_skills": [
+      "Next.js",
+      "TypeScript",
+      "SSR",
+      "Generics",
+      "Server Components",
+      "Type Safety"
+    ]
+  },
+  {
+    "user_id": "usr_0036",
+    "primary_domain": "Frontend",
+    "level": "Beginner",
+    "goal": "Portfolio Building",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -1.078,
+    "mastered_skills": [
+      "HTML",
+      "JavaScript",
+      "Responsive Design",
+      "Async/Await",
+      "ES6",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0037",
+    "primary_domain": "Frontend",
+    "level": "Intermediate",
+    "goal": "Exam Prep",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -0.335,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0038",
+    "primary_domain": "Backend",
+    "level": "Beginner",
+    "goal": "Portfolio Building",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -0.815,
+    "mastered_skills": [
+      "PostgreSQL",
+      "SQL",
+      "Database Design"
+    ]
+  },
+  {
+    "user_id": "usr_0039",
+    "primary_domain": "Frontend",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -1.103,
+    "mastered_skills": [
+      "Async/Await",
+      "ES6",
+      "JavaScript"
+    ]
+  },
+  {
+    "user_id": "usr_0040",
+    "primary_domain": "Frontend",
+    "level": "Beginner",
+    "goal": "Exam Prep",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -0.493,
+    "mastered_skills": [
+      "Mobile UI",
+      "Expo",
+      "React Native"
+    ]
+  },
+  {
+    "user_id": "usr_0041",
+    "primary_domain": "Frontend",
+    "level": "Intermediate",
+    "goal": "Exam Prep",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 0.738,
+    "mastered_skills": [
+      "Hooks",
+      "TypeScript",
+      "Component Design",
+      "OAuth2",
+      "React",
+      "JWT",
+      "Generics",
+      "Type Safety",
+      "Authentication"
+    ]
+  },
+  {
+    "user_id": "usr_0042",
+    "primary_domain": "Frontend",
+    "level": "Advanced",
+    "goal": "Exam Prep",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 0.794,
+    "mastered_skills": [
+      "Hooks",
+      "JavaScript",
+      "HTML",
+      "TypeScript",
+      "Component Design",
+      "React",
+      "Responsive Design",
+      "Generics",
+      "Type Safety",
+      "Async/Await",
+      "ES6",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0043",
+    "primary_domain": "Frontend",
+    "level": "Advanced",
+    "goal": "Skill Upgrade",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 1.101,
+    "mastered_skills": [
+      "JavaScript",
+      "MLOps",
+      "FastAPI",
+      "Docker",
+      "Async/Await",
+      "ES6"
+    ]
+  },
+  {
+    "user_id": "usr_0044",
+    "primary_domain": "Mobile",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -1.847,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0045",
+    "primary_domain": "Frontend",
+    "level": "Intermediate",
+    "goal": "Career Switch",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -0.35,
+    "mastered_skills": [
+      "Async/Await",
+      "ES6",
+      "JavaScript"
+    ]
+  },
+  {
+    "user_id": "usr_0046",
+    "primary_domain": "Mobile",
+    "level": "Advanced",
+    "goal": "Exam Prep",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 2.388,
+    "mastered_skills": [
+      "WatermelonDB",
+      "Offline-First",
+      "Mobile UI",
+      "Expo",
+      "Reanimated",
+      "SQLite",
+      "Gesture Handler",
+      "React Native",
+      "Machine Learning",
+      "Scikit-Learn",
+      "Regression",
+      "React Navigation"
+    ]
+  },
+  {
+    "user_id": "usr_0047",
+    "primary_domain": "Frontend",
+    "level": "Intermediate",
+    "goal": "Exam Prep",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -0.133,
+    "mastered_skills": [
+      "JavaScript",
+      "Next.js",
+      "SSR",
+      "Server Components",
+      "Async/Await",
+      "ES6"
+    ]
+  },
+  {
+    "user_id": "usr_0048",
+    "primary_domain": "Mobile",
+    "level": "Beginner",
+    "goal": "Career Switch",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -1.207,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0049",
+    "primary_domain": "Mobile",
+    "level": "Intermediate",
+    "goal": "Exam Prep",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 0.261,
+    "mastered_skills": [
+      "Mobile UI",
+      "Expo",
+      "React Native"
+    ]
+  },
+  {
+    "user_id": "usr_0050",
+    "primary_domain": "Backend",
+    "level": "Intermediate",
+    "goal": "Portfolio Building",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 0.483,
+    "mastered_skills": [
+      "OAuth2",
+      "Authentication",
+      "JWT"
+    ]
+  },
+  {
+    "user_id": "usr_0051",
+    "primary_domain": "Mobile",
+    "level": "Intermediate",
+    "goal": "Portfolio Building",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 0.4,
+    "mastered_skills": [
+      "Reanimated",
+      "React Navigation",
+      "Gesture Handler"
+    ]
+  },
+  {
+    "user_id": "usr_0052",
+    "primary_domain": "Frontend",
+    "level": "Beginner",
+    "goal": "Portfolio Building",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 0.64,
+    "mastered_skills": [
+      "Hooks",
+      "Code Splitting",
+      "HTML",
+      "JavaScript",
+      "Component Design",
+      "Web Vitals",
+      "React",
+      "Responsive Design",
+      "Lighthouse",
+      "Async/Await",
+      "ES6",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0053",
+    "primary_domain": "Frontend",
+    "level": "Intermediate",
+    "goal": "Career Switch",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -0.66,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0054",
+    "primary_domain": "Backend",
+    "level": "Intermediate",
+    "goal": "Career Switch",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -0.152,
+    "mastered_skills": [
+      "Database Design",
+      "PostgreSQL",
+      "SQL",
+      "Docker",
+      "Microservices",
+      "gRPC"
+    ]
+  },
+  {
+    "user_id": "usr_0055",
+    "primary_domain": "Mobile",
+    "level": "Beginner",
+    "goal": "Exam Prep",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -1.505,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0056",
+    "primary_domain": "Backend",
+    "level": "Intermediate",
+    "goal": "Portfolio Building",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -0.029,
+    "mastered_skills": [
+      "Node.js",
+      "RESTful API",
+      "OAuth2",
+      "JWT",
+      "Kafka",
+      "Redis",
+      "RabbitMQ",
+      "Express",
+      "Authentication"
+    ]
+  },
+  {
+    "user_id": "usr_0057",
+    "primary_domain": "AI/ML",
+    "level": "Intermediate",
+    "goal": "Portfolio Building",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -0.401,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0058",
+    "primary_domain": "AI/ML",
+    "level": "Advanced",
+    "goal": "Portfolio Building",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 1.597,
+    "mastered_skills": [
+      "NumPy",
+      "Deep Learning",
+      "PyTorch",
+      "Pandas",
+      "Python",
+      "Machine Learning",
+      "Scikit-Learn",
+      "Regression",
+      "CNN"
+    ]
+  },
+  {
+    "user_id": "usr_0059",
+    "primary_domain": "Frontend",
+    "level": "Intermediate",
+    "goal": "Exam Prep",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 0.112,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0060",
+    "primary_domain": "Frontend",
+    "level": "Beginner",
+    "goal": "Career Switch",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -1.797,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0061",
+    "primary_domain": "AI/ML",
+    "level": "Advanced",
+    "goal": "Skill Upgrade",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 1.456,
+    "mastered_skills": [
+      "NumPy",
+      "PyTorch",
+      "Deep Learning",
+      "MLOps",
+      "Pandas",
+      "FastAPI",
+      "Python",
+      "Docker",
+      "CNN"
+    ]
+  },
+  {
+    "user_id": "usr_0062",
+    "primary_domain": "Backend",
+    "level": "Advanced",
+    "goal": "Exam Prep",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 1.681,
+    "mastered_skills": [
+      "Database Design",
+      "PostgreSQL",
+      "SQL",
+      "OAuth2",
+      "JWT",
+      "Kafka",
+      "Redis",
+      "RabbitMQ",
+      "Authentication"
+    ]
+  },
+  {
+    "user_id": "usr_0063",
+    "primary_domain": "Frontend",
+    "level": "Intermediate",
+    "goal": "Portfolio Building",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 0.509,
+    "mastered_skills": [
+      "Hooks",
+      "JavaScript",
+      "Component Design",
+      "React",
+      "Async/Await",
+      "ES6"
+    ]
+  },
+  {
+    "user_id": "usr_0064",
+    "primary_domain": "Frontend",
+    "level": "Intermediate",
+    "goal": "Skill Upgrade",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -0.096,
+    "mastered_skills": [
+      "HTML",
+      "Responsive Design",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0065",
+    "primary_domain": "AI/ML",
+    "level": "Beginner",
+    "goal": "Exam Prep",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -1.483,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0066",
+    "primary_domain": "AI/ML",
+    "level": "Intermediate",
+    "goal": "Career Switch",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 0.513,
+    "mastered_skills": [
+      "Pandas",
+      "Python",
+      "NumPy"
+    ]
+  },
+  {
+    "user_id": "usr_0067",
+    "primary_domain": "Frontend",
+    "level": "Advanced",
+    "goal": "Skill Upgrade",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 1.311,
+    "mastered_skills": [
+      "Hooks",
+      "JavaScript",
+      "Component Design",
+      "React",
+      "Async/Await",
+      "ES6"
+    ]
+  },
+  {
+    "user_id": "usr_0068",
+    "primary_domain": "AI/ML",
+    "level": "Advanced",
+    "goal": "Exam Prep",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 1.743,
+    "mastered_skills": [
+      "Embeddings",
+      "LLMs",
+      "Docker",
+      "RAG",
+      "Microservices",
+      "gRPC"
+    ]
+  },
+  {
+    "user_id": "usr_0069",
+    "primary_domain": "Backend",
+    "level": "Intermediate",
+    "goal": "Career Switch",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 0.601,
+    "mastered_skills": [
+      "Node.js",
+      "RESTful API",
+      "Database Design",
+      "PostgreSQL",
+      "SQL",
+      "Express"
+    ]
+  },
+  {
+    "user_id": "usr_0070",
+    "primary_domain": "Backend",
+    "level": "Beginner",
+    "goal": "Career Switch",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -0.526,
+    "mastered_skills": [
+      "PostgreSQL",
+      "SQL",
+      "Database Design"
+    ]
+  },
+  {
+    "user_id": "usr_0071",
+    "primary_domain": "AI/ML",
+    "level": "Intermediate",
+    "goal": "Exam Prep",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -0.028,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0072",
+    "primary_domain": "Backend",
+    "level": "Intermediate",
+    "goal": "Career Switch",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 0.101,
+    "mastered_skills": [
+      "PostgreSQL",
+      "SQL",
+      "Database Design"
+    ]
+  },
+  {
+    "user_id": "usr_0073",
+    "primary_domain": "AI/ML",
+    "level": "Beginner",
+    "goal": "Portfolio Building",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -1.355,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0074",
+    "primary_domain": "Frontend",
+    "level": "Advanced",
+    "goal": "Portfolio Building",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 1.734,
+    "mastered_skills": [
+      "Hooks",
+      "HTML",
+      "Next.js",
+      "TypeScript",
+      "Component Design",
+      "React",
+      "SSR",
+      "Responsive Design",
+      "Generics",
+      "Server Components",
+      "Type Safety",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0075",
+    "primary_domain": "Mobile",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -0.977,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0076",
+    "primary_domain": "Backend",
+    "level": "Beginner",
+    "goal": "Career Switch",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -1.085,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0077",
+    "primary_domain": "Backend",
+    "level": "Beginner",
+    "goal": "Exam Prep",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -1.324,
+    "mastered_skills": [
+      "PostgreSQL",
+      "SQL",
+      "Database Design"
+    ]
+  },
+  {
+    "user_id": "usr_0078",
+    "primary_domain": "Backend",
+    "level": "Intermediate",
+    "goal": "Skill Upgrade",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 0.303,
+    "mastered_skills": [
+      "NumPy",
+      "Database Design",
+      "PostgreSQL",
+      "SQL",
+      "Pandas",
+      "Python"
+    ]
+  },
+  {
+    "user_id": "usr_0079",
+    "primary_domain": "Mobile",
+    "level": "Intermediate",
+    "goal": "Exam Prep",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 0.587,
+    "mastered_skills": [
+      "WatermelonDB",
+      "Offline-First",
+      "SQLite"
+    ]
+  },
+  {
+    "user_id": "usr_0080",
+    "primary_domain": "AI/ML",
+    "level": "Advanced",
+    "goal": "Skill Upgrade",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 1.533,
+    "mastered_skills": [
+      "Mobile UI",
+      "MLOps",
+      "Expo",
+      "FastAPI",
+      "Machine Learning",
+      "React Native",
+      "Regression",
+      "Scikit-Learn",
+      "Docker"
+    ]
+  },
+  {
+    "user_id": "usr_0081",
+    "primary_domain": "AI/ML",
+    "level": "Beginner",
+    "goal": "Career Switch",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -1.365,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0082",
+    "primary_domain": "Frontend",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -0.896,
+    "mastered_skills": [
+      "Microservices",
+      "gRPC",
+      "Docker"
+    ]
+  },
+  {
+    "user_id": "usr_0083",
+    "primary_domain": "Mobile",
+    "level": "Intermediate",
+    "goal": "Portfolio Building",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 0.077,
+    "mastered_skills": [
+      "Mobile UI",
+      "Expo",
+      "React Native"
+    ]
+  },
+  {
+    "user_id": "usr_0084",
+    "primary_domain": "AI/ML",
+    "level": "Intermediate",
+    "goal": "Exam Prep",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 0.292,
+    "mastered_skills": [
+      "NumPy",
+      "PyTorch",
+      "Deep Learning",
+      "Pandas",
+      "Python",
+      "Embeddings",
+      "LLMs",
+      "RAG",
+      "CNN"
+    ]
+  },
+  {
+    "user_id": "usr_0085",
+    "primary_domain": "Frontend",
+    "level": "Advanced",
+    "goal": "Exam Prep",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 1.491,
+    "mastered_skills": [
+      "Hooks",
+      "HTML",
+      "Next.js",
+      "TypeScript",
+      "Component Design",
+      "React",
+      "Responsive Design",
+      "SSR",
+      "Generics",
+      "Server Components",
+      "Type Safety",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0086",
+    "primary_domain": "AI/ML",
+    "level": "Intermediate",
+    "goal": "Career Switch",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -0.457,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0087",
+    "primary_domain": "Backend",
+    "level": "Intermediate",
+    "goal": "Skill Upgrade",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 0.345,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0088",
+    "primary_domain": "Backend",
+    "level": "Advanced",
+    "goal": "Exam Prep",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 0.549,
+    "mastered_skills": [
+      "Node.js",
+      "RESTful API",
+      "Database Design",
+      "PostgreSQL",
+      "SQL",
+      "Express"
+    ]
+  },
+  {
+    "user_id": "usr_0089",
+    "primary_domain": "Mobile",
+    "level": "Beginner",
+    "goal": "Exam Prep",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -0.332,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0090",
+    "primary_domain": "AI/ML",
+    "level": "Intermediate",
+    "goal": "Exam Prep",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 0.19,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0091",
+    "primary_domain": "Mobile",
+    "level": "Advanced",
+    "goal": "Career Switch",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 1.353,
+    "mastered_skills": [
+      "Offline-First",
+      "Mobile UI",
+      "WatermelonDB",
+      "Expo",
+      "Reanimated",
+      "SQLite",
+      "Gesture Handler",
+      "React Native",
+      "React Navigation"
+    ]
+  },
+  {
+    "user_id": "usr_0092",
+    "primary_domain": "Frontend",
+    "level": "Beginner",
+    "goal": "Portfolio Building",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -0.616,
+    "mastered_skills": [
+      "HTML",
+      "Responsive Design",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0093",
+    "primary_domain": "AI/ML",
+    "level": "Advanced",
+    "goal": "Skill Upgrade",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 0.981,
+    "mastered_skills": [
+      "NumPy",
+      "Pandas",
+      "Python",
+      "Machine Learning",
+      "Scikit-Learn",
+      "Regression"
+    ]
+  },
+  {
+    "user_id": "usr_0094",
+    "primary_domain": "Frontend",
+    "level": "Intermediate",
+    "goal": "Career Switch",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 0.951,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0095",
+    "primary_domain": "Mobile",
+    "level": "Beginner",
+    "goal": "Career Switch",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -0.204,
+    "mastered_skills": [
+      "WatermelonDB",
+      "Offline-First",
+      "SQLite"
+    ]
+  },
+  {
+    "user_id": "usr_0096",
+    "primary_domain": "Backend",
+    "level": "Intermediate",
+    "goal": "Portfolio Building",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 0.577,
+    "mastered_skills": [
+      "HTML",
+      "OAuth2",
+      "JWT",
+      "Responsive Design",
+      "Authentication",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0097",
+    "primary_domain": "AI/ML",
+    "level": "Intermediate",
+    "goal": "Portfolio Building",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 0.178,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0098",
+    "primary_domain": "Backend",
+    "level": "Intermediate",
+    "goal": "Career Switch",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -0.065,
+    "mastered_skills": [
+      "Node.js",
+      "RESTful API",
+      "Database Design",
+      "PostgreSQL",
+      "SQL",
+      "OAuth2",
+      "JWT",
+      "Express",
+      "Authentication"
+    ]
+  },
+  {
+    "user_id": "usr_0099",
+    "primary_domain": "AI/ML",
+    "level": "Advanced",
+    "goal": "Exam Prep",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 1.928,
+    "mastered_skills": [
+      "NumPy",
+      "Deep Learning",
+      "PyTorch",
+      "Pandas",
+      "Python",
+      "CNN"
+    ]
+  },
+  {
+    "user_id": "usr_0100",
+    "primary_domain": "Mobile",
+    "level": "Intermediate",
+    "goal": "Skill Upgrade",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 0.48,
+    "mastered_skills": [
+      "Node.js",
+      "Mobile UI",
+      "RESTful API",
+      "Expo",
+      "React Native",
+      "Express"
+    ]
+  },
+  {
+    "user_id": "usr_0101",
+    "primary_domain": "Backend",
+    "level": "Beginner",
+    "goal": "Portfolio Building",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -0.058,
+    "mastered_skills": [
+      "Node.js",
+      "RESTful API",
+      "Database Design",
+      "PostgreSQL",
+      "SQL",
+      "OAuth2",
+      "JWT",
+      "Express",
+      "Authentication"
+    ]
+  },
+  {
+    "user_id": "usr_0102",
+    "primary_domain": "Mobile",
+    "level": "Beginner",
+    "goal": "Portfolio Building",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -1.368,
+    "mastered_skills": [
+      "Mobile UI",
+      "Expo",
+      "React Native"
+    ]
+  },
+  {
+    "user_id": "usr_0103",
+    "primary_domain": "Mobile",
+    "level": "Intermediate",
+    "goal": "Skill Upgrade",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -0.145,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0104",
+    "primary_domain": "Backend",
+    "level": "Advanced",
+    "goal": "Skill Upgrade",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 1.169,
+    "mastered_skills": [
+      "Node.js",
+      "RESTful API",
+      "Kafka",
+      "Redis",
+      "Docker",
+      "Microservices",
+      "Express",
+      "RabbitMQ",
+      "gRPC"
+    ]
+  },
+  {
+    "user_id": "usr_0105",
+    "primary_domain": "Frontend",
+    "level": "Advanced",
+    "goal": "Exam Prep",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 1.178,
+    "mastered_skills": [
+      "Async/Await",
+      "ES6",
+      "JavaScript"
+    ]
+  },
+  {
+    "user_id": "usr_0106",
+    "primary_domain": "Backend",
+    "level": "Beginner",
+    "goal": "Career Switch",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -0.417,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0107",
+    "primary_domain": "Mobile",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -0.062,
+    "mastered_skills": [
+      "Mobile UI",
+      "Expo",
+      "React Native"
+    ]
+  },
+  {
+    "user_id": "usr_0108",
+    "primary_domain": "Backend",
+    "level": "Advanced",
+    "goal": "Exam Prep",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 1.469,
+    "mastered_skills": [
+      "Microservices",
+      "gRPC",
+      "Docker"
+    ]
+  },
+  {
+    "user_id": "usr_0109",
+    "primary_domain": "Backend",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -0.564,
+    "mastered_skills": [
+      "Node.js",
+      "RESTful API",
+      "Express"
+    ]
+  },
+  {
+    "user_id": "usr_0110",
+    "primary_domain": "Backend",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -0.259,
+    "mastered_skills": [
+      "Database Design",
+      "PostgreSQL",
+      "SQL",
+      "OAuth2",
+      "JWT",
+      "Authentication"
+    ]
+  },
+  {
+    "user_id": "usr_0111",
+    "primary_domain": "Mobile",
+    "level": "Beginner",
+    "goal": "Portfolio Building",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -1.257,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0112",
+    "primary_domain": "Backend",
+    "level": "Advanced",
+    "goal": "Career Switch",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 1.603,
+    "mastered_skills": [
+      "Node.js",
+      "Mobile UI",
+      "RESTful API",
+      "Expo",
+      "OAuth2",
+      "JWT",
+      "React Native",
+      "Docker",
+      "Microservices",
+      "Express",
+      "Authentication",
+      "gRPC"
+    ]
+  },
+  {
+    "user_id": "usr_0113",
+    "primary_domain": "Mobile",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -1.573,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0114",
+    "primary_domain": "Mobile",
+    "level": "Intermediate",
+    "goal": "Career Switch",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 0.16,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0115",
+    "primary_domain": "Frontend",
+    "level": "Beginner",
+    "goal": "Career Switch",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -0.249,
+    "mastered_skills": [
+      "TypeScript",
+      "OAuth2",
+      "JWT",
+      "Generics",
+      "Type Safety",
+      "Authentication"
+    ]
+  },
+  {
+    "user_id": "usr_0116",
+    "primary_domain": "Backend",
+    "level": "Advanced",
+    "goal": "Portfolio Building",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 2.346,
+    "mastered_skills": [
+      "Node.js",
+      "RESTful API",
+      "Database Design",
+      "PostgreSQL",
+      "SQL",
+      "Docker",
+      "Microservices",
+      "Express",
+      "gRPC"
+    ]
+  },
+  {
+    "user_id": "usr_0117",
+    "primary_domain": "AI/ML",
+    "level": "Intermediate",
+    "goal": "Portfolio Building",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 0.404,
+    "mastered_skills": [
+      "Machine Learning",
+      "Regression",
+      "Scikit-Learn"
+    ]
+  },
+  {
+    "user_id": "usr_0118",
+    "primary_domain": "Backend",
+    "level": "Advanced",
+    "goal": "Career Switch",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 0.968,
+    "mastered_skills": [
+      "Node.js",
+      "RESTful API",
+      "Database Design",
+      "PostgreSQL",
+      "SQL",
+      "Kafka",
+      "Redis",
+      "Docker",
+      "Microservices",
+      "Express",
+      "RabbitMQ",
+      "gRPC"
+    ]
+  },
+  {
+    "user_id": "usr_0119",
+    "primary_domain": "Frontend",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -1.589,
+    "mastered_skills": [
+      "HTML",
+      "Responsive Design",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0120",
+    "primary_domain": "AI/ML",
+    "level": "Intermediate",
+    "goal": "Career Switch",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -0.144,
+    "mastered_skills": [
+      "Deep Learning",
+      "CNN",
+      "PyTorch"
+    ]
+  },
+  {
+    "user_id": "usr_0121",
+    "primary_domain": "Backend",
+    "level": "Advanced",
+    "goal": "Exam Prep",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 0.893,
+    "mastered_skills": [
+      "Node.js",
+      "RESTful API",
+      "Express"
+    ]
+  },
+  {
+    "user_id": "usr_0122",
+    "primary_domain": "AI/ML",
+    "level": "Intermediate",
+    "goal": "Portfolio Building",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 0.563,
+    "mastered_skills": [
+      "NumPy",
+      "Pandas",
+      "Python",
+      "Embeddings",
+      "LLMs",
+      "Machine Learning",
+      "Scikit-Learn",
+      "Regression",
+      "RAG"
+    ]
+  },
+  {
+    "user_id": "usr_0123",
+    "primary_domain": "Frontend",
+    "level": "Beginner",
+    "goal": "Career Switch",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -1.394,
+    "mastered_skills": [
+      "Next.js",
+      "Server Components",
+      "SSR"
+    ]
+  },
+  {
+    "user_id": "usr_0124",
+    "primary_domain": "AI/ML",
+    "level": "Advanced",
+    "goal": "Skill Upgrade",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 0.824,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0125",
+    "primary_domain": "AI/ML",
+    "level": "Advanced",
+    "goal": "Exam Prep",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 1.948,
+    "mastered_skills": [
+      "NumPy",
+      "TypeScript",
+      "Pandas",
+      "Python",
+      "Embeddings",
+      "LLMs",
+      "Generics",
+      "Machine Learning",
+      "Scikit-Learn",
+      "Regression",
+      "Type Safety",
+      "RAG"
+    ]
+  },
+  {
+    "user_id": "usr_0126",
+    "primary_domain": "Frontend",
+    "level": "Intermediate",
+    "goal": "Exam Prep",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 0.228,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0127",
+    "primary_domain": "AI/ML",
+    "level": "Intermediate",
+    "goal": "Portfolio Building",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -0.394,
+    "mastered_skills": [
+      "Pandas",
+      "Python",
+      "NumPy"
+    ]
+  },
+  {
+    "user_id": "usr_0128",
+    "primary_domain": "AI/ML",
+    "level": "Intermediate",
+    "goal": "Skill Upgrade",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -0.755,
+    "mastered_skills": [
+      "NumPy",
+      "Pandas",
+      "Python",
+      "Machine Learning",
+      "Regression",
+      "Scikit-Learn"
+    ]
+  },
+  {
+    "user_id": "usr_0129",
+    "primary_domain": "Frontend",
+    "level": "Beginner",
+    "goal": "Portfolio Building",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -1.512,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0130",
+    "primary_domain": "Mobile",
+    "level": "Beginner",
+    "goal": "Exam Prep",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -1.174,
+    "mastered_skills": [
+      "Mobile UI",
+      "Expo",
+      "React Native"
+    ]
+  },
+  {
+    "user_id": "usr_0131",
+    "primary_domain": "Frontend",
+    "level": "Intermediate",
+    "goal": "Skill Upgrade",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 1.173,
+    "mastered_skills": [
+      "Hooks",
+      "JavaScript",
+      "HTML",
+      "Next.js",
+      "TypeScript",
+      "Component Design",
+      "React",
+      "Responsive Design",
+      "SSR",
+      "Generics",
+      "Server Components",
+      "Type Safety",
+      "Async/Await",
+      "ES6",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0132",
+    "primary_domain": "AI/ML",
+    "level": "Intermediate",
+    "goal": "Exam Prep",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -0.825,
+    "mastered_skills": [
+      "Pandas",
+      "Python",
+      "NumPy"
+    ]
+  },
+  {
+    "user_id": "usr_0133",
+    "primary_domain": "AI/ML",
+    "level": "Intermediate",
+    "goal": "Exam Prep",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 0.474,
+    "mastered_skills": [
+      "NumPy",
+      "Deep Learning",
+      "PyTorch",
+      "Pandas",
+      "Reanimated",
+      "Python",
+      "Gesture Handler",
+      "Machine Learning",
+      "Regression",
+      "Scikit-Learn",
+      "CNN",
+      "React Navigation"
+    ]
+  },
+  {
+    "user_id": "usr_0134",
+    "primary_domain": "AI/ML",
+    "level": "Advanced",
+    "goal": "Portfolio Building",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 1.234,
+    "mastered_skills": [
+      "Deep Learning",
+      "PyTorch",
+      "Machine Learning",
+      "Regression",
+      "Scikit-Learn",
+      "CNN"
+    ]
+  },
+  {
+    "user_id": "usr_0135",
+    "primary_domain": "Backend",
+    "level": "Advanced",
+    "goal": "Skill Upgrade",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 1.535,
+    "mastered_skills": [
+      "Database Design",
+      "PostgreSQL",
+      "SQL",
+      "Docker",
+      "Microservices",
+      "gRPC"
+    ]
+  },
+  {
+    "user_id": "usr_0136",
+    "primary_domain": "Frontend",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -0.763,
+    "mastered_skills": [
+      "JavaScript",
+      "HTML",
+      "Responsive Design",
+      "Async/Await",
+      "ES6",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0137",
+    "primary_domain": "Frontend",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -1.097,
+    "mastered_skills": [
+      "HTML",
+      "Responsive Design",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0138",
+    "primary_domain": "Mobile",
+    "level": "Intermediate",
+    "goal": "Portfolio Building",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 0.622,
+    "mastered_skills": [
+      "WatermelonDB",
+      "Offline-First",
+      "Mobile UI",
+      "Expo",
+      "SQLite",
+      "React Native"
+    ]
+  },
+  {
+    "user_id": "usr_0139",
+    "primary_domain": "Mobile",
+    "level": "Beginner",
+    "goal": "Portfolio Building",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -1.672,
+    "mastered_skills": [
+      "Reanimated",
+      "React Navigation",
+      "Gesture Handler"
+    ]
+  },
+  {
+    "user_id": "usr_0140",
+    "primary_domain": "Backend",
+    "level": "Advanced",
+    "goal": "Career Switch",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 1.919,
+    "mastered_skills": [
+      "Database Design",
+      "PostgreSQL",
+      "SQL",
+      "OAuth2",
+      "JWT",
+      "Docker",
+      "Microservices",
+      "Authentication",
+      "gRPC"
+    ]
+  },
+  {
+    "user_id": "usr_0141",
+    "primary_domain": "Frontend",
+    "level": "Intermediate",
+    "goal": "Portfolio Building",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 0.611,
+    "mastered_skills": [
+      "HTML",
+      "Responsive Design",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0142",
+    "primary_domain": "AI/ML",
+    "level": "Intermediate",
+    "goal": "Career Switch",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 0.553,
+    "mastered_skills": [
+      "Deep Learning",
+      "PyTorch",
+      "MLOps",
+      "FastAPI",
+      "Machine Learning",
+      "Scikit-Learn",
+      "Regression",
+      "Docker",
+      "CNN"
+    ]
+  },
+  {
+    "user_id": "usr_0143",
+    "primary_domain": "Frontend",
+    "level": "Beginner",
+    "goal": "Portfolio Building",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -0.938,
+    "mastered_skills": [
+      "HTML",
+      "Responsive Design",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0144",
+    "primary_domain": "Frontend",
+    "level": "Intermediate",
+    "goal": "Portfolio Building",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 0.973,
+    "mastered_skills": [
+      "Mobile UI",
+      "JavaScript",
+      "HTML",
+      "Next.js",
+      "TypeScript",
+      "Expo",
+      "SSR",
+      "Responsive Design",
+      "Generics",
+      "Server Components",
+      "React Native",
+      "Type Safety",
+      "Async/Await",
+      "ES6",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0145",
+    "primary_domain": "Mobile",
+    "level": "Advanced",
+    "goal": "Skill Upgrade",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 1.528,
+    "mastered_skills": [
+      "WatermelonDB",
+      "Offline-First",
+      "SQLite"
+    ]
+  },
+  {
+    "user_id": "usr_0146",
+    "primary_domain": "Backend",
+    "level": "Beginner",
+    "goal": "Exam Prep",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -0.614,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0147",
+    "primary_domain": "AI/ML",
+    "level": "Intermediate",
+    "goal": "Exam Prep",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -0.241,
+    "mastered_skills": [
+      "Pandas",
+      "Python",
+      "NumPy"
+    ]
+  },
+  {
+    "user_id": "usr_0148",
+    "primary_domain": "AI/ML",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 0.173,
+    "mastered_skills": [
+      "Machine Learning",
+      "Regression",
+      "Scikit-Learn"
+    ]
+  },
+  {
+    "user_id": "usr_0149",
+    "primary_domain": "AI/ML",
+    "level": "Advanced",
+    "goal": "Career Switch",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 0.707,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0150",
+    "primary_domain": "Mobile",
+    "level": "Advanced",
+    "goal": "Career Switch",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 1.556,
+    "mastered_skills": [
+      "Offline-First",
+      "Mobile UI",
+      "WatermelonDB",
+      "Expo",
+      "Reanimated",
+      "SQLite",
+      "Gesture Handler",
+      "React Native",
+      "React Navigation"
+    ]
+  },
+  {
+    "user_id": "usr_0151",
+    "primary_domain": "Mobile",
+    "level": "Intermediate",
+    "goal": "Skill Upgrade",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -0.546,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0152",
+    "primary_domain": "Mobile",
+    "level": "Advanced",
+    "goal": "Exam Prep",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 1.318,
+    "mastered_skills": [
+      "WatermelonDB",
+      "Offline-First",
+      "Reanimated",
+      "SQLite",
+      "Gesture Handler",
+      "React Navigation"
+    ]
+  },
+  {
+    "user_id": "usr_0153",
+    "primary_domain": "AI/ML",
+    "level": "Beginner",
+    "goal": "Exam Prep",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -1.027,
+    "mastered_skills": [
+      "LLMs",
+      "RAG",
+      "Embeddings"
+    ]
+  },
+  {
+    "user_id": "usr_0154",
+    "primary_domain": "Frontend",
+    "level": "Beginner",
+    "goal": "Career Switch",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -1.016,
+    "mastered_skills": [
+      "Next.js",
+      "Server Components",
+      "SSR"
+    ]
+  },
+  {
+    "user_id": "usr_0155",
+    "primary_domain": "Backend",
+    "level": "Beginner",
+    "goal": "Exam Prep",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 0.364,
+    "mastered_skills": [
+      "Node.js",
+      "RESTful API",
+      "Docker",
+      "Microservices",
+      "Express",
+      "gRPC"
+    ]
+  },
+  {
+    "user_id": "usr_0156",
+    "primary_domain": "AI/ML",
+    "level": "Intermediate",
+    "goal": "Exam Prep",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 0.47,
+    "mastered_skills": [
+      "NumPy",
+      "Next.js",
+      "Pandas",
+      "Python",
+      "SSR",
+      "Server Components"
+    ]
+  },
+  {
+    "user_id": "usr_0157",
+    "primary_domain": "AI/ML",
+    "level": "Intermediate",
+    "goal": "Career Switch",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 0.135,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0158",
+    "primary_domain": "Backend",
+    "level": "Beginner",
+    "goal": "Portfolio Building",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -1.415,
+    "mastered_skills": [
+      "PostgreSQL",
+      "SQL",
+      "Database Design"
+    ]
+  },
+  {
+    "user_id": "usr_0159",
+    "primary_domain": "AI/ML",
+    "level": "Beginner",
+    "goal": "Portfolio Building",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -0.861,
+    "mastered_skills": [
+      "Pandas",
+      "Python",
+      "NumPy"
+    ]
+  },
+  {
+    "user_id": "usr_0160",
+    "primary_domain": "AI/ML",
+    "level": "Intermediate",
+    "goal": "Portfolio Building",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 0.982,
+    "mastered_skills": [
+      "Machine Learning",
+      "Regression",
+      "Scikit-Learn"
+    ]
+  },
+  {
+    "user_id": "usr_0161",
+    "primary_domain": "AI/ML",
+    "level": "Beginner",
+    "goal": "Exam Prep",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -1.267,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0162",
+    "primary_domain": "Mobile",
+    "level": "Intermediate",
+    "goal": "Career Switch",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 0.991,
+    "mastered_skills": [
+      "WatermelonDB",
+      "Offline-First",
+      "Mobile UI",
+      "Expo",
+      "SQLite",
+      "React Native"
+    ]
+  },
+  {
+    "user_id": "usr_0163",
+    "primary_domain": "Frontend",
+    "level": "Intermediate",
+    "goal": "Portfolio Building",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 0.082,
+    "mastered_skills": [
+      "Hooks",
+      "Next.js",
+      "Component Design",
+      "React",
+      "SSR",
+      "Server Components"
+    ]
+  },
+  {
+    "user_id": "usr_0164",
+    "primary_domain": "Frontend",
+    "level": "Beginner",
+    "goal": "Exam Prep",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -1.172,
+    "mastered_skills": [
+      "HTML",
+      "Responsive Design",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0165",
+    "primary_domain": "Backend",
+    "level": "Beginner",
+    "goal": "Portfolio Building",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -1.608,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0166",
+    "primary_domain": "Frontend",
+    "level": "Advanced",
+    "goal": "Portfolio Building",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 0.915,
+    "mastered_skills": [
+      "Hooks",
+      "Next.js",
+      "Component Design",
+      "React",
+      "SSR",
+      "Server Components"
+    ]
+  },
+  {
+    "user_id": "usr_0167",
+    "primary_domain": "Mobile",
+    "level": "Advanced",
+    "goal": "Exam Prep",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 1.345,
+    "mastered_skills": [
+      "Hooks",
+      "Component Design",
+      "Reanimated",
+      "React",
+      "Gesture Handler",
+      "React Navigation"
+    ]
+  },
+  {
+    "user_id": "usr_0168",
+    "primary_domain": "AI/ML",
+    "level": "Advanced",
+    "goal": "Career Switch",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 1.403,
+    "mastered_skills": [
+      "Pandas",
+      "Python",
+      "NumPy"
+    ]
+  },
+  {
+    "user_id": "usr_0169",
+    "primary_domain": "Mobile",
+    "level": "Intermediate",
+    "goal": "Exam Prep",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 1.321,
+    "mastered_skills": [
+      "WatermelonDB",
+      "Offline-First",
+      "Mobile UI",
+      "Expo",
+      "SQLite",
+      "React Native"
+    ]
+  },
+  {
+    "user_id": "usr_0170",
+    "primary_domain": "Backend",
+    "level": "Beginner",
+    "goal": "Career Switch",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -1.459,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0171",
+    "primary_domain": "Mobile",
+    "level": "Advanced",
+    "goal": "Exam Prep",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 1.529,
+    "mastered_skills": [
+      "Offline-First",
+      "Mobile UI",
+      "WatermelonDB",
+      "Expo",
+      "Reanimated",
+      "SQLite",
+      "Gesture Handler",
+      "React Native",
+      "React Navigation"
+    ]
+  },
+  {
+    "user_id": "usr_0172",
+    "primary_domain": "Frontend",
+    "level": "Beginner",
+    "goal": "Exam Prep",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -0.89,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0173",
+    "primary_domain": "AI/ML",
+    "level": "Intermediate",
+    "goal": "Skill Upgrade",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -0.027,
+    "mastered_skills": [
+      "Deep Learning",
+      "CNN",
+      "PyTorch"
+    ]
+  },
+  {
+    "user_id": "usr_0174",
+    "primary_domain": "Mobile",
+    "level": "Advanced",
+    "goal": "Career Switch",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 1.409,
+    "mastered_skills": [
+      "Offline-First",
+      "Mobile UI",
+      "WatermelonDB",
+      "Expo",
+      "Reanimated",
+      "SQLite",
+      "Gesture Handler",
+      "React Native",
+      "React Navigation"
+    ]
+  },
+  {
+    "user_id": "usr_0175",
+    "primary_domain": "Backend",
+    "level": "Advanced",
+    "goal": "Skill Upgrade",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 1.691,
+    "mastered_skills": [
+      "Node.js",
+      "RESTful API",
+      "OAuth2",
+      "JWT",
+      "Docker",
+      "Microservices",
+      "Express",
+      "Authentication",
+      "gRPC"
+    ]
+  },
+  {
+    "user_id": "usr_0176",
+    "primary_domain": "Frontend",
+    "level": "Advanced",
+    "goal": "Skill Upgrade",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 1.233,
+    "mastered_skills": [
+      "Code Splitting",
+      "HTML",
+      "Web Vitals",
+      "Responsive Design",
+      "Lighthouse",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0177",
+    "primary_domain": "Backend",
+    "level": "Advanced",
+    "goal": "Portfolio Building",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 1.509,
+    "mastered_skills": [
+      "Node.js",
+      "RESTful API",
+      "Database Design",
+      "PostgreSQL",
+      "SQL",
+      "OAuth2",
+      "JWT",
+      "Express",
+      "Authentication"
+    ]
+  },
+  {
+    "user_id": "usr_0178",
+    "primary_domain": "Mobile",
+    "level": "Advanced",
+    "goal": "Portfolio Building",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 0.992,
+    "mastered_skills": [
+      "Mobile UI",
+      "Expo",
+      "React Native"
+    ]
+  },
+  {
+    "user_id": "usr_0179",
+    "primary_domain": "Frontend",
+    "level": "Intermediate",
+    "goal": "Career Switch",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 0.405,
+    "mastered_skills": [
+      "JavaScript",
+      "HTML",
+      "TypeScript",
+      "Responsive Design",
+      "Generics",
+      "Type Safety",
+      "Async/Await",
+      "ES6",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0180",
+    "primary_domain": "AI/ML",
+    "level": "Advanced",
+    "goal": "Portfolio Building",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 1.462,
+    "mastered_skills": [
+      "NumPy",
+      "Deep Learning",
+      "PyTorch",
+      "MLOps",
+      "Pandas",
+      "FastAPI",
+      "Python",
+      "Docker",
+      "CNN"
+    ]
+  },
+  {
+    "user_id": "usr_0181",
+    "primary_domain": "Frontend",
+    "level": "Beginner",
+    "goal": "Exam Prep",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -2.063,
+    "mastered_skills": [
+      "HTML",
+      "Responsive Design",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0182",
+    "primary_domain": "Mobile",
+    "level": "Advanced",
+    "goal": "Exam Prep",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 1.76,
+    "mastered_skills": [
+      "WatermelonDB",
+      "Offline-First",
+      "Mobile UI",
+      "Expo",
+      "SQLite",
+      "React Native"
+    ]
+  },
+  {
+    "user_id": "usr_0183",
+    "primary_domain": "Mobile",
+    "level": "Beginner",
+    "goal": "Exam Prep",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -1.983,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0184",
+    "primary_domain": "Frontend",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -0.784,
+    "mastered_skills": [
+      "HTML",
+      "JavaScript",
+      "TypeScript",
+      "Responsive Design",
+      "Generics",
+      "Type Safety",
+      "Async/Await",
+      "ES6",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0185",
+    "primary_domain": "Frontend",
+    "level": "Beginner",
+    "goal": "Career Switch",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -0.015,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0186",
+    "primary_domain": "Backend",
+    "level": "Beginner",
+    "goal": "Exam Prep",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -1.916,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0187",
+    "primary_domain": "Mobile",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -1.485,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0188",
+    "primary_domain": "Mobile",
+    "level": "Advanced",
+    "goal": "Skill Upgrade",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 2.458,
+    "mastered_skills": [
+      "Offline-First",
+      "Mobile UI",
+      "WatermelonDB",
+      "Expo",
+      "Reanimated",
+      "SQLite",
+      "Gesture Handler",
+      "React Native",
+      "React Navigation"
+    ]
+  },
+  {
+    "user_id": "usr_0189",
+    "primary_domain": "Backend",
+    "level": "Advanced",
+    "goal": "Career Switch",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 0.952,
+    "mastered_skills": [
+      "PostgreSQL",
+      "SQL",
+      "Database Design"
+    ]
+  },
+  {
+    "user_id": "usr_0190",
+    "primary_domain": "Frontend",
+    "level": "Advanced",
+    "goal": "Skill Upgrade",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 0.811,
+    "mastered_skills": [
+      "HTML",
+      "Responsive Design",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0191",
+    "primary_domain": "Mobile",
+    "level": "Beginner",
+    "goal": "Portfolio Building",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -1.574,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0192",
+    "primary_domain": "AI/ML",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -1.469,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0193",
+    "primary_domain": "Mobile",
+    "level": "Intermediate",
+    "goal": "Exam Prep",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -0.421,
+    "mastered_skills": [
+      "Reanimated",
+      "React Navigation",
+      "Gesture Handler"
+    ]
+  },
+  {
+    "user_id": "usr_0194",
+    "primary_domain": "Frontend",
+    "level": "Beginner",
+    "goal": "Exam Prep",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -0.93,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0195",
+    "primary_domain": "AI/ML",
+    "level": "Advanced",
+    "goal": "Career Switch",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 1.83,
+    "mastered_skills": [
+      "Next.js",
+      "SSR",
+      "Server Components",
+      "Machine Learning",
+      "Regression",
+      "Scikit-Learn"
+    ]
+  },
+  {
+    "user_id": "usr_0196",
+    "primary_domain": "AI/ML",
+    "level": "Beginner",
+    "goal": "Exam Prep",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -0.845,
+    "mastered_skills": [
+      "Pandas",
+      "Python",
+      "NumPy"
+    ]
+  },
+  {
+    "user_id": "usr_0197",
+    "primary_domain": "Backend",
+    "level": "Advanced",
+    "goal": "Skill Upgrade",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 1.234,
+    "mastered_skills": [
+      "Node.js",
+      "RESTful API",
+      "Database Design",
+      "PostgreSQL",
+      "SQL",
+      "OAuth2",
+      "JWT",
+      "Docker",
+      "Microservices",
+      "Express",
+      "Authentication",
+      "gRPC"
+    ]
+  },
+  {
+    "user_id": "usr_0198",
+    "primary_domain": "Frontend",
+    "level": "Advanced",
+    "goal": "Skill Upgrade",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 1.921,
+    "mastered_skills": [
+      "Hooks",
+      "JavaScript",
+      "Next.js",
+      "Component Design",
+      "React",
+      "SSR",
+      "Kafka",
+      "Redis",
+      "Server Components",
+      "Async/Await",
+      "ES6",
+      "RabbitMQ"
+    ]
+  },
+  {
+    "user_id": "usr_0199",
+    "primary_domain": "Backend",
+    "level": "Advanced",
+    "goal": "Exam Prep",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 1.618,
+    "mastered_skills": [
+      "Database Design",
+      "Authentication",
+      "PostgreSQL",
+      "OAuth2",
+      "SQL",
+      "JWT",
+      "Kafka",
+      "Redis",
+      "RabbitMQ"
+    ]
+  },
+  {
+    "user_id": "usr_0200",
+    "primary_domain": "Mobile",
+    "level": "Advanced",
+    "goal": "Exam Prep",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 1.638,
+    "mastered_skills": [
+      "Mobile UI",
+      "HTML",
+      "Expo",
+      "Responsive Design",
+      "React Native",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0201",
+    "primary_domain": "AI/ML",
+    "level": "Beginner",
+    "goal": "Portfolio Building",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -1.229,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0202",
+    "primary_domain": "AI/ML",
+    "level": "Advanced",
+    "goal": "Career Switch",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 1.98,
+    "mastered_skills": [
+      "NumPy",
+      "Deep Learning",
+      "PyTorch",
+      "Database Design",
+      "PostgreSQL",
+      "Pandas",
+      "SQL",
+      "Python",
+      "CNN"
+    ]
+  },
+  {
+    "user_id": "usr_0203",
+    "primary_domain": "Mobile",
+    "level": "Intermediate",
+    "goal": "Career Switch",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 0.531,
+    "mastered_skills": [
+      "Offline-First",
+      "Mobile UI",
+      "WatermelonDB",
+      "Expo",
+      "SQLite",
+      "React Native"
+    ]
+  },
+  {
+    "user_id": "usr_0204",
+    "primary_domain": "Mobile",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -0.487,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0205",
+    "primary_domain": "Backend",
+    "level": "Intermediate",
+    "goal": "Exam Prep",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -0.715,
+    "mastered_skills": [
+      "Node.js",
+      "RESTful API",
+      "Express"
+    ]
+  },
+  {
+    "user_id": "usr_0206",
+    "primary_domain": "Backend",
+    "level": "Advanced",
+    "goal": "Career Switch",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 0.795,
+    "mastered_skills": [
+      "Node.js",
+      "RESTful API",
+      "Database Design",
+      "PostgreSQL",
+      "SQL",
+      "OAuth2",
+      "JWT",
+      "Express",
+      "Authentication"
+    ]
+  },
+  {
+    "user_id": "usr_0207",
+    "primary_domain": "AI/ML",
+    "level": "Intermediate",
+    "goal": "Portfolio Building",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 0.973,
+    "mastered_skills": [
+      "Deep Learning",
+      "PyTorch",
+      "TypeScript",
+      "Generics",
+      "Type Safety",
+      "CNN"
+    ]
+  },
+  {
+    "user_id": "usr_0208",
+    "primary_domain": "Mobile",
+    "level": "Intermediate",
+    "goal": "Portfolio Building",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 0.341,
+    "mastered_skills": [
+      "Offline-First",
+      "Mobile UI",
+      "WatermelonDB",
+      "Expo",
+      "SQLite",
+      "React Native"
+    ]
+  },
+  {
+    "user_id": "usr_0209",
+    "primary_domain": "AI/ML",
+    "level": "Intermediate",
+    "goal": "Portfolio Building",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 0.339,
+    "mastered_skills": [
+      "Machine Learning",
+      "Regression",
+      "Scikit-Learn"
+    ]
+  },
+  {
+    "user_id": "usr_0210",
+    "primary_domain": "Frontend",
+    "level": "Advanced",
+    "goal": "Career Switch",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 0.484,
+    "mastered_skills": [
+      "Hooks",
+      "HTML",
+      "JavaScript",
+      "TypeScript",
+      "Component Design",
+      "React",
+      "Responsive Design",
+      "Generics",
+      "Type Safety",
+      "Async/Await",
+      "ES6",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0211",
+    "primary_domain": "Frontend",
+    "level": "Advanced",
+    "goal": "Skill Upgrade",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 1.331,
+    "mastered_skills": [
+      "Code Splitting",
+      "JavaScript",
+      "Web Vitals",
+      "Lighthouse",
+      "Async/Await",
+      "ES6"
+    ]
+  },
+  {
+    "user_id": "usr_0212",
+    "primary_domain": "Backend",
+    "level": "Beginner",
+    "goal": "Portfolio Building",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -1.123,
+    "mastered_skills": [
+      "HTML",
+      "Responsive Design",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0213",
+    "primary_domain": "Mobile",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 0.045,
+    "mastered_skills": [
+      "Mobile UI",
+      "Expo",
+      "React Native"
+    ]
+  },
+  {
+    "user_id": "usr_0214",
+    "primary_domain": "Mobile",
+    "level": "Advanced",
+    "goal": "Exam Prep",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 1.204,
+    "mastered_skills": [
+      "Mobile UI",
+      "Expo",
+      "Reanimated",
+      "Gesture Handler",
+      "React Native",
+      "React Navigation"
+    ]
+  },
+  {
+    "user_id": "usr_0215",
+    "primary_domain": "Frontend",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -0.734,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0216",
+    "primary_domain": "AI/ML",
+    "level": "Intermediate",
+    "goal": "Skill Upgrade",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 0.67,
+    "mastered_skills": [
+      "Machine Learning",
+      "Regression",
+      "Scikit-Learn"
+    ]
+  },
+  {
+    "user_id": "usr_0217",
+    "primary_domain": "Mobile",
+    "level": "Intermediate",
+    "goal": "Career Switch",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 0.29,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0218",
+    "primary_domain": "Backend",
+    "level": "Intermediate",
+    "goal": "Career Switch",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -0.317,
+    "mastered_skills": [
+      "OAuth2",
+      "Authentication",
+      "JWT"
+    ]
+  },
+  {
+    "user_id": "usr_0219",
+    "primary_domain": "Mobile",
+    "level": "Beginner",
+    "goal": "Career Switch",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -0.596,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0220",
+    "primary_domain": "AI/ML",
+    "level": "Beginner",
+    "goal": "Career Switch",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -0.822,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0221",
+    "primary_domain": "AI/ML",
+    "level": "Advanced",
+    "goal": "Career Switch",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 1.431,
+    "mastered_skills": [
+      "HTML",
+      "Deep Learning",
+      "PyTorch",
+      "MLOps",
+      "FastAPI",
+      "Responsive Design",
+      "Docker",
+      "CNN",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0222",
+    "primary_domain": "Frontend",
+    "level": "Advanced",
+    "goal": "Exam Prep",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 2.109,
+    "mastered_skills": [
+      "JavaScript",
+      "HTML",
+      "Responsive Design",
+      "Async/Await",
+      "ES6",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0223",
+    "primary_domain": "Frontend",
+    "level": "Intermediate",
+    "goal": "Portfolio Building",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 0.129,
+    "mastered_skills": [
+      "Hooks",
+      "JavaScript",
+      "HTML",
+      "Component Design",
+      "React",
+      "Responsive Design",
+      "Async/Await",
+      "ES6",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0224",
+    "primary_domain": "AI/ML",
+    "level": "Intermediate",
+    "goal": "Skill Upgrade",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -0.515,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0225",
+    "primary_domain": "Backend",
+    "level": "Intermediate",
+    "goal": "Skill Upgrade",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 0.598,
+    "mastered_skills": [
+      "Node.js",
+      "RESTful API",
+      "Database Design",
+      "PostgreSQL",
+      "SQL",
+      "OAuth2",
+      "JWT",
+      "Express",
+      "Authentication"
+    ]
+  },
+  {
+    "user_id": "usr_0226",
+    "primary_domain": "Mobile",
+    "level": "Intermediate",
+    "goal": "Portfolio Building",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -0.147,
+    "mastered_skills": [
+      "Mobile UI",
+      "Expo",
+      "React Native"
+    ]
+  },
+  {
+    "user_id": "usr_0227",
+    "primary_domain": "Backend",
+    "level": "Beginner",
+    "goal": "Exam Prep",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -1.106,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0228",
+    "primary_domain": "Frontend",
+    "level": "Beginner",
+    "goal": "Portfolio Building",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -1.302,
+    "mastered_skills": [
+      "HTML",
+      "Responsive Design",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0229",
+    "primary_domain": "Backend",
+    "level": "Intermediate",
+    "goal": "Skill Upgrade",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -0.091,
+    "mastered_skills": [
+      "PostgreSQL",
+      "SQL",
+      "Database Design"
+    ]
+  },
+  {
+    "user_id": "usr_0230",
+    "primary_domain": "AI/ML",
+    "level": "Beginner",
+    "goal": "Exam Prep",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -0.92,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0231",
+    "primary_domain": "Backend",
+    "level": "Advanced",
+    "goal": "Skill Upgrade",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 0.448,
+    "mastered_skills": [
+      "Node.js",
+      "RESTful API",
+      "Express"
+    ]
+  },
+  {
+    "user_id": "usr_0232",
+    "primary_domain": "Frontend",
+    "level": "Beginner",
+    "goal": "Portfolio Building",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -1.109,
+    "mastered_skills": [
+      "Async/Await",
+      "ES6",
+      "JavaScript"
+    ]
+  },
+  {
+    "user_id": "usr_0233",
+    "primary_domain": "Frontend",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -1.053,
+    "mastered_skills": [
+      "Async/Await",
+      "ES6",
+      "JavaScript"
+    ]
+  },
+  {
+    "user_id": "usr_0234",
+    "primary_domain": "Backend",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -0.305,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0235",
+    "primary_domain": "Backend",
+    "level": "Beginner",
+    "goal": "Exam Prep",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -1.86,
+    "mastered_skills": [
+      "PostgreSQL",
+      "SQL",
+      "Database Design"
+    ]
+  },
+  {
+    "user_id": "usr_0236",
+    "primary_domain": "Backend",
+    "level": "Intermediate",
+    "goal": "Career Switch",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -0.034,
+    "mastered_skills": [
+      "Database Design",
+      "PostgreSQL",
+      "SQL",
+      "OAuth2",
+      "JWT",
+      "Docker",
+      "Microservices",
+      "Authentication",
+      "gRPC"
+    ]
+  },
+  {
+    "user_id": "usr_0237",
+    "primary_domain": "AI/ML",
+    "level": "Intermediate",
+    "goal": "Career Switch",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 0.553,
+    "mastered_skills": [
+      "NumPy",
+      "Deep Learning",
+      "PyTorch",
+      "Pandas",
+      "Python",
+      "CNN"
+    ]
+  },
+  {
+    "user_id": "usr_0238",
+    "primary_domain": "Frontend",
+    "level": "Advanced",
+    "goal": "Portfolio Building",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 1.286,
+    "mastered_skills": [
+      "Hooks",
+      "JavaScript",
+      "HTML",
+      "Next.js",
+      "TypeScript",
+      "Component Design",
+      "React",
+      "Responsive Design",
+      "SSR",
+      "Generics",
+      "Server Components",
+      "Type Safety",
+      "Docker",
+      "Microservices",
+      "Async/Await",
+      "ES6",
+      "gRPC",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0239",
+    "primary_domain": "AI/ML",
+    "level": "Beginner",
+    "goal": "Exam Prep",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -1.099,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0240",
+    "primary_domain": "Frontend",
+    "level": "Advanced",
+    "goal": "Career Switch",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 1.928,
+    "mastered_skills": [
+      "Code Splitting",
+      "TypeScript",
+      "Web Vitals",
+      "Generics",
+      "Lighthouse",
+      "Type Safety"
+    ]
+  },
+  {
+    "user_id": "usr_0241",
+    "primary_domain": "Backend",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 0.165,
+    "mastered_skills": [
+      "Node.js",
+      "RESTful API",
+      "OAuth2",
+      "JWT",
+      "Express",
+      "Authentication"
+    ]
+  },
+  {
+    "user_id": "usr_0242",
+    "primary_domain": "Frontend",
+    "level": "Beginner",
+    "goal": "Career Switch",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -0.839,
+    "mastered_skills": [
+      "Async/Await",
+      "ES6",
+      "JavaScript"
+    ]
+  },
+  {
+    "user_id": "usr_0243",
+    "primary_domain": "Frontend",
+    "level": "Beginner",
+    "goal": "Exam Prep",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -0.181,
+    "mastered_skills": [
+      "Hooks",
+      "HTML",
+      "Component Design",
+      "React",
+      "Responsive Design",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0244",
+    "primary_domain": "Frontend",
+    "level": "Advanced",
+    "goal": "Career Switch",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 1.291,
+    "mastered_skills": [
+      "Hooks",
+      "React Navigation",
+      "HTML",
+      "JavaScript",
+      "TypeScript",
+      "Component Design",
+      "Reanimated",
+      "React",
+      "Gesture Handler",
+      "Responsive Design",
+      "Generics",
+      "Type Safety",
+      "Async/Await",
+      "ES6",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0245",
+    "primary_domain": "Mobile",
+    "level": "Advanced",
+    "goal": "Exam Prep",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 2.662,
+    "mastered_skills": [
+      "Offline-First",
+      "Mobile UI",
+      "WatermelonDB",
+      "Expo",
+      "SQLite",
+      "React Native"
+    ]
+  },
+  {
+    "user_id": "usr_0246",
+    "primary_domain": "AI/ML",
+    "level": "Beginner",
+    "goal": "Exam Prep",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -0.686,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0247",
+    "primary_domain": "Frontend",
+    "level": "Beginner",
+    "goal": "Portfolio Building",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -0.721,
+    "mastered_skills": [
+      "HTML",
+      "Responsive Design",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0248",
+    "primary_domain": "Frontend",
+    "level": "Advanced",
+    "goal": "Career Switch",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 1.667,
+    "mastered_skills": [
+      "Hooks",
+      "React Navigation",
+      "JavaScript",
+      "HTML",
+      "Next.js",
+      "TypeScript",
+      "Component Design",
+      "Reanimated",
+      "React",
+      "Gesture Handler",
+      "SSR",
+      "Responsive Design",
+      "Generics",
+      "Server Components",
+      "Type Safety",
+      "Async/Await",
+      "ES6",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0249",
+    "primary_domain": "Backend",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -1.215,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0250",
+    "primary_domain": "Backend",
+    "level": "Advanced",
+    "goal": "Skill Upgrade",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 1.895,
+    "mastered_skills": [
+      "Node.js",
+      "RESTful API",
+      "Database Design",
+      "PostgreSQL",
+      "SQL",
+      "OAuth2",
+      "JWT",
+      "Express",
+      "Authentication"
+    ]
+  },
+  {
+    "user_id": "usr_0251",
+    "primary_domain": "Mobile",
+    "level": "Beginner",
+    "goal": "Portfolio Building",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -1.32,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0252",
+    "primary_domain": "AI/ML",
+    "level": "Advanced",
+    "goal": "Skill Upgrade",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 2.029,
+    "mastered_skills": [
+      "NumPy",
+      "Deep Learning",
+      "PyTorch",
+      "Pandas",
+      "Python",
+      "CNN"
+    ]
+  },
+  {
+    "user_id": "usr_0253",
+    "primary_domain": "AI/ML",
+    "level": "Advanced",
+    "goal": "Exam Prep",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 1.186,
+    "mastered_skills": [
+      "NumPy",
+      "Deep Learning",
+      "PyTorch",
+      "Pandas",
+      "Python",
+      "Docker",
+      "Microservices",
+      "CNN",
+      "gRPC"
+    ]
+  },
+  {
+    "user_id": "usr_0254",
+    "primary_domain": "Backend",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -1.323,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0255",
+    "primary_domain": "Mobile",
+    "level": "Beginner",
+    "goal": "Career Switch",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -0.589,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0256",
+    "primary_domain": "Mobile",
+    "level": "Intermediate",
+    "goal": "Skill Upgrade",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 0.583,
+    "mastered_skills": [
+      "WatermelonDB",
+      "Offline-First",
+      "Mobile UI",
+      "Expo",
+      "Reanimated",
+      "SQLite",
+      "Gesture Handler",
+      "React Native",
+      "React Navigation"
+    ]
+  },
+  {
+    "user_id": "usr_0257",
+    "primary_domain": "Frontend",
+    "level": "Intermediate",
+    "goal": "Exam Prep",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -0.059,
+    "mastered_skills": [
+      "Component Design",
+      "Hooks",
+      "React"
+    ]
+  },
+  {
+    "user_id": "usr_0258",
+    "primary_domain": "AI/ML",
+    "level": "Advanced",
+    "goal": "Skill Upgrade",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 1.226,
+    "mastered_skills": [
+      "Pandas",
+      "Python",
+      "NumPy"
+    ]
+  },
+  {
+    "user_id": "usr_0259",
+    "primary_domain": "Backend",
+    "level": "Intermediate",
+    "goal": "Portfolio Building",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -0.146,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0260",
+    "primary_domain": "AI/ML",
+    "level": "Advanced",
+    "goal": "Career Switch",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 1.04,
+    "mastered_skills": [
+      "JavaScript",
+      "Deep Learning",
+      "PyTorch",
+      "Async/Await",
+      "Embeddings",
+      "LLMs",
+      "RAG",
+      "CNN",
+      "ES6"
+    ]
+  },
+  {
+    "user_id": "usr_0261",
+    "primary_domain": "Backend",
+    "level": "Intermediate",
+    "goal": "Exam Prep",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -0.628,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0262",
+    "primary_domain": "Backend",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -1.297,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0263",
+    "primary_domain": "AI/ML",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -0.969,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0264",
+    "primary_domain": "Mobile",
+    "level": "Beginner",
+    "goal": "Exam Prep",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -1.262,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0265",
+    "primary_domain": "Frontend",
+    "level": "Intermediate",
+    "goal": "Skill Upgrade",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 0.181,
+    "mastered_skills": [
+      "HTML",
+      "JavaScript",
+      "Next.js",
+      "OAuth2",
+      "JWT",
+      "SSR",
+      "Responsive Design",
+      "Server Components",
+      "Async/Await",
+      "ES6",
+      "Authentication",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0266",
+    "primary_domain": "Backend",
+    "level": "Intermediate",
+    "goal": "Exam Prep",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 0.095,
+    "mastered_skills": [
+      "Node.js",
+      "RESTful API",
+      "Express"
+    ]
+  },
+  {
+    "user_id": "usr_0267",
+    "primary_domain": "Mobile",
+    "level": "Intermediate",
+    "goal": "Portfolio Building",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 1.02,
+    "mastered_skills": [
+      "Mobile UI",
+      "Expo",
+      "Reanimated",
+      "Gesture Handler",
+      "React Native",
+      "React Navigation"
+    ]
+  },
+  {
+    "user_id": "usr_0268",
+    "primary_domain": "AI/ML",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -1.222,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0269",
+    "primary_domain": "Backend",
+    "level": "Advanced",
+    "goal": "Exam Prep",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 1.611,
+    "mastered_skills": [
+      "Node.js",
+      "RESTful API",
+      "Database Design",
+      "PostgreSQL",
+      "SQL",
+      "Express"
+    ]
+  },
+  {
+    "user_id": "usr_0270",
+    "primary_domain": "AI/ML",
+    "level": "Intermediate",
+    "goal": "Career Switch",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -0.491,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0271",
+    "primary_domain": "AI/ML",
+    "level": "Intermediate",
+    "goal": "Skill Upgrade",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -0.149,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0272",
+    "primary_domain": "AI/ML",
+    "level": "Beginner",
+    "goal": "Career Switch",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -0.671,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0273",
+    "primary_domain": "AI/ML",
+    "level": "Beginner",
+    "goal": "Exam Prep",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -1.448,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0274",
+    "primary_domain": "Backend",
+    "level": "Beginner",
+    "goal": "Portfolio Building",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -1.42,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0275",
+    "primary_domain": "Backend",
+    "level": "Beginner",
+    "goal": "Career Switch",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -1.899,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0276",
+    "primary_domain": "Frontend",
+    "level": "Intermediate",
+    "goal": "Portfolio Building",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 0.874,
+    "mastered_skills": [
+      "Next.js",
+      "MLOps",
+      "FastAPI",
+      "SSR",
+      "Server Components",
+      "Docker"
+    ]
+  },
+  {
+    "user_id": "usr_0277",
+    "primary_domain": "Mobile",
+    "level": "Advanced",
+    "goal": "Exam Prep",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 1.436,
+    "mastered_skills": [
+      "Offline-First",
+      "Mobile UI",
+      "WatermelonDB",
+      "Expo",
+      "Reanimated",
+      "SQLite",
+      "Gesture Handler",
+      "React Native",
+      "React Navigation"
+    ]
+  },
+  {
+    "user_id": "usr_0278",
+    "primary_domain": "Backend",
+    "level": "Advanced",
+    "goal": "Portfolio Building",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 1.965,
+    "mastered_skills": [
+      "Node.js",
+      "RESTful API",
+      "Database Design",
+      "PostgreSQL",
+      "SQL",
+      "OAuth2",
+      "JWT",
+      "Express",
+      "Authentication"
+    ]
+  },
+  {
+    "user_id": "usr_0279",
+    "primary_domain": "AI/ML",
+    "level": "Advanced",
+    "goal": "Career Switch",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 1.714,
+    "mastered_skills": [
+      "NumPy",
+      "PyTorch",
+      "Deep Learning",
+      "MLOps",
+      "Pandas",
+      "FastAPI",
+      "Python",
+      "Machine Learning",
+      "Regression",
+      "Scikit-Learn",
+      "Docker",
+      "CNN"
+    ]
+  },
+  {
+    "user_id": "usr_0280",
+    "primary_domain": "Backend",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -0.271,
+    "mastered_skills": [
+      "Redis",
+      "RabbitMQ",
+      "Kafka"
+    ]
+  },
+  {
+    "user_id": "usr_0281",
+    "primary_domain": "Mobile",
+    "level": "Advanced",
+    "goal": "Skill Upgrade",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 0.597,
+    "mastered_skills": [
+      "Reanimated",
+      "React Navigation",
+      "Gesture Handler"
+    ]
+  },
+  {
+    "user_id": "usr_0282",
+    "primary_domain": "Mobile",
+    "level": "Beginner",
+    "goal": "Exam Prep",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -0.992,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0283",
+    "primary_domain": "Frontend",
+    "level": "Advanced",
+    "goal": "Portfolio Building",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 1.168,
+    "mastered_skills": [
+      "HTML",
+      "JavaScript",
+      "TypeScript",
+      "OAuth2",
+      "JWT",
+      "Responsive Design",
+      "Generics",
+      "Type Safety",
+      "Async/Await",
+      "ES6",
+      "Authentication",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0284",
+    "primary_domain": "AI/ML",
+    "level": "Beginner",
+    "goal": "Portfolio Building",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -1.396,
+    "mastered_skills": [
+      "Pandas",
+      "Python",
+      "NumPy"
+    ]
+  },
+  {
+    "user_id": "usr_0285",
+    "primary_domain": "Backend",
+    "level": "Advanced",
+    "goal": "Exam Prep",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 1.329,
+    "mastered_skills": [
+      "Node.js",
+      "RESTful API",
+      "Database Design",
+      "PostgreSQL",
+      "SQL",
+      "OAuth2",
+      "JWT",
+      "Kafka",
+      "Redis",
+      "RabbitMQ",
+      "Express",
+      "Authentication"
+    ]
+  },
+  {
+    "user_id": "usr_0286",
+    "primary_domain": "Backend",
+    "level": "Advanced",
+    "goal": "Portfolio Building",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 0.545,
+    "mastered_skills": [
+      "Node.js",
+      "RESTful API",
+      "Docker",
+      "Microservices",
+      "Express",
+      "gRPC"
+    ]
+  },
+  {
+    "user_id": "usr_0287",
+    "primary_domain": "AI/ML",
+    "level": "Beginner",
+    "goal": "Portfolio Building",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -1.074,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0288",
+    "primary_domain": "Mobile",
+    "level": "Beginner",
+    "goal": "Career Switch",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -0.718,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0289",
+    "primary_domain": "AI/ML",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": -0.8,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0290",
+    "primary_domain": "Mobile",
+    "level": "Intermediate",
+    "goal": "Career Switch",
+    "pace": "Intensive (15+ hrs/wk)",
+    "true_ability_theta": 0.327,
+    "mastered_skills": [
+      "Mobile UI",
+      "HTML",
+      "Expo",
+      "Responsive Design",
+      "React Native",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0291",
+    "primary_domain": "Frontend",
+    "level": "Advanced",
+    "goal": "Career Switch",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 2.519,
+    "mastered_skills": [
+      "Node.js",
+      "Hooks",
+      "Code Splitting",
+      "RESTful API",
+      "JavaScript",
+      "HTML",
+      "Component Design",
+      "Web Vitals",
+      "React",
+      "Responsive Design",
+      "Lighthouse",
+      "Async/Await",
+      "Express",
+      "ES6",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0292",
+    "primary_domain": "AI/ML",
+    "level": "Intermediate",
+    "goal": "Career Switch",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": -0.269,
+    "mastered_skills": [
+      "Pandas",
+      "Python",
+      "NumPy"
+    ]
+  },
+  {
+    "user_id": "usr_0293",
+    "primary_domain": "AI/ML",
+    "level": "Intermediate",
+    "goal": "Skill Upgrade",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -0.202,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0294",
+    "primary_domain": "AI/ML",
+    "level": "Beginner",
+    "goal": "Career Switch",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -1.161,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0295",
+    "primary_domain": "Backend",
+    "level": "Beginner",
+    "goal": "Skill Upgrade",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": -1.142,
+    "mastered_skills": []
+  },
+  {
+    "user_id": "usr_0296",
+    "primary_domain": "Frontend",
+    "level": "Intermediate",
+    "goal": "Skill Upgrade",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 0.044,
+    "mastered_skills": [
+      "Hooks",
+      "JavaScript",
+      "Component Design",
+      "React",
+      "Async/Await",
+      "ES6"
+    ]
+  },
+  {
+    "user_id": "usr_0297",
+    "primary_domain": "Mobile",
+    "level": "Intermediate",
+    "goal": "Portfolio Building",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 0.387,
+    "mastered_skills": [
+      "Offline-First",
+      "Mobile UI",
+      "WatermelonDB",
+      "Expo",
+      "SQLite",
+      "React Native"
+    ]
+  },
+  {
+    "user_id": "usr_0298",
+    "primary_domain": "Frontend",
+    "level": "Advanced",
+    "goal": "Portfolio Building",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 2.056,
+    "mastered_skills": [
+      "Hooks",
+      "JavaScript",
+      "HTML",
+      "TypeScript",
+      "Component Design",
+      "OAuth2",
+      "React",
+      "JWT",
+      "Responsive Design",
+      "Generics",
+      "Type Safety",
+      "Async/Await",
+      "ES6",
+      "Authentication",
+      "CSS"
+    ]
+  },
+  {
+    "user_id": "usr_0299",
+    "primary_domain": "Backend",
+    "level": "Advanced",
+    "goal": "Career Switch",
+    "pace": "Standard (5-10 hrs/wk)",
+    "true_ability_theta": 1.936,
+    "mastered_skills": [
+      "Database Design",
+      "PostgreSQL",
+      "SQL",
+      "Docker",
+      "Microservices",
+      "gRPC"
+    ]
+  },
+  {
+    "user_id": "usr_0300",
+    "primary_domain": "AI/ML",
+    "level": "Advanced",
+    "goal": "Portfolio Building",
+    "pace": "Casual (2-4 hrs/wk)",
+    "true_ability_theta": 1.553,
+    "mastered_skills": [
+      "Pandas",
+      "Python",
+      "NumPy"
+    ]
+  }
+]

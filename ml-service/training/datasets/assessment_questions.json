@@ -1,0 +1,210 @@
+[
+  {
+    "id": "q-fe-01",
+    "domain": "Frontend",
+    "skill": "HTML/CSS",
+    "question": "Which CSS property is used to align flex items along the cross axis?",
+    "options": [
+      "justify-content",
+      "align-items",
+      "flex-direction",
+      "grid-template-columns"
+    ],
+    "correct_index": 1,
+    "difficulty_b": -1.5,
+    "discrimination_a": 1.2,
+    "explanation": "'align-items' controls alignment on the cross-axis, while 'justify-content' controls the main axis."
+  },
+  {
+    "id": "q-fe-02",
+    "domain": "Frontend",
+    "skill": "JavaScript",
+    "question": "What is the output of `typeof null` in standard JavaScript?",
+    "options": [
+      "'null'",
+      "'undefined'",
+      "'object'",
+      "'boolean'"
+    ],
+    "correct_index": 2,
+    "difficulty_b": -0.8,
+    "discrimination_a": 1.0,
+    "explanation": "Due to a legacy quirk in JS engine design, `typeof null` returns 'object'."
+  },
+  {
+    "id": "q-fe-03",
+    "domain": "Frontend",
+    "skill": "React",
+    "question": "Why should you never call React Hooks inside loops, conditions, or nested functions?",
+    "options": [
+      "It breaks JavaScript garbage collection",
+      "React relies on the order in which Hooks are called between renders",
+      "It reduces CSS render performance",
+      "TypeScript compiler throws a syntax error"
+    ],
+    "correct_index": 1,
+    "difficulty_b": 0.2,
+    "discrimination_a": 1.6,
+    "explanation": "React preserves Hook state correctly by relying on a stable invocation order on every render."
+  },
+  {
+    "id": "q-fe-04",
+    "domain": "Frontend",
+    "skill": "TypeScript",
+    "question": "What is the difference between `unknown` and `any` in TypeScript?",
+    "options": [
+      "`unknown` is type-safe because you cannot perform operations on it without narrowing the type first",
+      "`unknown` only accepts primitives, whereas `any` accepts objects",
+      "`unknown` is deprecated in modern TypeScript",
+      "There is no difference"
+    ],
+    "correct_index": 0,
+    "difficulty_b": 0.9,
+    "discrimination_a": 1.8,
+    "explanation": "`unknown` forces type checking and narrowing before property access, unlike `any` which disables all checks."
+  },
+  {
+    "id": "q-fe-05",
+    "domain": "Frontend",
+    "skill": "Next.js",
+    "question": "In React Server Components (RSC), how do Server Components differ from Client Components?",
+    "options": [
+      "Server Components cannot fetch data",
+      "Server Components execute only on the server and send zero JavaScript to the client bundle",
+      "Server Components can use `useState` and `useEffect`",
+      "Server Components cannot render Client Components as children"
+    ],
+    "correct_index": 1,
+    "difficulty_b": 1.8,
+    "discrimination_a": 2.1,
+    "explanation": "Server Components reduce client bundle size by running strictly on the server without shipping runtime JS."
+  },
+  {
+    "id": "q-be-01",
+    "domain": "Backend",
+    "skill": "REST API",
+    "question": "Which HTTP status code should be returned when a new resource is successfully created?",
+    "options": [
+      "200 OK",
+      "201 Created",
+      "204 No Content",
+      "301 Moved Permanently"
+    ],
+    "correct_index": 1,
+    "difficulty_b": -1.4,
+    "discrimination_a": 1.1,
+    "explanation": "201 Created indicates the request succeeded and a new resource was created."
+  },
+  {
+    "id": "q-be-02",
+    "domain": "Backend",
+    "skill": "SQL",
+    "question": "What is the primary benefit of adding a B-Tree database index to a frequently queried column?",
+    "options": [
+      "Guarantees data encryption at rest",
+      "Reduces query time from O(N) table scans to O(log N) tree lookups",
+      "Automatically normalizes the database table",
+      "Prevents SQL injection attacks"
+    ],
+    "correct_index": 1,
+    "difficulty_b": 0.0,
+    "discrimination_a": 1.5,
+    "explanation": "B-Tree indexes allow the query planner to quickly locate matching rows with logarithmic complexity."
+  },
+  {
+    "id": "q-be-03",
+    "domain": "Backend",
+    "skill": "Authentication",
+    "question": "Where is the most secure place to store a JWT refresh token in a browser web client?",
+    "options": [
+      "`localStorage`",
+      "`sessionStorage`",
+      "`HttpOnly, Secure, SameSite` Cookie",
+      "Global JavaScript variable"
+    ],
+    "correct_index": 2,
+    "difficulty_b": 0.7,
+    "discrimination_a": 1.7,
+    "explanation": "HttpOnly cookies cannot be accessed via JavaScript `document.cookie`, mitigating XSS credential theft."
+  },
+  {
+    "id": "q-be-04",
+    "domain": "Backend",
+    "skill": "Distributed Systems",
+    "question": "In the CAP theorem, what does Partition Tolerance (P) guarantee?",
+    "options": [
+      "Zero network latency across geographic regions",
+      "The system continues to operate despite arbitrary packet loss or network failure between nodes",
+      "Database partitions are encrypted with AES-256",
+      "Transactions never produce deadlocks"
+    ],
+    "correct_index": 1,
+    "difficulty_b": 1.6,
+    "discrimination_a": 2.0,
+    "explanation": "Partition tolerance means the cluster survives communication dropouts between network segments."
+  },
+  {
+    "id": "q-ai-01",
+    "domain": "AI/ML",
+    "skill": "Python/Data",
+    "question": "In Pandas, which method returns the first N rows of a DataFrame?",
+    "options": [
+      "df.top()",
+      "df.head()",
+      "df.sample()",
+      "df.first()"
+    ],
+    "correct_index": 1,
+    "difficulty_b": -1.8,
+    "discrimination_a": 1.0,
+    "explanation": "`df.head()` displays the top rows (default 5) of a Pandas DataFrame."
+  },
+  {
+    "id": "q-ai-02",
+    "domain": "AI/ML",
+    "skill": "Machine Learning",
+    "question": "What is the key indicator of model overfitting during training?",
+    "options": [
+      "Both training error and validation error remain very high",
+      "Training loss decreases significantly while validation loss begins to increase",
+      "Model training finishes faster than expected",
+      "Feature weights all converge to zero"
+    ],
+    "correct_index": 1,
+    "difficulty_b": 0.1,
+    "discrimination_a": 1.5,
+    "explanation": "Overfitting happens when a model memorizes training patterns and fails to generalize to validation data."
+  },
+  {
+    "id": "q-ai-03",
+    "domain": "AI/ML",
+    "skill": "Deep Learning",
+    "question": "Why is the vanishing gradient problem common with standard Sigmoid activation in deep networks?",
+    "options": [
+      "Sigmoid derivative has a maximum value of 0.25, exponentially shrinking gradients across layers",
+      "Sigmoid produces negative numbers during forward pass",
+      "Sigmoid requires GPU matrix multiplication",
+      "Sigmoid cannot be differentiated"
+    ],
+    "correct_index": 0,
+    "difficulty_b": 1.2,
+    "discrimination_a": 1.9,
+    "explanation": "Because Sigmoid's derivative is $\\le 0.25$, multiplying gradients backwards across many layers decays them to 0."
+  },
+  {
+    "id": "q-ai-04",
+    "domain": "AI/ML",
+    "skill": "Generative AI",
+    "question": "In Retrieval-Augmented Generation (RAG), what is the primary role of Vector Embeddings?",
+    "options": [
+      "To replace the LLM transformer architecture",
+      "To convert text chunks into semantic vector spaces for fast nearest-neighbor similarity search",
+      "To compress the size of the SQLite database",
+      "To calculate gradient descent loss"
+    ],
+    "correct_index": 1,
+    "difficulty_b": 1.7,
+    "discrimination_a": 2.2,
+    "explanation": "Vector embeddings represent semantic meaning numerically, allowing cosine retrieval of relevant context."
+  }
+]

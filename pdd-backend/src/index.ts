@@ -9,6 +9,7 @@ import healthRoutes from "./routes/health";
 import authRoutes from "./routes/auth";
 import surveyRoutes from "./routes/survey";
 import recommendationRoutes from "./routes/recommendations";
+import adaptiveRoutes from "./routes/adaptive";
 
 const app: Application = express();
 
@@ -37,6 +38,7 @@ app.use("/api/health", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/survey", surveyRoutes);
 app.use("/api/recommendations", recommendationRoutes);
+app.use("/api/adaptive", adaptiveRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

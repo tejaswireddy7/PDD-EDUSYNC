@@ -1,0 +1,307 @@
+[
+  {
+    "id": "fe-001",
+    "title": "HTML5 & Modern CSS3 Fundamentals",
+    "domain": "Frontend",
+    "difficulty": "Beginner",
+    "time_weeks": 3,
+    "skills": [
+      "HTML",
+      "CSS",
+      "Responsive Design",
+      "Flexbox",
+      "CSS Grid"
+    ],
+    "description": "Master foundational web markup, layout systems, and responsive web design principles.",
+    "difficulty_level": 1
+  },
+  {
+    "id": "fe-002",
+    "title": "JavaScript ES6+ Deep Dive",
+    "domain": "Frontend",
+    "difficulty": "Beginner",
+    "time_weeks": 5,
+    "skills": [
+      "JavaScript",
+      "ES6",
+      "Async/Await",
+      "DOM Manipulation",
+      "Closures"
+    ],
+    "description": "Core JavaScript programming, modern syntax, asynchronous patterns, and browser APIs.",
+    "difficulty_level": 2
+  },
+  {
+    "id": "fe-003",
+    "title": "React.js & Modern State Architecture",
+    "domain": "Frontend",
+    "difficulty": "Intermediate",
+    "time_weeks": 6,
+    "skills": [
+      "React",
+      "Hooks",
+      "Component Design",
+      "Context API",
+      "SPA"
+    ],
+    "description": "Build interactive single-page applications with React functional components and custom hooks.",
+    "difficulty_level": 3
+  },
+  {
+    "id": "fe-004",
+    "title": "TypeScript Mastery for Frontend Engineers",
+    "domain": "Frontend",
+    "difficulty": "Intermediate",
+    "time_weeks": 4,
+    "skills": [
+      "TypeScript",
+      "Type Safety",
+      "Generics",
+      "React with TS"
+    ],
+    "description": "Learn strict typing, interface contracts, generics, and robust React frontend development.",
+    "difficulty_level": 3
+  },
+  {
+    "id": "fe-005",
+    "title": "Next.js 14, SSR & Full-Stack React",
+    "domain": "Frontend",
+    "difficulty": "Advanced",
+    "time_weeks": 6,
+    "skills": [
+      "Next.js",
+      "Server Components",
+      "SSR",
+      "App Router",
+      "Performance Optimization"
+    ],
+    "description": "Enterprise full-stack React architecture with Server Components, streaming, and SEO.",
+    "difficulty_level": 4
+  },
+  {
+    "id": "fe-006",
+    "title": "Web Performance, Core Web Vitals & Microfrontends",
+    "domain": "Frontend",
+    "difficulty": "Advanced",
+    "time_weeks": 5,
+    "skills": [
+      "Web Vitals",
+      "Lighthouse",
+      "Code Splitting",
+      "Microfrontends",
+      "WASM"
+    ],
+    "description": "Sub-second load times, asset pipeline optimization, rendering pipelines, and modular scaling.",
+    "difficulty_level": 5
+  },
+  {
+    "id": "be-001",
+    "title": "Node.js & Express.js REST API Architecture",
+    "domain": "Backend",
+    "difficulty": "Beginner",
+    "time_weeks": 4,
+    "skills": [
+      "Node.js",
+      "Express",
+      "RESTful API",
+      "Middleware",
+      "JSON"
+    ],
+    "description": "Build production-grade REST APIs with routing, error handling, and modular controllers.",
+    "difficulty_level": 2
+  },
+  {
+    "id": "be-002",
+    "title": "Relational Databases & PostgreSQL Mastery",
+    "domain": "Backend",
+    "difficulty": "Beginner",
+    "time_weeks": 4,
+    "skills": [
+      "PostgreSQL",
+      "SQL",
+      "Database Design",
+      "Indexing",
+      "ACID"
+    ],
+    "description": "Data modeling, relational constraints, complex joins, indexing strategies, and migrations.",
+    "difficulty_level": 2
+  },
+  {
+    "id": "be-003",
+    "title": "Authentication, JWT & Web Security Best Practices",
+    "domain": "Backend",
+    "difficulty": "Intermediate",
+    "time_weeks": 3,
+    "skills": [
+      "Authentication",
+      "JWT",
+      "OAuth2",
+      "CORS",
+      "Cybersecurity",
+      "Bcrypt"
+    ],
+    "description": "Secure API endpoints with token authentication, role-based access control (RBAC), and sanitization.",
+    "difficulty_level": 3
+  },
+  {
+    "id": "be-004",
+    "title": "Scalable Microservices with Docker & gRPC",
+    "domain": "Backend",
+    "difficulty": "Intermediate",
+    "time_weeks": 5,
+    "skills": [
+      "Microservices",
+      "Docker",
+      "gRPC",
+      "Protobuf",
+      "API Gateway"
+    ],
+    "description": "Containerize distributed backend services, inter-service communication, and orchestration.",
+    "difficulty_level": 4
+  },
+  {
+    "id": "be-005",
+    "title": "Distributed Systems, Redis Caching & Message Queues",
+    "domain": "Backend",
+    "difficulty": "Advanced",
+    "time_weeks": 6,
+    "skills": [
+      "Redis",
+      "RabbitMQ",
+      "Kafka",
+      "Event-Driven",
+      "Caching Strategies"
+    ],
+    "description": "High-throughput event streaming, distributed caching, pub/sub queues, and idempotency.",
+    "difficulty_level": 5
+  },
+  {
+    "id": "mob-001",
+    "title": "React Native & Expo Cross-Platform Essentials",
+    "domain": "Mobile",
+    "difficulty": "Beginner",
+    "time_weeks": 4,
+    "skills": [
+      "React Native",
+      "Expo",
+      "Mobile UI",
+      "Flexbox",
+      "Cross-Platform"
+    ],
+    "description": "Build and test native iOS and Android apps with a single modern JavaScript/TypeScript codebase.",
+    "difficulty_level": 2
+  },
+  {
+    "id": "mob-002",
+    "title": "Native Navigation, Gestures & Animations",
+    "domain": "Mobile",
+    "difficulty": "Intermediate",
+    "time_weeks": 4,
+    "skills": [
+      "React Navigation",
+      "Reanimated",
+      "Gesture Handler",
+      "Mobile UX"
+    ],
+    "description": "Fluid 60 FPS transitions, drawer/tab hierarchies, interactive gestures, and haptic feedback.",
+    "difficulty_level": 3
+  },
+  {
+    "id": "mob-003",
+    "title": "Offline-First Mobile Architecture & SQLite Sync",
+    "domain": "Mobile",
+    "difficulty": "Advanced",
+    "time_weeks": 5,
+    "skills": [
+      "Offline-First",
+      "WatermelonDB",
+      "SQLite",
+      "Background Sync",
+      "Push Notifications"
+    ],
+    "description": "Local persistence, optimistic UI updates, conflict resolution, and background workers.",
+    "difficulty_level": 4
+  },
+  {
+    "id": "ai-001",
+    "title": "Python for Data Science & Machine Learning",
+    "domain": "AI/ML",
+    "difficulty": "Beginner",
+    "time_weeks": 4,
+    "skills": [
+      "Python",
+      "NumPy",
+      "Pandas",
+      "Data Cleaning",
+      "Matplotlib"
+    ],
+    "description": "Data manipulation, exploratory data analysis (EDA), and numerical computing foundations.",
+    "difficulty_level": 2
+  },
+  {
+    "id": "ai-002",
+    "title": "Supervised & Unsupervised Machine Learning with Scikit-Learn",
+    "domain": "AI/ML",
+    "difficulty": "Intermediate",
+    "time_weeks": 5,
+    "skills": [
+      "Machine Learning",
+      "Scikit-Learn",
+      "Regression",
+      "Classification",
+      "Clustering"
+    ],
+    "description": "Train, evaluate, and tune predictive models like Random Forest, XGBoost, and K-Means.",
+    "difficulty_level": 3
+  },
+  {
+    "id": "ai-003",
+    "title": "Deep Learning with PyTorch & Neural Networks",
+    "domain": "AI/ML",
+    "difficulty": "Intermediate",
+    "time_weeks": 6,
+    "skills": [
+      "PyTorch",
+      "Deep Learning",
+      "CNN",
+      "RNN",
+      "Backpropagation"
+    ],
+    "description": "Build custom neural network architectures for computer vision and sequence processing.",
+    "difficulty_level": 4
+  },
+  {
+    "id": "ai-004",
+    "title": "Generative AI, Large Language Models & LangChain",
+    "domain": "AI/ML",
+    "difficulty": "Advanced",
+    "time_weeks": 5,
+    "skills": [
+      "LLMs",
+      "RAG",
+      "Embeddings",
+      "LangChain",
+      "Prompt Engineering",
+      "Fine-Tuning"
+    ],
+    "description": "Implement enterprise RAG pipelines, vector databases (pgvector), and fine-tuned AI assistants.",
+    "difficulty_level": 5
+  },
+  {
+    "id": "ai-005",
+    "title": "MLOps & Production Model Deployment",
+    "domain": "AI/ML",
+    "difficulty": "Advanced",
+    "time_weeks": 4,
+    "skills": [
+      "MLOps",
+      "FastAPI",
+      "Docker",
+      "Model Monitoring",
+      "MLflow",
+      "CI/CD"
+    ],
+    "description": "Package, serve low-latency REST ML inference APIs, monitor data drift, and automate pipelines.",
+    "difficulty_level": 5
+  }
+]

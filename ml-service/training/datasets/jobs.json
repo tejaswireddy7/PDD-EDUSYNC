@@ -1,0 +1,115 @@
+[
+  {
+    "id": "job-001",
+    "title": "Junior Frontend Developer",
+    "domain": "Frontend",
+    "experience_level": "Entry",
+    "salary_range": "$65,000 - $85,000",
+    "required_skills": [
+      "HTML",
+      "CSS",
+      "JavaScript",
+      "React",
+      "Responsive Design"
+    ],
+    "description": "Develop user interfaces and translate UI wireframes into responsive web components."
+  },
+  {
+    "id": "job-002",
+    "title": "Senior React / Full-Stack Engineer",
+    "domain": "Frontend",
+    "experience_level": "Senior",
+    "salary_range": "$125,000 - $165,000",
+    "required_skills": [
+      "React",
+      "TypeScript",
+      "Next.js",
+      "Server Components",
+      "Performance Optimization",
+      "Node.js"
+    ],
+    "description": "Architect scalable frontend platforms, design systems, and high-performance web applications."
+  },
+  {
+    "id": "job-003",
+    "title": "Backend Systems Engineer",
+    "domain": "Backend",
+    "experience_level": "Mid",
+    "salary_range": "$95,000 - $130,000",
+    "required_skills": [
+      "Node.js",
+      "Express",
+      "PostgreSQL",
+      "Authentication",
+      "RESTful API",
+      "Docker"
+    ],
+    "description": "Design resilient microservices, secure APIs, database schemas, and background job queues."
+  },
+  {
+    "id": "job-004",
+    "title": "Distributed Systems / Backend Architect",
+    "domain": "Backend",
+    "experience_level": "Lead",
+    "salary_range": "$150,000 - $200,000",
+    "required_skills": [
+      "Microservices",
+      "Redis",
+      "Kafka",
+      "PostgreSQL",
+      "Distributed Systems",
+      "gRPC"
+    ],
+    "description": "Lead the architectural vision for fault-tolerant, high-throughput distributed backend services."
+  },
+  {
+    "id": "job-005",
+    "title": "Cross-Platform Mobile Engineer",
+    "domain": "Mobile",
+    "experience_level": "Mid",
+    "salary_range": "$90,000 - $125,000",
+    "required_skills": [
+      "React Native",
+      "Expo",
+      "TypeScript",
+      "React Navigation",
+      "Mobile UX",
+      "Offline-First"
+    ],
+    "description": "Build high-performance mobile applications published to both the Apple App Store and Google Play Store."
+  },
+  {
+    "id": "job-006",
+    "title": "Applied AI / Machine Learning Engineer",
+    "domain": "AI/ML",
+    "experience_level": "Mid",
+    "salary_range": "$115,000 - $155,000",
+    "required_skills": [
+      "Python",
+      "PyTorch",
+      "Scikit-Learn",
+      "FastAPI",
+      "MLOps",
+      "Docker",
+      "Machine Learning"
+    ],
+    "description": "Develop and deploy scalable machine learning models and predictive microservices to production."
+  },
+  {
+    "id": "job-007",
+    "title": "Generative AI & LLM Solutions Architect",
+    "domain": "AI/ML",
+    "experience_level": "Senior",
+    "salary_range": "$145,000 - $190,000",
+    "required_skills": [
+      "LLMs",
+      "RAG",
+      "Embeddings",
+      "LangChain",
+      "PyTorch",
+      "FastAPI",
+      "Fine-Tuning"
+    ],
+    "description": "Design state-of-the-art Generative AI pipelines, retrieval-augmented systems, and intelligent agents."
+  }
+]

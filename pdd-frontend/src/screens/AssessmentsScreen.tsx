@@ -18,6 +18,7 @@ import { BootstrapIcon } from "../components/ui/BootstrapIcon";
 import { useDashboardStore, themeColors } from "../lib/store";
 import { supabase } from "../lib/supabase";
 import { fetchDBAssessments, updateDBAssessment } from "../lib/supabase-db";
+import { adaptiveApi } from "../lib/api";
 import { useNavigate } from "@tanstack/react-router";
 import { useNavigation } from "@react-navigation/native";
 
@@ -542,6 +543,11 @@ function SubmissionPanel({
   // Quiz specific states
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
   const [quizScore, setQuizScore] = useState<number | null>(null);
+  const [aiEvaluation, setAiEvaluation] = useState<{
+    grade?: string;
+    mastery_percentile?: number;
+    theta_score?: number;
+  } | null>(null);
 
   const [progress, setProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
@@ -562,6 +568,7 @@ function SubmissionPanel({
     setCustomFileText("");
     setSelectedAnswers(assessment.responses || {});
     setQuizScore(null);
+    setAiEvaluation(null);
     setProgress(0);
     setUploading(false);
     setValidationError("");
@@ -652,7 +659,7 @@ function SubmissionPanel({
     }, 150);
   };
 
-  const submitQuiz = () => {
+  const submitQuiz = async () => {
     // Validate that all questions are answered
     if (Object.keys(selectedAnswers).length < questions.length) {
       setValidationError(`Please answer all ${questions.length} quiz questions before submitting.`);
@@ -661,14 +668,34 @@ function SubmissionPanel({
 
     // Compute score
     let scoreCount = 0;
-    questions.forEach((q, idx) => {
-      if (selectedAnswers[idx] === q.correctAnswer) {
-        scoreCount++;
-      }
+    const formattedResponses = questions.map((q, idx) => {
+      const isCorrect = selectedAnswers[idx] === q.correctAnswer;
+      if (isCorrect) scoreCount++;
+      return {
+        question_id: `q-${idx + 1}`,
+        is_correct: isCorrect,
+      };
     });
 
     setUploading(true);
     setProgress(0);
+
+    // Call ML Adaptive Ability Evaluation & Telemetry Ingestion
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      const token = session?.session?.access_token || "";
+      const evalRes = await adaptiveApi.evaluateAbility(
+        token,
+        assessment.subject || "Frontend",
+        formattedResponses
+      );
+      if (evalRes?.data) {
+        setAiEvaluation(evalRes.data as any);
+      }
+    } catch (err) {
+      console.warn("AI Ability evaluation:", err);
+    }
+
     const interval = setInterval(() => {
       setProgress((p) => {
         if (p >= 100) {
@@ -709,6 +736,27 @@ function SubmissionPanel({
             Assessment Submitted!
           </Text>
 
+          {/* AI IRT Ability & Mastery Badge */}
+          {aiEvaluation && (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                backgroundColor: isDark ? "#1e1b4b" : "#e0e7ff",
+                paddingVertical: 6,
+                paddingHorizontal: 12,
+                borderRadius: 20,
+                marginBottom: 12,
+                gap: 6,
+              }}
+            >
+              <MaterialCommunityIcons name="robot" size={16} color="#6366f1" />
+              <Text style={{ fontSize: 13, fontWeight: "700", color: "#6366f1" }}>
+                AI Diagnostic Mastery: {aiEvaluation.mastery_percentile}% ({aiEvaluation.grade})
+              </Text>
+            </View>
+          )}
+
           {isAdvanced ? (
             <Text style={[styles.successDesc, { color: currentColors.subtext }]}>
               Your project "{selectedTemplate || "Source Code Submission"}" has been submitted for
@@ -716,8 +764,7 @@ function SubmissionPanel({
             </Text>
           ) : (
             <Text style={[styles.successDesc, { color: currentColors.subtext }]}>
-              Interactive quiz completed successfully! Earned +800 XP and streak bonus. Check your
-              transparent rubric scoring details in the Gradebook.
+              Interactive quiz completed successfully! Earned +800 XP and streak bonus. The self-improving AI model has updated your mastery curve.
             </Text>
           )}
 

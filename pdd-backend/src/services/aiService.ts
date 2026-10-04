@@ -138,6 +138,28 @@ export const evaluateMLAbility = async (
 };
 
 /**
+ * Curate dynamic AI educational web resources
+ */
+export const curateMLResources = async (params: {
+  domain?: string;
+  level?: string;
+  resource_type?: string;
+  query?: string;
+  sort_by?: string;
+}) => {
+  try {
+    const response = await axios.get(`${ML_SERVICE_URL}/api/v1/resources/curate`, {
+      params,
+      timeout: 3500,
+    });
+    return response.data.resources || [];
+  } catch (error: any) {
+    console.warn("[ML Service] Resource curation unavailable:", error.message);
+    return null;
+  }
+};
+
+/**
  * Log student telemetry event for continuous self-improving training loop
  */
 export const logMLTelemetryEvent = async (event: {
@@ -158,3 +180,4 @@ export const logMLTelemetryEvent = async (event: {
     // Non-blocking telemetry log
   }
 };
+

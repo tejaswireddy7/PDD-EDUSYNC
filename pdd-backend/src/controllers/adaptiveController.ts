@@ -108,3 +108,30 @@ export const logLearningTelemetry = async (
     next(error);
   }
 };
+
+export const curateResources = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { domain, level, resource_type, query, sort_by } = req.query;
+    const resources = await aiService.curateMLResources({
+      domain: domain as string,
+      level: level as string,
+      resource_type: resource_type as string,
+      query: query as string,
+      sort_by: sort_by as string,
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        resources: resources || [],
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

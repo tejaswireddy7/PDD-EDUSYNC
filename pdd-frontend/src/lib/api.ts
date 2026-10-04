@@ -146,5 +146,26 @@ export const adaptiveApi = {
       body: JSON.stringify(event),
     });
   },
+
+  curateResources: async (params: {
+    domain?: string;
+    level?: string;
+    resource_type?: string;
+    query?: string;
+    sort_by?: string;
+  }) => {
+    const queryParams = new URLSearchParams();
+    if (params.domain) queryParams.set("domain", params.domain);
+    if (params.level) queryParams.set("level", params.level);
+    if (params.resource_type) queryParams.set("resource_type", params.resource_type);
+    if (params.query) queryParams.set("query", params.query);
+    if (params.sort_by) queryParams.set("sort_by", params.sort_by);
+
+    return apiFetch<{ success: boolean; data: { resources: any[] } }>(
+      `/adaptive/resources/curate?${queryParams.toString()}`,
+      { method: "GET" }
+    );
+  },
 };
+
 

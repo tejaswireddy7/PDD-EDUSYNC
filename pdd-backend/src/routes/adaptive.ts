@@ -11,4 +11,7 @@ router.post("/evaluate-ability", authMiddleware, adaptiveController.evaluateAdap
 // Learning Telemetry for ML self-improving loop
 router.post("/telemetry", authMiddleware, adaptiveController.logLearningTelemetry);
 
+// AI Resource Discovery & Web Curation
+router.get("/resources/curate", adaptiveController.curateResources);
+
 export default router;

@@ -4,96 +4,7 @@ import { Feather, FontAwesome } from "@expo/vector-icons";
 import { useDashboardStore, themeColors } from "../../lib/store";
 import { useNavigate } from "@tanstack/react-router";
 import { WebView } from "react-native-webview";
-
-const RESOURCE_VIDEOS: Record<string, string> = {
-  // Frontend
-  "HTML5, CSS3, & Modern Grid": "https://www.youtube.com/embed/0xMQfnTU6oo",
-  "JavaScript Fundamentals & DOM": "https://www.youtube.com/embed/hdI2bqOjy3c",
-  "Intro to React & Component States": "https://www.youtube.com/embed/Ke90Tje7VS0",
-  "React Router & Global Context": "https://www.youtube.com/embed/Ul3y1LXxzdU",
-  "Tailwind CSS & Responsive Layouts": "https://www.youtube.com/embed/m7OWXtbiXX8",
-  "TypeScript Essentials for Web": "https://www.youtube.com/embed/d56mG7DezGs",
-  "Next.js 14 App Router Mastery": "https://www.youtube.com/embed/wm5gMKuwSYk",
-  "Web Performance & Core Web Vitals": "https://www.youtube.com/embed/t5fjIW3tB00",
-  "Module Federation & Micro-Frontends": "https://www.youtube.com/embed/ICeH3uBGGeo",
-
-  // Backend
-  "Intro to Node.js & REST API": "https://www.youtube.com/embed/Oe421EPjeBE",
-  "SQL Fundamentals & Relational DBs": "https://www.youtube.com/embed/7S_tz1z_5bA",
-  "Basics of Routing & HTTP Methods": "https://www.youtube.com/embed/iYM2zFP3Zn0",
-  "Java Spring Boot Microservices": "https://www.youtube.com/embed/35EQXmHKZYs",
-  "PostgreSQL Queries & Optimization": "https://www.youtube.com/embed/qw--VYLpxG4",
-  "Redis Caching & Task Queues": "https://www.youtube.com/embed/jgpVdJB2sKQ",
-  "Distributed Systems & Scalability": "https://www.youtube.com/embed/oSkTPzOGMuw",
-  "Docker & Kubernetes Orchestration": "https://www.youtube.com/embed/rjjES5IsPdg",
-  "Go Concurrency & Channels Deep-Dive": "https://www.youtube.com/embed/un6ZyFkqFKo",
-
-  // Mobile
-  "React Native & Expo Ecosystem": "https://www.youtube.com/embed/0-S5a0eXPoc",
-  "Flexbox Layouts in Mobile Screens": "https://www.youtube.com/embed/kGtEax1WQFg",
-  "Navigation Containers & Tabs": "https://www.youtube.com/embed/ur6I5m2nTvk",
-  "Advanced React Navigation v6": "https://www.youtube.com/embed/UVUPEokN8Mw",
-  "Native Features: Camera, GPS & Audio": "https://www.youtube.com/embed/0-S5a0eXPoc",
-  "State Management in Native Apps": "https://www.youtube.com/embed/0-S5a0eXPoc",
-  "SwiftUI Mastery for iOS Platforms": "https://www.youtube.com/embed/HXoVSbwWUIk",
-  "Kotlin & Android Jetpack UI": "https://www.youtube.com/embed/6_wK_Ud8--0",
-  "Native Bridges & Performance Tuning": "https://www.youtube.com/embed/0-S5a0eXPoc",
-
-  // AI
-  "Python Fundamentals & Packages": "https://www.youtube.com/embed/_uQrJ0TkZlc",
-  "Pandas & Numpy Data Wrangling": "https://www.youtube.com/embed/F6kmIpWWEdU",
-  "Basic Statistics & Probability": "https://www.youtube.com/embed/xxpc-HPKN28",
-  "Neural Networks with PyTorch": "https://www.youtube.com/embed/V_xro1bcAuA",
-  "Natural Language Processing (NLP)": "https://www.youtube.com/embed/dIUTsFT2MeQ",
-  "Data Visualization with Recharts": "https://www.youtube.com/embed/F6kmIpWWEdU",
-  "Fine-Tuning Generative AI Models": "https://www.youtube.com/embed/V_xro1bcAuA",
-  "MLOps: CI/CD Pipeline for Models": "https://www.youtube.com/embed/V_xro1bcAuA",
-  "Transformer Architectures & Attention": "https://www.youtube.com/embed/V_xro1bcAuA",
-
-  // Extra Hub items
-  "Interactive CSS Flexbox Playground": "https://www.youtube.com/embed/0xMQfnTU6oo",
-  "Next.js Core Web Vitals Optimization Guides": "https://www.youtube.com/embed/t5fjIW3tB00",
-  "Tailwind UI Layout Best Practices": "https://www.youtube.com/embed/m7OWXtbiXX8",
-  "System Design Interview Cheat Sheet": "https://www.youtube.com/embed/oSkTPzOGMuw",
-  "PostgreSQL Window Functions Explained": "https://www.youtube.com/embed/qw--VYLpxG4",
-  "Docker Containerization Fundamentals": "https://www.youtube.com/embed/rjjES5IsPdg",
-  "React Native Performance Debugging Tools": "https://www.youtube.com/embed/0-S5a0eXPoc",
-  "Expo Router Dynamic Linking Manual": "https://www.youtube.com/embed/0-S5a0eXPoc",
-  "iOS Native UI Optimization Principles": "https://www.youtube.com/embed/HXoVSbwWUIk",
-  "Python OOP and Memory Structures": "https://www.youtube.com/embed/_uQrJ0TkZlc",
-  "Calculus behind SGD Backpropagation": "https://www.youtube.com/embed/V_xro1bcAuA",
-  "Hugging Face LLM Pipeline Integration Guides": "https://www.youtube.com/embed/V_xro1bcAuA",
-};
-
-const getResourceVideo = (title: string): string => {
-  const matched = RESOURCE_VIDEOS[title];
-  if (matched) return matched;
-  const lower = title.toLowerCase();
-  if (lower.includes("next.js") || lower.includes("nextjs") || lower.includes("ssr"))
-    return "https://www.youtube.com/embed/wm5gMKuwSYk";
-  if (lower.includes("react native") || lower.includes("expo") || lower.includes("mobile"))
-    return "https://www.youtube.com/embed/0-S5a0eXPoc";
-  if (
-    lower.includes("react") ||
-    lower.includes("frontend") ||
-    lower.includes("html") ||
-    lower.includes("css")
-  )
-    return "https://www.youtube.com/embed/Ke90Tje7VS0";
-  if (lower.includes("docker") || lower.includes("kubernetes") || lower.includes("devops"))
-    return "https://www.youtube.com/embed/rjjES5IsPdg";
-  if (
-    lower.includes("pandas") ||
-    lower.includes("numpy") ||
-    lower.includes("pytorch") ||
-    lower.includes("ai") ||
-    lower.includes("python")
-  )
-    return "https://www.youtube.com/embed/V_xro1bcAuA";
-  if (lower.includes("sql") || lower.includes("database") || lower.includes("postgresql"))
-    return "https://www.youtube.com/embed/7S_tz1z_5bA";
-  return "https://www.youtube.com/embed/hdI2bqOjy3c";
-};
+import { discoverAIWebResources, CuratedResource } from "../../lib/ai-resource-curator";
 
 const getResourceIcon = (title: string, type?: string) => {
   const lowerTitle = title.toLowerCase();
@@ -154,26 +65,54 @@ export function ResourceHub() {
   const [videoUrl, setVideoUrl] = React.useState<string | null>(null);
   const [videoTitle, setVideoTitle] = React.useState<string>("");
 
-  const openResourceUrl = (title: string) => {
-    const embedUrl = getResourceVideo(title);
-    setVideoTitle(title);
-    setVideoUrl(embedUrl);
-  };
-
   const dynamicResources = useMemo(() => {
-    const list = store.recommendations?.resources || [];
-    return list.map((res, index) => ({
-      id: `hub_res_${index}`,
+    // 1. Discover verified AI web resources for the current learner's focus domain
+    const aiDiscovered = discoverAIWebResources(focusDomain, userProficiency);
+    
+    // 2. Map recommendation resources if present
+    const storeList = store.recommendations?.resources || [];
+    const fromStore: CuratedResource[] = storeList.map((res, index) => ({
+      id: `hub_rec_${index}`,
       title: res.title,
-      type: res.type,
+      type: res.type as any || "Guide",
+      course: focusDomain,
       subject: focusDomain,
       level: userProficiency,
       rating: 4.8 + index * 0.05 > 5 ? 5.0 : parseFloat((4.8 + index * 0.05).toFixed(1)),
       downloads: `${4.5 + index}k`,
       trending: index === 0,
-      author: "EduSync Network",
+      author: "EduSync AI Curator",
+      source: "ai_discovered",
+      ai_match_percentage: 95,
+      url: "https://developer.mozilla.org/en-US/docs/Web",
     }));
+
+    // Combine & slice top 4 for the dashboard widget
+    const combined = [...aiDiscovered, ...fromStore];
+    const seen = new Set<string>();
+    const deduplicated = combined.filter((r) => {
+      if (seen.has(r.title)) return false;
+      seen.add(r.title);
+      return true;
+    });
+
+    return deduplicated.slice(0, 4);
   }, [store.recommendations?.resources, focusDomain, userProficiency]);
+
+  const handleResourcePress = (res: CuratedResource) => {
+    if (res.video_url) {
+      setVideoTitle(res.title);
+      setVideoUrl(res.video_url);
+    } else if (res.url) {
+      if (Platform.OS === "web") {
+        window.open(res.url, "_blank", "noopener,noreferrer");
+      } else {
+        Linking.openURL(res.url).catch(() => {});
+      }
+    } else {
+      navigate({ to: "/resources" });
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -199,7 +138,7 @@ export function ResourceHub() {
               styles.card,
               { backgroundColor: currentColors.card, borderColor: currentColors.border },
             ]}
-            onPress={() => openResourceUrl(r.title)}
+            onPress={() => handleResourcePress(r)}
             activeOpacity={0.85}
           >
             <View style={styles.cardTop}>

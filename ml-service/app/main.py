@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.recommendations import router as recommendations_router
 from app.api.adaptive import router as adaptive_router
 from app.api.telemetry import router as telemetry_router
+from app.api.resources import router as resources_router
 
 SAVED_MODELS_DIR = Path(__file__).resolve().parent.parent / "saved_models"
 
@@ -47,6 +48,7 @@ app.add_middleware(
 app.include_router(recommendations_router)
 app.include_router(adaptive_router)
 app.include_router(telemetry_router)
+app.include_router(resources_router)
 
 @app.get("/")
 def root():

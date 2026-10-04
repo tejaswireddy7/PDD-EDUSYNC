@@ -24,19 +24,9 @@ import { supabase } from "../lib/supabase";
 import { WebView } from "react-native-webview";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system";
+import { discoverAIWebResources, CuratedResource } from "../lib/ai-resource-curator";
 
-type Resource = {
-  id: string;
-  title: string;
-  subject: string;
-  level: string;
-  type: "Notes" | "PDF" | "Slides" | "Project";
-  rating: number;
-  downloads: number;
-  trending: boolean;
-  author: string;
-  userId?: string;
-};
+type Resource = CuratedResource;
 
 function getResourceIcon(type: string): string {
   switch (type) {
@@ -151,80 +141,7 @@ const SUBJECTS = ["All", "Frontend", "Backend", "Mobile", "AI", "General"];
 const LEVELS = ["All levels", "Beginner", "Intermediate", "Advanced"];
 const TYPES = ["All types", "Notes", "PDF", "Slides", "Project"] as const;
 const SORTS = ["Trending", "Top rated", "Most downloaded"] as const;
-
-const RESOURCE_VIDEOS: Record<string, string> = {
-  "HTML5, CSS3, & Modern Grid": "https://www.youtube.com/embed/Dp3c7G1Qhgo",
-  "JavaScript Fundamentals & DOM": "https://www.youtube.com/embed/hdI2bqOjy3c",
-  "Intro to React & Component States": "https://www.youtube.com/embed/Ke90Tje7VS0",
-  "Intro to Node.js & REST API": "https://www.youtube.com/embed/Oe421EPjeBE",
-  "SQL Fundamentals & Relational DBs": "https://www.youtube.com/embed/HXTt1AjbTtc",
-  "React Native & Expo Ecosystem": "https://www.youtube.com/embed/gvkqT_qiVxM",
-  "Python Fundamentals & Packages": "https://www.youtube.com/embed/_uQrJ0TkZlc",
-  "Neural Networks with PyTorch": "https://www.youtube.com/embed/V_xro1bcAuA",
-  "React Router & Global Context": "https://www.youtube.com/embed/59IXY5IDYbA",
-  "Tailwind CSS & Responsive Layouts": "https://www.youtube.com/embed/m7OWXtbiXX8",
-  "TypeScript Essentials for Web": "https://www.youtube.com/embed/zQnOB4tV3MC",
-  "Java Spring Boot Microservices": "https://www.youtube.com/embed/35EQXmHKZYs",
-  "PostgreSQL Queries & Optimization": "https://www.youtube.com/embed/7VfZYMXZmeI",
-  "SwiftUI Mastery for iOS Platforms": "https://www.youtube.com/embed/F2CznepmCg4",
-  "Kotlin & Android Jetpack UI": "https://www.youtube.com/embed/Ch5QqJmOzCQ",
-  "Pandas & Numpy Data Wrangling": "https://www.youtube.com/embed/F6kmIpWWEdU",
-  "Basics of Routing & HTTP Methods": "https://www.youtube.com/embed/yQleTeoUskc",
-  "Interactive CSS Flexbox Playground": "https://www.youtube.com/embed/Dp3c7G1Qhgo",
-  "Next.js Core Web Vitals Optimization Guides": "https://www.youtube.com/embed/59IXY5IDYbA",
-  "Tailwind UI Layout Best Practices": "https://www.youtube.com/embed/m7OWXtbiXX8",
-  "System Design Interview Cheat Sheet": "https://www.youtube.com/embed/gvkqT_qiVxM",
-  "PostgreSQL Window Functions Explained": "https://www.youtube.com/embed/7VfZYMXZmeI",
-  "Docker Containerization Fundamentals": "https://www.youtube.com/embed/Oe421EPjeBE",
-  "React Native Performance Debugging Tools": "https://www.youtube.com/embed/gvkqT_qiVxM",
-  "Expo Router Dynamic Linking Manual": "https://www.youtube.com/embed/Ke90Tje7VS0",
-  "iOS Native UI Optimization Principles": "https://www.youtube.com/embed/F2CznepmCg4",
-  "Python OOP and Memory Structures": "https://www.youtube.com/embed/_uQrJ0TkZlc",
-  "Calculus behind SGD Backpropagation": "https://www.youtube.com/embed/V_xro1bcAuA",
-  "Hugging Face LLM Pipeline Integration Guides": "https://www.youtube.com/embed/_uQrJ0TkZlc",
-};
-
-const getResourceVideo = (title: string): string => {
-  const matched = RESOURCE_VIDEOS[title];
-  if (matched) return matched;
-  const lower = title.toLowerCase();
-  if (lower.includes("next.js") || lower.includes("nextjs") || lower.includes("ssr"))
-    return "https://www.youtube.com/embed/Dp3c7G1Qhgo";
-  if (lower.includes("react native") || lower.includes("expo") || lower.includes("mobile"))
-    return "https://www.youtube.com/embed/gvkqT_qiVxM";
-  if (
-    lower.includes("react") ||
-    lower.includes("frontend") ||
-    lower.includes("html") ||
-    lower.includes("css")
-  )
-    return "https://www.youtube.com/embed/Ke90Tje7VS0";
-  if (lower.includes("docker") || lower.includes("kubernetes") || lower.includes("devops"))
-    return "https://www.youtube.com/embed/Oe421EPjeBE";
-  if (
-    lower.includes("pandas") ||
-    lower.includes("numpy") ||
-    lower.includes("pytorch") ||
-    lower.includes("ai") ||
-    lower.includes("python")
-  )
-    return "https://www.youtube.com/embed/V_xro1bcAuA";
-  if (lower.includes("sql") || lower.includes("database") || lower.includes("postgresql"))
-    return "https://www.youtube.com/embed/HXTt1AjbTtc";
-  return "https://www.youtube.com/embed/zjsYHGK6a4Q";
-};
-
-const ALL_COURSES = [
-  "React Native & Expo Ecosystem",
-  "HTML5, CSS3, & Modern Grid",
-  "JavaScript Fundamentals & DOM",
-  "Intro to React & Component States",
-  "Python Fundamentals & Packages",
-  "Neural Networks with PyTorch",
-  "SQL Fundamentals & Relational DBs",
-  "Intro to Node.js & REST API",
-  "Pandas & Numpy Data Wrangling",
-];
+const SOURCE_TABS = ["All", "🤖 AI Web Discovery", "👥 Community Uploads"] as const;
 
 export default function ResourcesScreen() {
   const store = useDashboardStore();
@@ -273,7 +190,16 @@ export default function ResourcesScreen() {
   const [newLevel, setNewLevel] = useState("Beginner");
   const [newType, setNewType] = useState<"Notes" | "PDF" | "Slides" | "Project">("Notes");
   const [newFileName, setNewFileName] = useState("");
-  const [selectedCourse, setSelectedCourse] = useState("React Native & Expo Ecosystem");
+  const [sourceTab, setSourceTab] = useState<"All" | "🤖 AI Web Discovery" | "👥 Community Uploads">("All");
+  const [selectedCourse, setSelectedCourse] = useState("Frontend Development");
+
+  const availableCourses = useMemo(() => {
+    const enrolled = (store.enrolledCourses || []).map((c: any) => c.title);
+    const suggested = (store.suggestedCourses || []).map((c: any) => c.title);
+    const combined = Array.from(new Set([...enrolled, ...suggested])).filter(Boolean);
+    if (combined.length > 0) return combined;
+    return ["Frontend Development", "Backend Architecture", "Mobile Engineering", "AI & Machine Learning", "Fullstack Systems"];
+  }, [store.enrolledCourses, store.suggestedCourses]);
 
   const fileInputRef = useRef<any>(null);
   const [selectedFileContent, setSelectedFileContent] = useState<string | null>(null);
@@ -341,47 +267,84 @@ export default function ResourcesScreen() {
   };
 
   const handleOpenResource = (r: any) => {
-    store.cacheMaterial(r.title, "https://developer.mozilla.org/en-US/");
+    store.cacheMaterial(r.title, r.url || "https://developer.mozilla.org/en-US/");
     if (store.lowDataMode) {
       showNotice(
         "Low-Data Cache Success",
         `"${r.title}" has been saved in local cache memory for offline revisiting without internet access.`,
       );
     }
-    setViewingResource(r);
+
+    if (r.fileContent) {
+      setViewingResource(r);
+    } else if (r.video_url && !r.url) {
+      setVideoUrl(r.video_url);
+      setVideoTitle(r.title);
+    } else if (r.url) {
+      if (Platform.OS === "web") {
+        window.open(r.url, "_blank");
+      } else {
+        Linking.openURL(r.url);
+      }
+    } else {
+      setViewingResource(r);
+    }
   };
 
   const loadResources = async (showLoadingIndicator = false) => {
     if (showLoadingIndicator && resources.length === 0) setLoading(true);
     try {
-      const dbRes = await fetchDBResources();
-      const mapped = dbRes.map((x: any) => ({
-        id: x.id,
-        title: x.title,
-        subject: x.subject,
-        level: x.level,
-        type: x.type,
-        rating: x.rating || 5.0,
-        downloads: x.downloads || 0,
-        trending: x.trending || false,
-        author: x.author || "Anonymous",
-        fileName: x.file_name,
-        fileType: x.file_type,
-        fileContent: x.file_content,
-        userId: x.user_id,
-      }));
-      setResources(mapped as any);
+      // 1. Fetch AI Real-Time Web Resources
+      const aiWebItems = discoverAIWebResources({
+        domain: "All",
+        level: "All levels",
+        resourceType: "All types",
+        query: "",
+        sortBy: "Trending"
+      });
+
+      // 2. Fetch User Community Uploads from Supabase
+      let dbMapped: Resource[] = [];
+      try {
+        const dbRes = await fetchDBResources();
+        dbMapped = dbRes.map((x: any) => ({
+          id: x.id,
+          title: x.title,
+          subject: x.subject,
+          level: x.level,
+          type: x.type,
+          rating: x.rating || 5.0,
+          downloads: x.downloads || 0,
+          trending: x.trending || false,
+          author: x.author || "Community Contributor",
+          fileName: x.file_name,
+          fileType: x.file_type,
+          fileContent: x.file_content,
+          userId: x.user_id,
+          ai_match_percentage: 92,
+          is_ai_curated: false,
+        }));
+      } catch (dbErr) {
+        console.warn("Supabase fetch resources:", dbErr);
+      }
+
+      // 3. Merge AI Web Items + User Uploads (No duplicates)
+      const existingIds = new Set<string>();
+      const merged: Resource[] = [];
+
+      [...dbMapped, ...aiWebItems].forEach((item) => {
+        if (!existingIds.has(item.id)) {
+          existingIds.add(item.id);
+          merged.push(item);
+        }
+      });
+
+      setResources(merged);
       if (typeof window !== "undefined" && window.localStorage) {
-        window.localStorage.setItem("cached_db_resources", JSON.stringify(mapped));
+        window.localStorage.setItem("cached_db_resources", JSON.stringify(merged));
       }
     } catch (err) {
-      console.warn("Failed to load resources from Supabase:", err);
-      let localItems: any[] = [];
-      if (typeof window !== "undefined" && window.localStorage) {
-        const local = window.localStorage.getItem("uploaded_resources");
-        localItems = local ? JSON.parse(local) : [];
-      }
-      setResources(localItems);
+      console.warn("Failed to load resources:", err);
     } finally {
       setLoading(false);
     }
@@ -410,14 +373,31 @@ export default function ResourcesScreen() {
   const [showFilters, setShowFilters] = useState(false);
 
   const results = useMemo(() => {
-    let r = resources.filter(
-      (x) =>
-        (subject === "All" || x.subject === subject) &&
-        (level === "All levels" || x.level === level) &&
-        (type === "All types" || x.type === type) &&
-        (q.trim() === "" ||
-          [x.title, x.subject, x.author].some((f) => f.toLowerCase().includes(q.toLowerCase()))),
-    );
+    let r = resources.filter((x) => {
+      // Source filter
+      if (sourceTab === "🤖 AI Web Discovery" && !x.is_ai_curated) return false;
+      if (sourceTab === "👥 Community Uploads" && x.is_ai_curated) return false;
+
+      // Subject / Domain filter
+      if (subject !== "All" && x.subject.toLowerCase() !== subject.toLowerCase()) return false;
+
+      // Level filter
+      if (level !== "All levels" && x.level.toLowerCase() !== level.toLowerCase()) return false;
+
+      // Type filter
+      if (type !== "All types" && x.type.toLowerCase() !== type.toLowerCase()) return false;
+
+      // Search query
+      if (q.trim() !== "") {
+        const queryTerms = q.toLowerCase().split(/\s+/).filter(Boolean);
+        const corpus = `${x.title} ${x.subject} ${x.author} ${x.description || ""} ${(x.tags || []).join(" ")}`.toLowerCase();
+        const matches = queryTerms.every((term) => corpus.includes(term));
+        if (!matches) return false;
+      }
+
+      return true;
+    });
+
     if (sort === "Top rated") r = [...r].sort((a, b) => b.rating - a.rating);
     else if (sort === "Most downloaded") r = [...r].sort((a, b) => b.downloads - a.downloads);
     else if (sort === "Trending")
@@ -425,7 +405,7 @@ export default function ResourcesScreen() {
         (a, b) => Number(b.trending) - Number(a.trending) || b.downloads - a.downloads,
       );
     return r;
-  }, [resources, q, subject, level, type, sort]);
+  }, [resources, q, subject, level, type, sort, sourceTab]);
 
   const activeFiltersCount =
     (subject !== "All" ? 1 : 0) + (level !== "All levels" ? 1 : 0) + (type !== "All types" ? 1 : 0);
@@ -448,7 +428,7 @@ export default function ResourcesScreen() {
       showNotice("Validation Error", "Please attach a document before publishing.");
       return;
     }
-    const uploadedResource: any = {
+    const uploadedResource: Resource = {
       id: `uploaded_${Date.now()}`,
       title: newTitle,
       subject: newSubject,
@@ -458,11 +438,12 @@ export default function ResourcesScreen() {
       downloads: 1,
       trending: true,
       author: store.user?.name || "Anonymous Learner",
-      courseTitle: selectedCourse,
       fileName: newFileName,
-      fileType: selectedFileType,
-      fileContent: selectedFileContent,
-      userId: activeUserId,
+      fileType: selectedFileType || undefined,
+      fileContent: selectedFileContent || undefined,
+      userId: activeUserId || undefined,
+      ai_match_percentage: 95,
+      is_ai_curated: false,
     };
 
     setResources((prev) => [uploadedResource, ...prev]);
@@ -494,7 +475,7 @@ export default function ResourcesScreen() {
         trending: uploadedResource.trending,
         author: authorName,
         focus_domain: uploadedResource.subject,
-        course_title: uploadedResource.courseTitle,
+        course_title: selectedCourse,
         file_name: uploadedResource.fileName,
         file_type: uploadedResource.fileType,
         file_content: uploadedResource.fileContent,
@@ -555,11 +536,14 @@ export default function ResourcesScreen() {
           style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}
         >
           <View style={{ flex: 1, paddingRight: 12 }}>
-            <Text style={[styles.introTitle, { color: currentColors.text }]}>
-              Collaborative Resource Hub
-            </Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 4 }}>
+              <MaterialCommunityIcons name="robot" size={18} color="#6366f1" />
+              <Text style={[styles.introTitle, { color: currentColors.text }]}>
+                AI Resource Hub & Web Discovery
+              </Text>
+            </View>
             <Text style={[styles.introSub, { color: currentColors.subtext }]}>
-              Notes, PDFs and mini-projects shared by peers and mentors.
+              Verified open-web documentation, tutorials, and community notes curated by AI.
             </Text>
           </View>
           <TouchableOpacity
@@ -576,6 +560,46 @@ export default function ResourcesScreen() {
             <BootstrapIcon name="plus-lg" size={14} color="#ffffff" style={{ marginRight: 4 }} />
             <Text style={styles.uploadBtnText}>Upload</Text>
           </TouchableOpacity>
+        </View>
+
+        {/* Source Segmented Selector Tabs */}
+        <View style={{ flexDirection: "row", gap: 8, marginTop: 14 }}>
+          {SOURCE_TABS.map((tab) => {
+            const active = sourceTab === tab;
+            return (
+              <TouchableOpacity
+                key={tab}
+                onPress={() => setSourceTab(tab)}
+                style={{
+                  paddingVertical: 6,
+                  paddingHorizontal: 12,
+                  borderRadius: 20,
+                  backgroundColor: active
+                    ? "#6366f1"
+                    : isDark
+                      ? "#1e293b"
+                      : "#f1f5f9",
+                  borderWidth: 1,
+                  borderColor: active
+                    ? "#6366f1"
+                    : isDark
+                      ? "#334155"
+                      : "#e2e8f0",
+                }}
+                activeOpacity={0.8}
+              >
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: "600",
+                    color: active ? "#ffffff" : currentColors.subtext,
+                  }}
+                >
+                  {tab}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </View>
 
@@ -673,6 +697,24 @@ export default function ResourcesScreen() {
                   <BootstrapIcon name={getResourceIcon(r.type)} size={16} color="#6366f1" />
                 </View>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  {r.is_ai_curated && (
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        backgroundColor: isDark ? "#1e1b4b" : "#e0e7ff",
+                        paddingHorizontal: 8,
+                        paddingVertical: 3,
+                        borderRadius: 12,
+                        gap: 4,
+                      }}
+                    >
+                      <MaterialCommunityIcons name="robot" size={12} color="#6366f1" />
+                      <Text style={{ color: "#6366f1", fontSize: 10, fontWeight: "700" }}>
+                        {r.ai_match_percentage}% Match
+                      </Text>
+                    </View>
+                  )}
                   <TouchableOpacity onPress={() => toggleBookmark(r.id)}>
                     <BootstrapIcon
                       name={isBookmarked ? "bookmark-fill" : "bookmark"}
@@ -726,6 +768,20 @@ export default function ResourcesScreen() {
               <Text style={[styles.resourceTitle, { color: currentColors.text }]} numberOfLines={2}>
                 {r.title}
               </Text>
+
+              {r.description ? (
+                <Text
+                  style={{
+                    fontSize: 11,
+                    color: currentColors.subtext,
+                    marginTop: 4,
+                    lineHeight: 16,
+                  }}
+                  numberOfLines={2}
+                >
+                  {r.description}
+                </Text>
+              ) : null}
 
               <View style={styles.resourceFooter}>
                 <Text style={[styles.author, { color: currentColors.subtext }]} numberOfLines={1}>
@@ -820,7 +876,7 @@ export default function ResourcesScreen() {
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={{ gap: 6, paddingVertical: 4 }}
                 >
-                  {ALL_COURSES.map((course) => {
+                  {availableCourses.map((course) => {
                     const active = selectedCourse === course;
                     return (
                       <TouchableOpacity

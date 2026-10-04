@@ -28,9 +28,15 @@ export default function DashboardScreen() {
   const currentColors = themeColors[appTheme as "light" | "dark"] || themeColors.light;
 
   useEffect(() => {
-    if (store.token && !store.isLoadingRecommendations) {
+    if (store.token) {
       store.fetchRecommendations();
     }
+    const interval = setInterval(() => {
+      if (store.token) {
+        store.fetchRecommendations();
+      }
+    }, 4000);
+    return () => clearInterval(interval);
   }, [store.token, focusDomain, proficiency]);
 
   const onRefresh = async () => {
@@ -44,11 +50,14 @@ export default function DashboardScreen() {
     }
   };
 
+  const hasRecommendations =
+    store.recommendations &&
+    store.recommendations.courses &&
+    store.recommendations.courses.length > 0;
+
   return (
     <View style={[styles.outerContainer, { backgroundColor: currentColors.background }]}>
-      {store.isLoadingRecommendations ||
-      !store.recommendations ||
-      !store.recommendations.courses ? (
+      {!hasRecommendations && store.isLoadingRecommendations ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#6366f1" />
           <Text style={styles.loadingText}>Personalizing your learning path...</Text>

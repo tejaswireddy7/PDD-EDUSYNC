@@ -24,7 +24,17 @@ export default function EvaluationScreen() {
   const currentColors = themeColors[appTheme as "light" | "dark"] || themeColors.light;
   const isDark = appTheme === "dark";
 
-  const [evaluation, setEvaluation] = useState<DBEvaluation | null>(null);
+  const [evaluation, setEvaluation] = useState<DBEvaluation | null>(() => {
+    if (typeof window !== "undefined" && window.localStorage && store.user?.id) {
+      const cached = window.localStorage.getItem(`evaluation_${store.user.id}`);
+      if (cached) {
+        try {
+          return JSON.parse(cached);
+        } catch (e) {}
+      }
+    }
+    return null;
+  });
   const [loading, setLoading] = useState(false);
 
   const [submittedId, setSubmittedId] = useState<string | null>(store.submittedAssessmentId);
@@ -32,71 +42,83 @@ export default function EvaluationScreen() {
   const [submissionNumber, setSubmissionNumber] = useState<number>(1);
   const [submittedAssessments, setSubmittedAssessments] = useState<any[]>([]);
 
-  useEffect(() => {
-    async function checkSubmissions() {
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (user) {
-          const { fetchDBAssessments } = await import("../lib/supabase-db");
-          const dbAssessments = await fetchDBAssessments(user.id, focusDomain, userProficiency);
+  const checkSubmissions = async () => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        const { fetchDBAssessments } = await import("../lib/supabase-db");
+        const dbAssessments = await fetchDBAssessments(user.id, focusDomain, userProficiency);
 
-          const submitted = dbAssessments.filter((a) => a.status === "submitted");
-          setSubmittedAssessments(submitted);
+        const submitted = dbAssessments.filter((a) => a.status === "submitted");
+        setSubmittedAssessments(submitted);
 
-          // Compute the submission number based on the order of assessments sorted by ID
-          const sorted = [...submitted].sort((a, b) => a.id.localeCompare(b.id));
+        const sorted = [...submitted].sort((a, b) => a.id.localeCompare(b.id));
 
-          if (store.submittedAssessmentId) {
-            setSubmittedId(store.submittedAssessmentId);
-            const currentAsset = dbAssessments.find((a) => a.id === store.submittedAssessmentId);
-            if (currentAsset) {
-              setSubmittedTitle(currentAsset.title);
-            }
-            const idx = sorted.findIndex((a) => a.id === store.submittedAssessmentId);
-            setSubmissionNumber(idx !== -1 ? idx + 1 : 1);
-          } else {
-            const firstSubmitted = submitted[0];
-            if (firstSubmitted) {
-              setSubmittedId(firstSubmitted.id);
-              setSubmittedTitle(firstSubmitted.title);
-              setSubmissionNumber(1);
-            }
+        if (store.submittedAssessmentId) {
+          setSubmittedId(store.submittedAssessmentId);
+          const currentAsset = dbAssessments.find((a) => a.id === store.submittedAssessmentId);
+          if (currentAsset) {
+            setSubmittedTitle(currentAsset.title);
+          }
+          const idx = sorted.findIndex((a) => a.id === store.submittedAssessmentId);
+          setSubmissionNumber(idx !== -1 ? idx + 1 : 1);
+        } else {
+          const firstSubmitted = submitted[0];
+          if (firstSubmitted) {
+            setSubmittedId(firstSubmitted.id);
+            setSubmittedTitle(firstSubmitted.title);
+            setSubmissionNumber(1);
           }
         }
-      } catch (err) {
-        console.warn("Failed to check submissions from Supabase:", err);
       }
+    } catch (err) {
+      console.warn("Failed to check submissions from Supabase:", err);
     }
-    checkSubmissions();
-  }, [store.submittedAssessmentId, focusDomain, userProficiency]);
+  };
 
   useEffect(() => {
+    checkSubmissions();
+    const interval = setInterval(checkSubmissions, 4000);
+    return () => clearInterval(interval);
+  }, [store.submittedAssessmentId, focusDomain, userProficiency]);
+
+  const loadEvaluation = async (showLoadingIndicator = false) => {
     if (!submittedId) return;
-    async function loadEvaluation() {
-      setLoading(true);
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (user) {
-          const dbEval = await fetchDBEvaluation(
-            user.id,
-            submittedId!,
-            submittedTitle,
-            focusDomain,
-            userProficiency,
-          );
+    if (showLoadingIndicator && !evaluation) setLoading(true);
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        const dbEval = await fetchDBEvaluation(
+          user.id,
+          submittedId!,
+          submittedTitle,
+          focusDomain,
+          userProficiency,
+        );
+        if (dbEval) {
           setEvaluation(dbEval);
+          if (typeof window !== "undefined" && window.localStorage) {
+            window.localStorage.setItem(`evaluation_${user.id}`, JSON.stringify(dbEval));
+          }
         }
-      } catch (err) {
-        console.warn("Failed to load evaluation from Supabase:", err);
-      } finally {
-        setLoading(false);
       }
+    } catch (err) {
+      console.warn("Failed to load evaluation from Supabase:", err);
+    } finally {
+      setLoading(false);
     }
-    loadEvaluation();
+  };
+
+  useEffect(() => {
+    loadEvaluation(!evaluation);
+    const interval = setInterval(() => {
+      loadEvaluation(false);
+    }, 4000);
+    return () => clearInterval(interval);
   }, [submittedId, focusDomain, userProficiency, submittedTitle]);
 
   if (!submittedId) {

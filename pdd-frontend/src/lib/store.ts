@@ -202,6 +202,13 @@ if (typeof window !== "undefined" && window.localStorage) {
         if (savedSuggested) {
           state.suggestedCourses = JSON.parse(savedSuggested);
         }
+
+        const savedRecs = window.localStorage.getItem(`recommendations_${lastUserId}`);
+        if (savedRecs) {
+          try {
+            state.recommendations = JSON.parse(savedRecs);
+          } catch (e) {}
+        }
       } catch (e) {}
     }
   }
@@ -215,6 +222,15 @@ function updateState(
 ) {
   const next = typeof updater === "function" ? updater(state) : updater;
   state = { ...state, ...next };
+
+  if (typeof window !== "undefined" && window.localStorage && state.user?.id) {
+    if (next.recommendations) {
+      window.localStorage.setItem(
+        `recommendations_${state.user.id}`,
+        JSON.stringify(next.recommendations),
+      );
+    }
+  }
 
   // Notify all listeners to trigger React updates
   listeners.forEach((l) => l());
@@ -236,6 +252,7 @@ export function useDashboardStore() {
       let hydratedSurveyAnswers = null;
       let hydratedEnrolled = [];
       let hydratedSuggested = [];
+      let hydratedRecs = null;
 
       const lastUserId = window.localStorage.getItem("last_logged_in_user_id");
       const savedToken = window.localStorage.getItem("supabase_session_token");
@@ -282,6 +299,13 @@ export function useDashboardStore() {
             hydratedSuggested = JSON.parse(savedSuggested);
           } catch (e) {}
         }
+
+        const savedRecs = window.localStorage.getItem(`recommendations_${lastUserId}`);
+        if (savedRecs) {
+          try {
+            hydratedRecs = JSON.parse(savedRecs);
+          } catch (e) {}
+        }
       }
 
       updateState({
@@ -290,6 +314,7 @@ export function useDashboardStore() {
         appTheme: (window.localStorage.getItem("app-theme") || "light") as any,
         enrolledCourses: hydratedEnrolled.length > 0 ? hydratedEnrolled : state.enrolledCourses,
         suggestedCourses: hydratedSuggested.length > 0 ? hydratedSuggested : state.suggestedCourses,
+        ...(hydratedRecs ? { recommendations: hydratedRecs } : {}),
         ...(hydratedUser
           ? {
               user: hydratedUser,

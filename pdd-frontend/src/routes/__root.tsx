@@ -42,6 +42,8 @@ function RootLayout() {
       }
     }
     loadCounts();
+    const interval = setInterval(loadCounts, 3000);
+    return () => clearInterval(interval);
   }, [
     store.user,
     store.submittedAssessmentId,

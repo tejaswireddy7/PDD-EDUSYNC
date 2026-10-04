@@ -149,29 +149,45 @@ export default function AssessmentsScreen() {
   const currentColors = themeColors[appTheme as "light" | "dark"] || themeColors.light;
   const isDark = appTheme === "dark";
 
-  const [items, setItems] = useState<Assessment[]>([]);
-  const [active, setActive] = useState<Assessment | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [items, setItems] = useState<Assessment[]>(() => {
+    if (typeof window !== "undefined" && window.localStorage && store.user?.id) {
+      const cached = window.localStorage.getItem(`assessments_${store.user.id}_${focusDomain}`);
+      if (cached) {
+        try {
+          return JSON.parse(cached);
+        } catch (e) {}
+      }
+    }
+    return [];
+  });
+  const [active, setActive] = useState<Assessment | null>(() => items[0] || null);
+  const [loading, setLoading] = useState(() => items.length === 0);
   const [refreshing, setRefreshing] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  const loadData = async (showLoadingIndicator = true) => {
-    if (showLoadingIndicator) setLoading(true);
+  const loadData = async (showLoadingIndicator = false) => {
+    if (showLoadingIndicator && items.length === 0) setLoading(true);
     try {
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (user) {
         const dbAssessments = await fetchDBAssessments(user.id, focusDomain, userProficiency);
-        setItems(dbAssessments as any);
-        if (dbAssessments.length > 0) {
+        if (dbAssessments && dbAssessments.length > 0) {
+          setItems(dbAssessments as any);
           setActive((prev) => dbAssessments.find((a) => a.id === prev?.id) || dbAssessments[0]);
+          if (typeof window !== "undefined" && window.localStorage) {
+            window.localStorage.setItem(
+              `assessments_${user.id}_${focusDomain}`,
+              JSON.stringify(dbAssessments),
+            );
+          }
         }
       }
     } catch (err) {
       console.warn("Failed to load assessments from Supabase:", err);
     } finally {
-      if (showLoadingIndicator) setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -179,6 +195,10 @@ export default function AssessmentsScreen() {
 
   useEffect(() => {
     loadData(items.length === 0);
+    const interval = setInterval(() => {
+      loadData(false);
+    }, 4000);
+    return () => clearInterval(interval);
   }, [focusDomain, userProficiency, enrolledCoursesKey]);
 
   const onRefresh = async () => {

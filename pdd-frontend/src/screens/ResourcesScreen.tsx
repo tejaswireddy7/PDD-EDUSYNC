@@ -235,8 +235,18 @@ export default function ResourcesScreen() {
   const focusDomain = store.surveyAnswers?.focusDomain || "Mobile";
   const userProficiency = store.surveyAnswers?.proficiency || "Beginner";
 
-  const [resources, setResources] = useState<Resource[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [resources, setResources] = useState<Resource[]>(() => {
+    if (typeof window !== "undefined" && window.localStorage) {
+      const cached = window.localStorage.getItem("cached_db_resources");
+      if (cached) {
+        try {
+          return JSON.parse(cached);
+        } catch (e) {}
+      }
+    }
+    return [];
+  });
+  const [loading, setLoading] = useState(() => resources.length === 0);
   const [refreshing, setRefreshing] = useState(false);
   const [activeUserId, setActiveUserId] = useState<string | null>(null);
 
@@ -341,8 +351,8 @@ export default function ResourcesScreen() {
     setViewingResource(r);
   };
 
-  const loadResources = async () => {
-    setLoading(true);
+  const loadResources = async (showLoadingIndicator = false) => {
+    if (showLoadingIndicator && resources.length === 0) setLoading(true);
     try {
       const dbRes = await fetchDBResources();
       const mapped = dbRes.map((x: any) => ({
@@ -361,6 +371,9 @@ export default function ResourcesScreen() {
         userId: x.user_id,
       }));
       setResources(mapped as any);
+      if (typeof window !== "undefined" && window.localStorage) {
+        window.localStorage.setItem("cached_db_resources", JSON.stringify(mapped));
+      }
     } catch (err) {
       console.warn("Failed to load resources from Supabase:", err);
       let localItems: any[] = [];
@@ -375,12 +388,16 @@ export default function ResourcesScreen() {
   };
 
   useEffect(() => {
-    loadResources();
+    loadResources(resources.length === 0);
+    const interval = setInterval(() => {
+      loadResources(false);
+    }, 4000);
+    return () => clearInterval(interval);
   }, []);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadResources();
+    await loadResources(false);
     setRefreshing(false);
   };
 

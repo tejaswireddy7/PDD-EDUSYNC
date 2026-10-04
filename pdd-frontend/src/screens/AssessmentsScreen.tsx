@@ -19,6 +19,7 @@ import { useDashboardStore, themeColors } from "../lib/store";
 import { supabase } from "../lib/supabase";
 import { fetchDBAssessments, updateDBAssessment } from "../lib/supabase-db";
 import { adaptiveApi } from "../lib/api";
+import * as DocumentPicker from "expo-document-picker";
 import { useNavigate } from "@tanstack/react-router";
 import { useNavigation } from "@react-navigation/native";
 
@@ -323,198 +324,6 @@ export default function AssessmentsScreen() {
 // 2. Submission Panel Component
 type Uploaded = { name: string; size: number };
 
-const QUIZ_QUESTIONS: Record<
-  string,
-  Array<{ question: string; options: string[]; correctAnswer: number }>
-> = {
-  Frontend: [
-    {
-      question: "Which React hook is used to perform side effects in functional components?",
-      options: ["useState", "useEffect", "useContext", "useMemo"],
-      correctAnswer: 1,
-    },
-    {
-      question: "What is the default layout direction of Flexbox in CSS?",
-      options: ["row", "column", "grid", "inline"],
-      correctAnswer: 0,
-    },
-    {
-      question: "What does semantic HTML primarily improve?",
-      options: [
-        "SEO and Accessibility",
-        "Page load speed",
-        "JavaScript execution time",
-        "Database security",
-      ],
-      correctAnswer: 0,
-    },
-    {
-      question: "What is the main purpose of the Virtual DOM in React?",
-      options: [
-        "To directly modify the browser's DOM for speed",
-        "To synchronize local state with cloud databases",
-        "To compute UI updates in memory before updating the real DOM",
-        "To style web pages using CSS variables",
-      ],
-      correctAnswer: 2,
-    },
-  ],
-  Backend: [
-    {
-      question: "Which HTTP status code represents a successful resource creation?",
-      options: ["200 OK", "201 Created", "400 Bad Request", "500 Server Error"],
-      correctAnswer: 1,
-    },
-    {
-      question:
-        "In REST API design, which HTTP method should be used to update an existing resource completely?",
-      options: ["GET", "POST", "PUT", "DELETE"],
-      correctAnswer: 2,
-    },
-    {
-      question: "What is the primary purpose of database indexing?",
-      options: [
-        "To encrypt credentials",
-        "To optimize query search and data retrieval speeds",
-        "To eliminate duplicate table rows",
-        "To transform relational data to JSON automatically",
-      ],
-      correctAnswer: 1,
-    },
-    {
-      question: "What is the core benefit of containerizing backend apps with Docker?",
-      options: [
-        "To generate random secret keys",
-        "To package code and all its dependencies into a portable, isolated container",
-        "To compile TypeScript into optimized JavaScript bundles",
-        "To automatically write API documentation",
-      ],
-      correctAnswer: 1,
-    },
-  ],
-  Mobile: [
-    {
-      question:
-        "In React Native, which component is best suited for rendering long, scrollable lists efficiently?",
-      options: ["ScrollView", "FlatList", "View", "SafeAreaView"],
-      correctAnswer: 1,
-    },
-    {
-      question: "Which React Native hook reactively returns the current screen width and height?",
-      options: ["useWindowDimensions", "useEffect", "useDimensions", "useStyle"],
-      correctAnswer: 0,
-    },
-    {
-      question: "What layout system is used by React Native for positioning components?",
-      options: ["CSS Grid", "Floats & Absolute layout", "Flexbox", "Table columns"],
-      correctAnswer: 2,
-    },
-    {
-      question: "How is routing and navigation usually handled in modern Expo apps?",
-      options: [
-        "HTML anchor links",
-        "Expo Router or React Navigation",
-        "Window location redirects",
-        "Conditional view rendering only",
-      ],
-      correctAnswer: 1,
-    },
-  ],
-  AI: [
-    {
-      question:
-        "What is the process of adjusting network parameters to minimize the loss function called?",
-      options: [
-        "Validation",
-        "Regularization",
-        "Optimization (e.g. Gradient Descent)",
-        "Data augmentation",
-      ],
-      correctAnswer: 2,
-    },
-    {
-      question: "Which data structure does PyTorch use to represent multi-dimensional arrays?",
-      options: ["Dataframes", "Tensors", "Matrices", "Numpy Lists"],
-      correctAnswer: 1,
-    },
-    {
-      question:
-        "Which activation function is most widely used in hidden layers of deep neural networks?",
-      options: ["Linear", "ReLU (Rectified Linear Unit)", "Softmax", "Sigmoid"],
-      correctAnswer: 1,
-    },
-    {
-      question: "What is the main goal when training a machine learning model?",
-      options: [
-        "To minimize memory storage sizes",
-        "To memorize all training samples exactly",
-        "To generalize effectively to new, unseen data",
-        "To execute network training as fast as possible",
-      ],
-      correctAnswer: 2,
-    },
-  ],
-};
-
-const PROJECT_TEMPLATES: Record<string, Array<{ title: string; files: string[] }>> = {
-  Frontend: [
-    {
-      title: "React Vite Dashboard template",
-      files: ["src/App.tsx", "package.json", "vite.config.ts", "index.html"],
-    },
-    {
-      title: "Tailwind Portfolio Starter",
-      files: ["index.html", "tailwind.config.js", "src/main.css", "package.json"],
-    },
-    {
-      title: "Next.js E-Commerce Landing Page",
-      files: ["app/page.tsx", "app/layout.tsx", "package.json", "next.config.js"],
-    },
-  ],
-  Backend: [
-    {
-      title: "Express.js PostgreSQL API Boilerplate",
-      files: ["src/index.js", "src/db.js", "package.json", "docker-compose.yml"],
-    },
-    {
-      title: "Fastify Redis Cache Server",
-      files: ["server.js", "config.js", "package.json", "README.md"],
-    },
-    {
-      title: "Django Dockerized Microservice",
-      files: ["manage.py", "requirements.txt", "Dockerfile", "docker-compose.yml"],
-    },
-  ],
-  Mobile: [
-    {
-      title: "Expo Router Tab Navigation App",
-      files: ["App.tsx", "package.json", "app/_layout.tsx", "app/index.tsx"],
-    },
-    {
-      title: "React Native Maps Integration Starter",
-      files: ["App.tsx", "package.json", "src/components/Map.tsx"],
-    },
-    {
-      title: "Mobile Health Tracker template",
-      files: ["App.tsx", "package.json", "src/store/health.ts"],
-    },
-  ],
-  AI: [
-    {
-      title: "PyTorch Image Classifier Pipeline",
-      files: ["train.py", "model.py", "dataset.py", "requirements.txt"],
-    },
-    {
-      title: "HuggingFace LLM Chat API Wrapper",
-      files: ["app.py", "config.py", "requirements.txt", "Dockerfile"],
-    },
-    {
-      title: "Pandas Data Processing Sandbox",
-      files: ["analyze.py", "data.csv", "requirements.txt"],
-    },
-  ],
-};
-
 function SubmissionPanel({
   assessment,
   onUpdate,
@@ -537,7 +346,6 @@ function SubmissionPanel({
   const [files, setFiles] = useState<Uploaded[]>([]);
   const [note, setNote] = useState("");
   const [githubUrl, setGithubUrl] = useState("");
-  const [selectedTemplate, setSelectedTemplate] = useState("");
   const [customFileText, setCustomFileText] = useState("");
 
   // Quiz specific states
@@ -553,20 +361,21 @@ function SubmissionPanel({
   const [uploading, setUploading] = useState(false);
   const [validationError, setValidationError] = useState("");
 
-  const isAdvanced = assessment.difficulty === "Advanced";
-
-  const subjectKey = (assessment.subject || "Mobile") as keyof typeof QUIZ_QUESTIONS;
-  const questions = assessment.questions || QUIZ_QUESTIONS[subjectKey] || QUIZ_QUESTIONS["Mobile"];
-  const templates = PROJECT_TEMPLATES[subjectKey] || PROJECT_TEMPLATES["Mobile"];
+  const isAdvanced = assessment.difficulty === "Advanced" || assessment.type === "Project" || assessment.type === "Coding" || assessment.type === "Lab";
+  const questions = assessment.questions || [];
 
   // Reset inputs when changing active assessment
   useEffect(() => {
-    setFiles([]);
-    setNote("");
-    setGithubUrl("");
-    setSelectedTemplate("");
+    setFiles(assessment.responses?.files || []);
+    setNote(assessment.responses?.note || "");
+    setGithubUrl(assessment.responses?.githubUrl || "");
     setCustomFileText("");
-    setSelectedAnswers(assessment.responses || {});
+    setSelectedAnswers(
+      assessment.responses?.selectedAnswers ||
+        (typeof assessment.responses === "object" && !assessment.responses?.files
+          ? assessment.responses
+          : {})
+    );
     setQuizScore(null);
     setAiEvaluation(null);
     setProgress(0);
@@ -574,24 +383,23 @@ function SubmissionPanel({
     setValidationError("");
   }, [assessment.id]);
 
-  // Handle template selection
-  const selectTemplate = (title: string, templateFiles: string[]) => {
-    setSelectedTemplate(title);
-    setValidationError("");
-    const initialFiles = templateFiles.map((f) => ({
-      name: f,
-      size: (Math.floor(Math.random() * 80) + 12) * 1024,
-    }));
-    setFiles(initialFiles);
-  };
-
-  // Toggle template file inclusion
-  const toggleTemplateFile = (fileName: string) => {
-    if (files.some((f) => f.name === fileName)) {
-      setFiles((prev) => prev.filter((f) => f.name !== fileName));
-    } else {
-      const size = (Math.floor(Math.random() * 80) + 12) * 1024;
-      setFiles((prev) => [...prev, { name: fileName, size }]);
+  // Pick files using Device Document Picker
+  const handlePickFiles = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        multiple: true,
+        type: "*/*",
+      });
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const newFiles: Uploaded[] = result.assets.map((asset) => ({
+          name: asset.name,
+          size: asset.size || 1024,
+        }));
+        setFiles((prev) => [...prev, ...newFiles]);
+        setValidationError("");
+      }
+    } catch (e) {
+      console.warn("Document picker error:", e);
     }
   };
 
@@ -600,12 +408,13 @@ function SubmissionPanel({
     if (!customFileText.trim()) return;
     const name = customFileText.trim();
     if (files.some((f) => f.name === name)) {
-      Alert.alert("Duplicate File", "This file is already added.");
+      Alert.alert("Duplicate File", "This file is already attached.");
       return;
     }
-    const size = (Math.floor(Math.random() * 80) + 12) * 1024;
+    const size = 1024;
     setFiles((prev) => [...prev, { name, size }]);
     setCustomFileText("");
+    setValidationError("");
   };
 
   const removeFile = (idx: number) => {
@@ -619,20 +428,16 @@ function SubmissionPanel({
     };
     setSelectedAnswers(updated);
     setValidationError("");
-    onUpdate({ responses: updated });
+    onUpdate({ responses: { selectedAnswers: updated } });
   };
 
   const submitProject = () => {
-    if (!selectedTemplate) {
-      setValidationError("Please select a project template.");
+    if (!githubUrl.trim() && files.length === 0 && !note.trim()) {
+      setValidationError("Please enter a GitHub repository URL, attach project files, or write submission notes.");
       return;
     }
-    if (!githubUrl.trim() || !githubUrl.toLowerCase().includes("github.com")) {
-      setValidationError("Please enter a valid GitHub repository URL.");
-      return;
-    }
-    if (files.length === 0) {
-      setValidationError("Please include at least one source file.");
+    if (githubUrl.trim() && !githubUrl.toLowerCase().includes("github.com")) {
+      setValidationError("Please enter a valid GitHub repository URL (e.g. https://github.com/username/project).");
       return;
     }
 
@@ -648,8 +453,8 @@ function SubmissionPanel({
             progress: 100,
             responses: {
               githubUrl,
-              selectedTemplate,
               files,
+              note,
             },
           });
           return 100;
@@ -909,120 +714,103 @@ function SubmissionPanel({
         </View>
       )}
 
-      {/* RENDER PROJECT SUBMISSION FOR ADVANCED */}
+      {/* RENDER PROJECT / CODE SUBMISSION */}
       {isAdvanced && (
         <View style={{ marginBottom: 12 }}>
-          {/* Template Selection */}
-          <Text style={[styles.templateSectionTitle, { color: currentColors.subtext }]}>
-            Choose a Project Template
+          {/* GitHub Repository URL */}
+          <Text style={[styles.inputLabel, { color: currentColors.text }]}>
+            GitHub Repository URL
           </Text>
-          <View style={styles.templateList}>
-            {templates.map((t) => {
-              const isSel = selectedTemplate === t.title;
-              return (
-                <TouchableOpacity
-                  key={t.title}
-                  onPress={() => selectTemplate(t.title, t.files)}
-                  style={[
-                    styles.templateCard,
-                    { backgroundColor: currentColors.card, borderColor: currentColors.border },
-                    isSel && styles.selectedTemplateCard,
-                  ]}
-                >
-                  <Text
-                    style={[styles.templateTitle, { color: currentColors.text }]}
-                    numberOfLines={1}
-                  >
-                    {t.title}
-                  </Text>
-                  <Text style={[styles.templateDesc, { color: currentColors.subtext }]}>
-                    {t.files.length} boilerplate files
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
+          <TextInput
+            style={[
+              styles.notesInput,
+              {
+                height: 44,
+                marginBottom: 16,
+                paddingVertical: 10,
+                backgroundColor: currentColors.inputBg,
+                borderColor: currentColors.border,
+                color: currentColors.text,
+              },
+            ]}
+            value={githubUrl}
+            onChangeText={(text) => {
+              setGithubUrl(text);
+              setValidationError("");
+            }}
+            placeholder="https://github.com/username/project"
+            placeholderTextColor="#94a3b8"
+          />
 
-          {/* Template files selector (Only visible once a template is chosen) */}
-          {selectedTemplate !== "" && (
-            <View style={{ marginBottom: 12 }}>
-              <Text style={[styles.fileTogglesTitle, { color: currentColors.text }]}>
-                Project Files Configuration
-              </Text>
-              <View
+          {/* Attached Files Section */}
+          <Text style={[styles.fileTogglesTitle, { color: currentColors.text }]}>
+            Attached Project Files
+          </Text>
+
+          <View
+            style={[
+              styles.fileTogglesContainer,
+              {
+                backgroundColor: isDark ? currentColors.divider : "#f8fafc",
+                borderColor: currentColors.border,
+                marginBottom: 16,
+              },
+            ]}
+          >
+            {/* Action Buttons: Pick Files from Device */}
+            <View style={{ flexDirection: "row", gap: 10, marginBottom: 12 }}>
+              <TouchableOpacity
+                onPress={handlePickFiles}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  backgroundColor: "#6366f1",
+                  paddingVertical: 10,
+                  paddingHorizontal: 16,
+                  borderRadius: 10,
+                  gap: 8,
+                }}
+              >
+                <BootstrapIcon name="folder-plus" size={16} color="#ffffff" />
+                <Text style={{ color: "#ffffff", fontWeight: "600", fontSize: 13 }}>
+                  Browse & Attach Files
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Custom File Adder Row */}
+            <View style={styles.fileAddRow}>
+              <TextInput
+                value={customFileText}
+                onChangeText={setCustomFileText}
+                placeholder="Or type filename to attach (e.g. App.tsx, server.js)"
+                placeholderTextColor="#94a3b8"
                 style={[
-                  styles.fileTogglesContainer,
+                  styles.fileAddInput,
                   {
-                    backgroundColor: isDark ? currentColors.divider : "#f8fafc",
+                    backgroundColor: currentColors.inputBg,
                     borderColor: currentColors.border,
+                    color: currentColors.text,
                   },
                 ]}
-              >
-                {templates
-                  .find((t) => t.title === selectedTemplate)
-                  ?.files.map((fileName) => {
-                    const included = files.some((f) => f.name === fileName);
-                    return (
-                      <TouchableOpacity
-                        key={fileName}
-                        onPress={() => toggleTemplateFile(fileName)}
-                        style={styles.fileToggleRow}
-                      >
-                        <View style={styles.fileToggleLeft}>
-                          <BootstrapIcon name="file-earmark" size={12} color="#64748b" />
-                          <Text style={[styles.fileToggleText, { color: currentColors.text }]}>
-                            {fileName}
-                          </Text>
-                        </View>
-                        <BootstrapIcon
-                          name={included ? "check-square" : "square"}
-                          size={14}
-                          color={included ? "#6366f1" : "#94a3b8"}
-                        />
-                      </TouchableOpacity>
-                    );
-                  })}
-
-                {/* Custom File Adder Row */}
-                <View style={styles.fileAddRow}>
-                  <TextInput
-                    value={customFileText}
-                    onChangeText={setCustomFileText}
-                    placeholder="Add custom file name (e.g. index.js)"
-                    placeholderTextColor="#94a3b8"
-                    style={[
-                      styles.fileAddInput,
-                      {
-                        backgroundColor: currentColors.inputBg,
-                        borderColor: currentColors.border,
-                        color: currentColors.text,
-                      },
-                    ]}
-                  />
-                  <TouchableOpacity onPress={handleAddCustomFile} style={styles.fileAddBtn}>
-                    <Text style={styles.fileAddBtnText}>Add</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
+              />
+              <TouchableOpacity onPress={handleAddCustomFile} style={styles.fileAddBtn}>
+                <Text style={styles.fileAddBtnText}>Add</Text>
+              </TouchableOpacity>
             </View>
-          )}
 
-          {/* Custom attached files summary */}
-          {files.length > 0 && (
-            <View style={{ marginBottom: 12 }}>
-              <Text style={[styles.fileTogglesTitle, { color: currentColors.text }]}>
-                Included Submission Files
-              </Text>
-              <View style={styles.filesList}>
+            {/* Attached files list */}
+            {files.length > 0 ? (
+              <View style={[styles.filesList, { marginTop: 12 }]}>
                 {files.map((f, idx) => (
                   <View
                     key={idx}
                     style={[
                       styles.fileItem,
-                      { backgroundColor: isDark ? currentColors.divider : "#f1f5f9" },
+                      { backgroundColor: isDark ? currentColors.card : "#ffffff" },
                     ]}
                   >
-                    <BootstrapIcon name="file-earmark-text" size={14} color="#6366f1" />
+                    <BootstrapIcon name="file-earmark-code" size={16} color="#6366f1" />
                     <View style={styles.fileDetails}>
                       <Text
                         style={[styles.fileName, { color: currentColors.text }]}
@@ -1040,33 +828,14 @@ function SubmissionPanel({
                   </View>
                 ))}
               </View>
-            </View>
-          )}
-
-          {/* GitHub Repository URL */}
-          <Text style={[styles.inputLabel, { color: currentColors.text }]}>
-            GitHub Repository URL
-          </Text>
-          <TextInput
-            style={[
-              styles.notesInput,
-              {
-                height: 40,
-                marginBottom: 12,
-                paddingVertical: 8,
-                backgroundColor: currentColors.inputBg,
-                borderColor: currentColors.border,
-                color: currentColors.text,
-              },
-            ]}
-            value={githubUrl}
-            onChangeText={(text) => {
-              setGithubUrl(text);
-              setValidationError("");
-            }}
-            placeholder="https://github.com/username/project"
-            placeholderTextColor="#94a3b8"
-          />
+            ) : (
+              <View style={{ paddingVertical: 12, alignItems: "center" }}>
+                <Text style={{ color: currentColors.subtext, fontSize: 13 }}>
+                  No files attached yet. You can attach source files or paste your GitHub link above.
+                </Text>
+              </View>
+            )}
+          </View>
 
           {/* Note for Evaluator */}
           <Text style={[styles.inputLabel, { color: currentColors.text }]}>
@@ -1085,7 +854,7 @@ function SubmissionPanel({
             numberOfLines={3}
             value={note}
             onChangeText={setNote}
-            placeholder="Notes for evaluator (optional)…"
+            placeholder="Write any comments, instructions or deployment URLs for the evaluator…"
             placeholderTextColor="#94a3b8"
           />
         </View>

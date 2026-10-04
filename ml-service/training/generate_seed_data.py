@@ -7,7 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent
 DATASET_DIR = BASE_DIR / "datasets"
 DATASET_DIR.mkdir(parents=True, exist_ok=True)
 
-# 1. Courses Catalog
+# 1. Courses Catalog with Embedded Streaming Video URLs
 COURSES = [
     # Frontend
     {
@@ -18,7 +18,8 @@ COURSES = [
         "time_weeks": 3,
         "skills": ["HTML", "CSS", "Responsive Design", "Flexbox", "CSS Grid"],
         "description": "Master foundational web markup, layout systems, and responsive web design principles.",
-        "difficulty_level": 1
+        "difficulty_level": 1,
+        "video_url": "https://www.youtube.com/embed/0xMQfnTU6oo"
     },
     {
         "id": "fe-002",
@@ -28,7 +29,8 @@ COURSES = [
         "time_weeks": 5,
         "skills": ["JavaScript", "ES6", "Async/Await", "DOM Manipulation", "Closures"],
         "description": "Core JavaScript programming, modern syntax, asynchronous patterns, and browser APIs.",
-        "difficulty_level": 2
+        "difficulty_level": 2,
+        "video_url": "https://www.youtube.com/embed/hdI2bqOjy3c"
     },
     {
         "id": "fe-003",
@@ -38,7 +40,8 @@ COURSES = [
         "time_weeks": 6,
         "skills": ["React", "Hooks", "Component Design", "Context API", "SPA"],
         "description": "Build interactive single-page applications with React functional components and custom hooks.",
-        "difficulty_level": 3
+        "difficulty_level": 3,
+        "video_url": "https://www.youtube.com/embed/Ke90Tje7VS0"
     },
     {
         "id": "fe-004",
@@ -48,7 +51,8 @@ COURSES = [
         "time_weeks": 4,
         "skills": ["TypeScript", "Type Safety", "Generics", "React with TS"],
         "description": "Learn strict typing, interface contracts, generics, and robust React frontend development.",
-        "difficulty_level": 3
+        "difficulty_level": 3,
+        "video_url": "https://www.youtube.com/embed/d56mG7DezGs"
     },
     {
         "id": "fe-005",
@@ -58,7 +62,8 @@ COURSES = [
         "time_weeks": 6,
         "skills": ["Next.js", "Server Components", "SSR", "App Router", "Performance Optimization"],
         "description": "Enterprise full-stack React architecture with Server Components, streaming, and SEO.",
-        "difficulty_level": 4
+        "difficulty_level": 4,
+        "video_url": "https://www.youtube.com/embed/wm5gMKuwSYk"
     },
     {
         "id": "fe-006",
@@ -68,7 +73,8 @@ COURSES = [
         "time_weeks": 5,
         "skills": ["Web Vitals", "Lighthouse", "Code Splitting", "Microfrontends", "WASM"],
         "description": "Sub-second load times, asset pipeline optimization, rendering pipelines, and modular scaling.",
-        "difficulty_level": 5
+        "difficulty_level": 5,
+        "video_url": "https://www.youtube.com/embed/t5fjIW3tB00"
     },
 
     # Backend
@@ -80,7 +86,8 @@ COURSES = [
         "time_weeks": 4,
         "skills": ["Node.js", "Express", "RESTful API", "Middleware", "JSON"],
         "description": "Build production-grade REST APIs with routing, error handling, and modular controllers.",
-        "difficulty_level": 2
+        "difficulty_level": 2,
+        "video_url": "https://www.youtube.com/embed/Oe421EPjeBE"
     },
     {
         "id": "be-002",
@@ -90,7 +97,8 @@ COURSES = [
         "time_weeks": 4,
         "skills": ["PostgreSQL", "SQL", "Database Design", "Indexing", "ACID"],
         "description": "Data modeling, relational constraints, complex joins, indexing strategies, and migrations.",
-        "difficulty_level": 2
+        "difficulty_level": 2,
+        "video_url": "https://www.youtube.com/embed/7S_tz1z_5bA"
     },
     {
         "id": "be-003",
@@ -100,7 +108,8 @@ COURSES = [
         "time_weeks": 3,
         "skills": ["Authentication", "JWT", "OAuth2", "CORS", "Cybersecurity", "Bcrypt"],
         "description": "Secure API endpoints with token authentication, role-based access control (RBAC), and sanitization.",
-        "difficulty_level": 3
+        "difficulty_level": 3,
+        "video_url": "https://www.youtube.com/embed/mbsmsi7l3r4"
     },
     {
         "id": "be-004",
@@ -110,7 +119,8 @@ COURSES = [
         "time_weeks": 5,
         "skills": ["Microservices", "Docker", "gRPC", "Protobuf", "API Gateway"],
         "description": "Containerize distributed backend services, inter-service communication, and orchestration.",
-        "difficulty_level": 4
+        "difficulty_level": 4,
+        "video_url": "https://www.youtube.com/embed/35EQXmHKZYs"
     },
     {
         "id": "be-005",
@@ -120,7 +130,8 @@ COURSES = [
         "time_weeks": 6,
         "skills": ["Redis", "RabbitMQ", "Kafka", "Event-Driven", "Caching Strategies"],
         "description": "High-throughput event streaming, distributed caching, pub/sub queues, and idempotency.",
-        "difficulty_level": 5
+        "difficulty_level": 5,
+        "video_url": "https://www.youtube.com/embed/jgpVdJB2sKQ"
     },
 
     # Mobile
@@ -132,7 +143,8 @@ COURSES = [
         "time_weeks": 4,
         "skills": ["React Native", "Expo", "Mobile UI", "Flexbox", "Cross-Platform"],
         "description": "Build and test native iOS and Android apps with a single modern JavaScript/TypeScript codebase.",
-        "difficulty_level": 2
+        "difficulty_level": 2,
+        "video_url": "https://www.youtube.com/embed/0-S5a0eXPoc"
     },
     {
         "id": "mob-002",
@@ -142,7 +154,8 @@ COURSES = [
         "time_weeks": 4,
         "skills": ["React Navigation", "Reanimated", "Gesture Handler", "Mobile UX"],
         "description": "Fluid 60 FPS transitions, drawer/tab hierarchies, interactive gestures, and haptic feedback.",
-        "difficulty_level": 3
+        "difficulty_level": 3,
+        "video_url": "https://www.youtube.com/embed/UVUPEokN8Mw"
     },
     {
         "id": "mob-003",
@@ -152,7 +165,8 @@ COURSES = [
         "time_weeks": 5,
         "skills": ["Offline-First", "WatermelonDB", "SQLite", "Background Sync", "Push Notifications"],
         "description": "Local persistence, optimistic UI updates, conflict resolution, and background workers.",
-        "difficulty_level": 4
+        "difficulty_level": 4,
+        "video_url": "https://www.youtube.com/embed/kGtEax1WQFg"
     },
 
     # AI / Data Science
@@ -164,7 +178,8 @@ COURSES = [
         "time_weeks": 4,
         "skills": ["Python", "NumPy", "Pandas", "Data Cleaning", "Matplotlib"],
         "description": "Data manipulation, exploratory data analysis (EDA), and numerical computing foundations.",
-        "difficulty_level": 2
+        "difficulty_level": 2,
+        "video_url": "https://www.youtube.com/embed/rfscVS0vtbw"
     },
     {
         "id": "ai-002",
@@ -174,7 +189,8 @@ COURSES = [
         "time_weeks": 5,
         "skills": ["Machine Learning", "Scikit-Learn", "Regression", "Classification", "Clustering"],
         "description": "Train, evaluate, and tune predictive models like Random Forest, XGBoost, and K-Means.",
-        "difficulty_level": 3
+        "difficulty_level": 3,
+        "video_url": "https://www.youtube.com/embed/7eh4d6sabA0"
     },
     {
         "id": "ai-003",
@@ -184,7 +200,8 @@ COURSES = [
         "time_weeks": 6,
         "skills": ["PyTorch", "Deep Learning", "CNN", "RNN", "Backpropagation"],
         "description": "Build custom neural network architectures for computer vision and sequence processing.",
-        "difficulty_level": 4
+        "difficulty_level": 4,
+        "video_url": "https://www.youtube.com/embed/V_xro1bcAuA"
     },
     {
         "id": "ai-004",
@@ -194,7 +211,8 @@ COURSES = [
         "time_weeks": 5,
         "skills": ["LLMs", "RAG", "Embeddings", "LangChain", "Prompt Engineering", "Fine-Tuning"],
         "description": "Implement enterprise RAG pipelines, vector databases (pgvector), and fine-tuned AI assistants.",
-        "difficulty_level": 5
+        "difficulty_level": 5,
+        "video_url": "https://www.youtube.com/embed/ySEx_Bqxvvo"
     },
     {
         "id": "ai-005",
@@ -204,7 +222,8 @@ COURSES = [
         "time_weeks": 4,
         "skills": ["MLOps", "FastAPI", "Docker", "Model Monitoring", "MLflow", "CI/CD"],
         "description": "Package, serve low-latency REST ML inference APIs, monitor data drift, and automate pipelines.",
-        "difficulty_level": 5
+        "difficulty_level": 5,
+        "video_url": "https://www.youtube.com/embed/4aTRp62_x6Q"
     }
 ]
 
@@ -275,9 +294,8 @@ JOBS = [
     }
 ]
 
-# 3. Adaptive Assessment Question Bank with IRT Parameters (Difficulty b: -2.5 to +2.5, Discrimination a: 0.5 to 2.5)
+# 3. Adaptive Assessment Question Bank with IRT Parameters
 ASSESSMENT_QUESTIONS = [
-    # Frontend Questions
     {
         "id": "q-fe-01",
         "domain": "Frontend",
@@ -452,7 +470,7 @@ ASSESSMENT_QUESTIONS = [
         "correct_index": 0,
         "difficulty_b": 1.2,
         "discrimination_a": 1.9,
-        "explanation": "Because Sigmoid's derivative is $\le 0.25$, multiplying gradients backwards across many layers decays them to 0."
+        "explanation": "Because Sigmoid's derivative is <= 0.25, multiplying gradients backwards across many layers decays them to 0."
     },
     {
         "id": "q-ai-04",
@@ -472,7 +490,7 @@ ASSESSMENT_QUESTIONS = [
     }
 ]
 
-# 4. Generate Synthetic User Profiles & Interaction History for Collaborative Learning
+# 4. Generate Synthetic User Profiles & Interaction History
 def generate_synthetic_telemetry(num_users=250):
     users = []
     interactions = []
@@ -489,7 +507,6 @@ def generate_synthetic_telemetry(num_users=250):
         goal = random.choice(learning_goals)
         pace = random.choice(paces)
 
-        # Baseline ability theta from normal distribution centered around skill level
         theta_base = -1.0 if level == "Beginner" else (0.2 if level == "Intermediate" else 1.4)
         user_theta = float(random.gauss(theta_base, 0.5))
 
@@ -503,17 +520,14 @@ def generate_synthetic_telemetry(num_users=250):
             "mastered_skills": []
         }
 
-        # Simulate course interactions
         domain_courses = [c for c in COURSES if c["domain"] == primary_domain]
         other_courses = [c for c in COURSES if c["domain"] != primary_domain]
 
-        # Student interacts more with their primary domain
         chosen_courses = random.sample(domain_courses, k=min(len(domain_courses), random.randint(2, len(domain_courses))))
         if random.random() < 0.4 and other_courses:
             chosen_courses.append(random.choice(other_courses))
 
         for course in chosen_courses:
-            # Completion probability depends on difficulty vs user ability
             difficulty_num = course["difficulty_level"]
             prob_success = 1.0 / (1.0 + pow(2.71828, -(user_theta * 1.5 - (difficulty_num - 2.5))))
             
@@ -544,7 +558,7 @@ def main():
     
     with open(DATASET_DIR / "courses.json", "w", encoding="utf-8") as f:
         json.dump(COURSES, f, indent=2)
-        print(f"Saved {len(COURSES)} courses to datasets/courses.json")
+        print(f"Saved {len(COURSES)} courses with video URLs to datasets/courses.json")
 
     with open(DATASET_DIR / "jobs.json", "w", encoding="utf-8") as f:
         json.dump(JOBS, f, indent=2)

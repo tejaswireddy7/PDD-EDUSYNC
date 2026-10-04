@@ -189,7 +189,7 @@
     "correct_index": 0,
     "difficulty_b": 1.2,
     "discrimination_a": 1.9,
-    "explanation": "Because Sigmoid's derivative is $\\le 0.25$, multiplying gradients backwards across many layers decays them to 0."
+    "explanation": "Because Sigmoid's derivative is <= 0.25, multiplying gradients backwards across many layers decays them to 0."
   },
   {
     "id": "q-ai-04",

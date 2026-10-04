@@ -20,6 +20,7 @@ class RecommendedCourseItem(BaseModel):
     difficulty: str
     time_weeks: int
     skills: List[str]
+    video_url: Optional[str] = None
     new_skills_acquired: List[str]
     match_score: float
     ai_reason: str

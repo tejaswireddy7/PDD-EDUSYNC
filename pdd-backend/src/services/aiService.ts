@@ -19,6 +19,7 @@ export interface MLCourseRecommendation {
   difficulty: string;
   time_weeks: number;
   skills: string[];
+  video_url?: string;
   new_skills_acquired: string[];
   match_score: number;
   ai_reason: string;

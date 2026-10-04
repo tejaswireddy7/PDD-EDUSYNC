@@ -112,6 +112,7 @@ class EduSyncHybridRecommender:
                 "difficulty": row["difficulty"],
                 "time_weeks": int(row["time_weeks"]),
                 "skills": row["skills"],
+                "video_url": row.get("video_url", "https://www.youtube.com/embed/hdI2bqOjy3c"),
                 "new_skills_acquired": new_skills,
                 "match_score": round(min(max(final_score * 100.0, 45.0), 99.0), 1),
                 "ai_reason": f"Matches your {domain} target with {len(new_skills)} high-demand skills."

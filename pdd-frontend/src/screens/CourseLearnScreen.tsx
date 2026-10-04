@@ -601,6 +601,28 @@ export default function CourseLearnScreen() {
       <View style={styles.layoutRow}>
         {/* LEFT COLUMN - VIDEO PLAYER */}
         <View style={styles.leftCol}>
+          {/* AI Curated Stream Tag */}
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              alignSelf: "flex-start",
+              backgroundColor: "#1e1b4b",
+              borderWidth: 1,
+              borderColor: "#6366f140",
+              paddingVertical: 5,
+              paddingHorizontal: 12,
+              borderRadius: 20,
+              marginBottom: 10,
+              gap: 6,
+            }}
+          >
+            <MaterialCommunityIcons name="robot" size={15} color="#818cf8" />
+            <Text style={{ fontSize: 12, fontWeight: "700", color: "#818cf8", letterSpacing: 0.3 }}>
+              AI MATCHED VIDEO STREAM
+            </Text>
+          </View>
+
           <View style={styles.videoPlayerContainer}>
             {Platform.OS === "web" ? (
               !showFifteenMinQuiz ? (

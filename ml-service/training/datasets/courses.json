@@ -13,7 +13,8 @@
       "CSS Grid"
     ],
     "description": "Master foundational web markup, layout systems, and responsive web design principles.",
-    "difficulty_level": 1
+    "difficulty_level": 1,
+    "video_url": "https://www.youtube.com/embed/0xMQfnTU6oo"
   },
   {
     "id": "fe-002",
@@ -29,7 +30,8 @@
       "Closures"
     ],
     "description": "Core JavaScript programming, modern syntax, asynchronous patterns, and browser APIs.",
-    "difficulty_level": 2
+    "difficulty_level": 2,
+    "video_url": "https://www.youtube.com/embed/hdI2bqOjy3c"
   },
   {
     "id": "fe-003",
@@ -45,7 +47,8 @@
       "SPA"
     ],
     "description": "Build interactive single-page applications with React functional components and custom hooks.",
-    "difficulty_level": 3
+    "difficulty_level": 3,
+    "video_url": "https://www.youtube.com/embed/Ke90Tje7VS0"
   },
   {
     "id": "fe-004",
@@ -60,7 +63,8 @@
       "React with TS"
     ],
     "description": "Learn strict typing, interface contracts, generics, and robust React frontend development.",
-    "difficulty_level": 3
+    "difficulty_level": 3,
+    "video_url": "https://www.youtube.com/embed/d56mG7DezGs"
   },
   {
     "id": "fe-005",
@@ -76,7 +80,8 @@
       "Performance Optimization"
     ],
     "description": "Enterprise full-stack React architecture with Server Components, streaming, and SEO.",
-    "difficulty_level": 4
+    "difficulty_level": 4,
+    "video_url": "https://www.youtube.com/embed/wm5gMKuwSYk"
   },
   {
     "id": "fe-006",
@@ -92,7 +97,8 @@
       "WASM"
     ],
     "description": "Sub-second load times, asset pipeline optimization, rendering pipelines, and modular scaling.",
-    "difficulty_level": 5
+    "difficulty_level": 5,
+    "video_url": "https://www.youtube.com/embed/t5fjIW3tB00"
   },
   {
     "id": "be-001",
@@ -108,7 +114,8 @@
       "JSON"
     ],
     "description": "Build production-grade REST APIs with routing, error handling, and modular controllers.",
-    "difficulty_level": 2
+    "difficulty_level": 2,
+    "video_url": "https://www.youtube.com/embed/Oe421EPjeBE"
   },
   {
     "id": "be-002",
@@ -124,7 +131,8 @@
       "ACID"
     ],
     "description": "Data modeling, relational constraints, complex joins, indexing strategies, and migrations.",
-    "difficulty_level": 2
+    "difficulty_level": 2,
+    "video_url": "https://www.youtube.com/embed/7S_tz1z_5bA"
   },
   {
     "id": "be-003",
@@ -141,7 +149,8 @@
       "Bcrypt"
     ],
     "description": "Secure API endpoints with token authentication, role-based access control (RBAC), and sanitization.",
-    "difficulty_level": 3
+    "difficulty_level": 3,
+    "video_url": "https://www.youtube.com/embed/mbsmsi7l3r4"
   },
   {
     "id": "be-004",
@@ -157,7 +166,8 @@
       "API Gateway"
     ],
     "description": "Containerize distributed backend services, inter-service communication, and orchestration.",
-    "difficulty_level": 4
+    "difficulty_level": 4,
+    "video_url": "https://www.youtube.com/embed/35EQXmHKZYs"
   },
   {
     "id": "be-005",
@@ -173,7 +183,8 @@
       "Caching Strategies"
     ],
     "description": "High-throughput event streaming, distributed caching, pub/sub queues, and idempotency.",
-    "difficulty_level": 5
+    "difficulty_level": 5,
+    "video_url": "https://www.youtube.com/embed/jgpVdJB2sKQ"
   },
   {
     "id": "mob-001",
@@ -189,7 +200,8 @@
       "Cross-Platform"
     ],
     "description": "Build and test native iOS and Android apps with a single modern JavaScript/TypeScript codebase.",
-    "difficulty_level": 2
+    "difficulty_level": 2,
+    "video_url": "https://www.youtube.com/embed/0-S5a0eXPoc"
   },
   {
     "id": "mob-002",
@@ -204,7 +216,8 @@
       "Mobile UX"
     ],
     "description": "Fluid 60 FPS transitions, drawer/tab hierarchies, interactive gestures, and haptic feedback.",
-    "difficulty_level": 3
+    "difficulty_level": 3,
+    "video_url": "https://www.youtube.com/embed/UVUPEokN8Mw"
   },
   {
     "id": "mob-003",
@@ -220,7 +233,8 @@
       "Push Notifications"
     ],
     "description": "Local persistence, optimistic UI updates, conflict resolution, and background workers.",
-    "difficulty_level": 4
+    "difficulty_level": 4,
+    "video_url": "https://www.youtube.com/embed/kGtEax1WQFg"
   },
   {
     "id": "ai-001",
@@ -236,7 +250,8 @@
       "Matplotlib"
     ],
     "description": "Data manipulation, exploratory data analysis (EDA), and numerical computing foundations.",
-    "difficulty_level": 2
+    "difficulty_level": 2,
+    "video_url": "https://www.youtube.com/embed/rfscVS0vtbw"
   },
   {
     "id": "ai-002",
@@ -252,7 +267,8 @@
       "Clustering"
     ],
     "description": "Train, evaluate, and tune predictive models like Random Forest, XGBoost, and K-Means.",
-    "difficulty_level": 3
+    "difficulty_level": 3,
+    "video_url": "https://www.youtube.com/embed/7eh4d6sabA0"
   },
   {
     "id": "ai-003",
@@ -268,7 +284,8 @@
       "Backpropagation"
     ],
     "description": "Build custom neural network architectures for computer vision and sequence processing.",
-    "difficulty_level": 4
+    "difficulty_level": 4,
+    "video_url": "https://www.youtube.com/embed/V_xro1bcAuA"
   },
   {
     "id": "ai-004",
@@ -285,7 +302,8 @@
       "Fine-Tuning"
     ],
     "description": "Implement enterprise RAG pipelines, vector databases (pgvector), and fine-tuned AI assistants.",
-    "difficulty_level": 5
+    "difficulty_level": 5,
+    "video_url": "https://www.youtube.com/embed/ySEx_Bqxvvo"
   },
   {
     "id": "ai-005",
@@ -302,6 +320,7 @@
       "CI/CD"
     ],
     "description": "Package, serve low-latency REST ML inference APIs, monitor data drift, and automate pipelines.",
-    "difficulty_level": 5
+    "difficulty_level": 5,
+    "video_url": "https://www.youtube.com/embed/4aTRp62_x6Q"
   }
 ]

@@ -564,7 +564,7 @@ function SubmissionPanel({
 
           {isAdvanced ? (
             <Text style={[styles.successDesc, { color: currentColors.subtext }]}>
-              Your project "{selectedTemplate || "Source Code Submission"}" has been submitted for
+              Your project "{assessment.title || "Source Code Submission"}" has been submitted for
               AI feedback. Detailed rubric mapping is ready in the Gradebook.
             </Text>
           ) : (
